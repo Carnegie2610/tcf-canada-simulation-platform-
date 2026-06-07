@@ -1,5 +1,4 @@
--- Enable UUID generator extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- uuid-ossp not needed — gen_random_uuid() is built into PG 13+
 
 -- =========================================================================
 -- 1. PROFILES TABLE
@@ -23,7 +22,7 @@ CREATE TABLE public.profiles (
 -- 2. EXAMS TABLE
 -- =========================================================================
 CREATE TABLE public.exams (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
     section VARCHAR(50) NOT NULL CHECK (section IN ('SECTION_A', 'SECTION_B')),
     prompt_text TEXT NOT NULL,
@@ -36,7 +35,7 @@ CREATE TABLE public.exams (
 -- 3. SUBMISSIONS TABLE
 -- =========================================================================
 CREATE TABLE public.submissions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     exam_id UUID NOT NULL REFERENCES public.exams(id) ON DELETE CASCADE,
     user_draft TEXT NOT NULL,
@@ -52,7 +51,7 @@ CREATE TABLE public.submissions (
 -- 4. EVALUATIONS TABLE
 -- =========================================================================
 CREATE TABLE public.evaluations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     submission_id UUID NOT NULL UNIQUE REFERENCES public.submissions(id) ON DELETE CASCADE,
     cefr_level VARCHAR(10) NOT NULL CHECK (cefr_level IN ('A1', 'A2', 'B1', 'B2', 'C1', 'C2')),
     global_score INTEGER NOT NULL CHECK (global_score >= 0 AND global_score <= 100),

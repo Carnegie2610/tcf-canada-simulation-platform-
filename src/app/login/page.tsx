@@ -17,26 +17,28 @@ export default function LoginPage() {
 
     const supabase = createSupabaseBrowserClient();
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({ email, password });
 
-    if (authError) {
-      setError("Identifiants incorrects ou compte suspendu.");
+      if (authError || !authData.user) {
+        setError("Identifiants incorrects ou compte suspendu.");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (profile?.role === "admin" || profile?.role === "super_admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
+    } finally {
       setLoading(false);
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .single();
-
-    if (profile?.role === "admin" || profile?.role === "super_admin") {
-      router.push("/admin");
-    } else {
-      router.push("/dashboard");
     }
   }
 
