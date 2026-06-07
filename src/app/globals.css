@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --brand-red: #E63329;
+  --brand-white: #F5F5F0;
+  --slate-950: #0A0E17;
+  --slate-900: #111827;
+  --slate-800: #1F2937;
+  --slate-700: #374151;
+  --slate-500: #6B7280;
+  --slate-400: #9CA3AF;
+  --slate-200: #E5E7EB;
+  --blue-600: #2563EB;
+  --blue-500: #3B82F6;
+  --highlight-gold: #F59E0B;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--slate-950);
+  --color-foreground: var(--slate-200);
+  --font-sans: var(--font-jakarta);
+  --font-display: var(--font-sora);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--slate-950);
+  color: var(--slate-200);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+}
+
+/* Atmospheric glow behind hero headline */
+.hero-glow {
+  position: relative;
+}
+.hero-glow::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(230, 51, 41, 0.08) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Premium content — blocks selection and pointer interaction */
+.secure-canvas-wrapper {
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
 }
