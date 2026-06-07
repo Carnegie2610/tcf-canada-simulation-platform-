@@ -1,0 +1,111 @@
+# Descrition
+
+This document outlines the functional and technical requirements for the **Student Performance Auditor** module. This tool allows Administrators and Super Admins to monitor student engagement, review submitted essay drafts (Section A and Section B of TEF/TCF), read both automated and manually overridden evaluation metrics, and analyze progression trends.
+
+## 1. Functional Objective
+
+The Student Performance Auditor bridges the gap between automated self-study and human administrative oversight. It ensures that instructors can:
+
+- Search and filter student profiles by name, email, target exam, or active cohort tag.
+- View a read-only, high-fidelity replication of any student’s progress dashboard.
+- Access a deep historical archive of all written submissions.
+- Review details of essay prompts, student draft outputs, and associated AI evaluation reports (including CEFR-level feedback, grammar critiques, and vocabulary suggestions).
+- Inspect analytics trends detailing a student's linguistic improvement across multiple simulation attempts.
+- add simulation questions that students will access during their simulation practice
+- create delete update users etc
+
+## 2. Inputs, Outputs, and Triggers
+
+### Triggers
+
+- **UI Trigger A:** The Administrator navigates to `/admin/auditor` and searches for a specific candidate's name or email.
+- **UI Trigger B:** The Administrator clicks on the "Audit Performance" button directly on a student's row within the central `/admin/users` management portal.
+- **API Trigger:** A GET request is dispatched to `/api/admin/audit/student/{student_id}`.
+
+### Inputs (Search, Filter, and View State Parameters)
+
+- `student_id` (UUID, Required): The target student profile being audited.
+- `filter_exam_type` (Enum, Optional): `[TEF, TCF, ALL]`.
+- `filter_section` (Enum, Optional): `[SECTION_A, SECTION_B, ALL]`.
+- `date_range` (Date Object, Optional): Star/End parameters to isolate drafts from a specific instruction window.
+
+### Outputs
+
+- **On Success:**
+    - Returns HTTP `200 OK` with a structured payload containing:
+        - Detailed student summary statistics (total simulation attempts, credit consumption rate, average score).
+        - Submissions history array (chronological list of essays completed).
+        - Cohort metrics comparison metrics.
+    - Renders the administrative Auditing Viewport displaying metric charts, draft histories, and deep evaluation cards.
+- **On Failure:**
+    - Returns HTTP `404 Not Found` if the student ID is invalid or missing from the active profiles repository.
+    - Returns HTTP `403 Forbidden` if a non-admin account attempts to query the path.
+
+## 3. Step-by-Step Execution Logic
+
+```
+  [ Admin Enters Search/Clicks Audit Button ]
+                      │
+                      ▼
+        [ Call GET /api/admin/audit/... ]
+                      │
+                      ▼
+        [ Validate Admin Session Role ]
+                      │
+         ┌────────────┴────────────┐
+      (Valid)                   (Invalid)
+         ▼                         ▼
+  [ Query Database Profile ]  [ Reject 403 Forbidden ]
+         │
+         ├──► (Student Missing) ──► [ Return 404 UI Error Alert ]
+         │
+      (Found)
+         ▼
+  [ Gather Analytical Metrics ]
+         ├─► Calculate average CEFR score (numerical mapping)
+         ├─► Retrieve submission history (drafts + AI feedback)
+         └─► Calculate cohort-wide comparative aggregates
+                      │
+                      ▼
+  [ Render Auditor Dashboard UI Components ]
+```
+
+### Detailed Logic Breakdown
+
+1. **Access Authorization Check:**
+    - The server-side API middleware intercepts the request and verifies that the authentication token contains claims matching `role == 'admin'` or `role == 'super_admin'`.
+2. **Metric Score Compilation Logic:**
+    - Because CEFR levels ($A1, A2, B1, B2, C1, C2$) are textual labels, the system maps them programmatically to numerical values ($1 \dots 6$) to compute progress metrics:
+    $$\text{CEFR Score Mapping } (S_i): \{ A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6 \}$$
+    - Calculate the individual student's average score over $N$ successfully evaluated essays:
+    $$\bar{S}_{\text{student}} = \frac{1}{N} \sum_{i=1}^{N} S_i$$
+    - Query the baseline parameters of the cohort $C$ matching the student's `cohort_tag` to compute the group's mathematical average:
+    $$\mu_{\text{cohort}} = \frac{1}{M} \sum_{j=1}^{M} S_j \quad (\text{where } M \text{ is total cohort submissions})$$
+    - Derive the delta value to display performance deviations:
+    $$\Delta = \bar{S}_{\text{student}} - \mu_{\text{cohort}}$$
+3. **Submissions Log Extraction:**
+    - Perform an indexed search on the `submissions` table matching the specific `student_id`.
+    - Order records chronologically descending (`created_at DESC`) to prioritize recent student activity.
+    - If a submission does not have completed AI evaluation payloads (e.g., if AI evaluation was disabled for a $5000$ francs tier subscription, or failed to compute), compile the record containing only the raw text response state.
+4. **Constructing the Audit Interface Panel:**
+    - **Profile Detail Panel:** Show current plan, remaining simulation limits ($\text{simulations\_remaining}$), registered cohort tags, and account registration vs. expiration timestamps.
+    - **Progression Charting:** Render an interactive line graph displaying the historical numerical progress maps ($S_i$) over chronological submission dates.
+    - **Draft Inspection Detail Drawer:** A side-sliding UI drawer that opens when clicking a submission row, rendering:
+        - Side-by-Side Viewport: Original writing prompt details on the left; student draft text on the right.
+        - Diagnostic Tab: Grammatical errors highlighted with correction flags, structural score, and vocabulary enhancement cards provided by the CEFR evaluator.
+
+## 4. Local Error & Edge-Case Handling
+
+- **Edge Case A: Partial Drafts & In-Progress Submissions**
+    - *The Issue:* The student is actively writing inside the simulation interface, resulting in a session state record without a final submission text payload.
+    - *Handling:* Show this record within the Auditor log clearly marked with a visual badge labeled `"In Progress"`. Disable the "View Evaluation" drawer trigger for this specific session and display the timer status showing elapsed workspace duration.
+- **Edge Case B: Evaluated Drafts with Missing AI Feedback**
+    - *The Issue:* The student is registered on a lower tier (e.g., `PLAN_5000` with `ai_corrections_enabled: false`) where draft storage is supported but AI correction has not been triggered.
+    - *Handling:* Show the record in the list. Inside the inspection drawer, render the prompt and the student’s final text. In place of the diagnostic tabs, show an information notification card stating: `"AI Feedback Disabled: This submission was generated on a plan where AI evaluation is not active."` Provide an action button: `"Manually Trigger AI Evaluation (Consumes 1 administrative token)"`.
+- **Edge Case C: Deleted or Archived Cohort Tags**
+    - *The Issue:* A cohort tag has been renamed or deprecated in the configuration system, resulting in a comparative analysis error.
+    - *Handling:* Fall back to global averages. If $\mu_{\text{cohort}}$ is uncomputable because the cohort grouping is empty or deleted, replace cohort progress statistics with global site average stats:
+    $$\mu_{\text{global}} = \frac{1}{G} \sum_{k=1}^{G} S_k \quad (\text{where } G \text{ is total site-wide submissions})$$
+- **Edge Case D: Extreme Character Limits / Input Injection**
+    - *The Issue:* The student bypassed frontend inputs and submitted an excessively large body of characters or blank entries.
+    - *Handling:* Ensure the Auditor's inspection viewport uses virtualized rendering lists (`CSS overflow-y: scroll`) to prevent large payloads from lagging the browser. If the submission string is empty, display a notice of `"Empty Draft Submitted"`.
