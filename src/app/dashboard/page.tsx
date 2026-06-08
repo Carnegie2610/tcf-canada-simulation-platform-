@@ -1,15 +1,38 @@
-export default function DashboardPage() {
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { DashboardQuadrantGrid } from "@/components/organisms/student/DashboardQuadrantGrid";
+
+export default async function DashboardPage() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("simulations_quota, simulations_remaining")
+    .eq("id", user.id)
+    .single();
+
+  const simulationsUsed = (profile?.simulations_quota ?? 0) - (profile?.simulations_remaining ?? 0);
+  const simulationsTotal = profile?.simulations_quota ?? 0;
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[--slate-950] px-4">
-      <div className="text-center space-y-4">
-        <p className="text-5xl">✍️</p>
-        <h1 className="font-(family-name:--font-sora) text-3xl font-bold text-white">
-          Espace étudiant
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-[var(--brand-white)]">
+          Tableau de bord
         </h1>
-        <p className="text-[--slate-400]">
-          Votre espace de simulation est en cours de construction — Module 2.
+        <p className="mt-1 text-sm text-[var(--slate-400)]">
+          Bienvenue sur votre espace de préparation TEF/TCF Canada.
         </p>
       </div>
+      <DashboardQuadrantGrid
+        simulationsUsed={simulationsUsed}
+        simulationsTotal={simulationsTotal}
+      />
     </div>
   );
 }
