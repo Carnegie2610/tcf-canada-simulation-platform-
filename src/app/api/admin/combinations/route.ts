@@ -1,12 +1,13 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { updateExam, deleteExam } from "@/lib/admin/queries";
-import { UpdateExamSchema } from "@/lib/schemas-admin";
+import { listCombinations, createCombination } from "@/lib/admin/queries";
+import { CombinationSearchParamsSchema, CreateCombinationSchema } from "@/lib/schemas-admin";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
 
   const { data: profile } = await supabase
@@ -22,54 +23,37 @@ async function requireAdmin(supabase: Awaited<ReturnType<typeof createSupabaseSe
   return { user, role: profile.role as string };
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ examId: string }> }
-) {
+export async function GET(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
   const auth = await requireAdmin(supabase);
   if (auth.error) return auth.error;
 
-  const { examId } = await params;
-  if (!z.string().uuid().safeParse(examId).success) {
-    return NextResponse.json({ error: "Invalid exam ID" }, { status: 400 });
+  const rawParams = Object.fromEntries(request.nextUrl.searchParams.entries());
+  const parsed = CombinationSearchParamsSchema.safeParse(rawParams);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
+  const result = await listCombinations(supabase, parsed.data);
+  return NextResponse.json({ data: result });
+}
+
+export async function POST(request: NextRequest) {
+  const supabase = await createSupabaseServerClient();
+  const auth = await requireAdmin(supabase);
+  if (auth.error) return auth.error;
+
   const body: unknown = await request.json();
-  const parsed = UpdateExamSchema.safeParse(body);
+  const parsed = CreateCombinationSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
   try {
-    const exam = await updateExam(supabase, examId, parsed.data);
+    const combo = await createCombination(supabase, parsed.data);
     revalidatePath("/dashboard/exams");
     revalidatePath("/admin/exams");
-    return NextResponse.json({ data: exam });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ examId: string }> }
-) {
-  const supabase = await createSupabaseServerClient();
-  const auth = await requireAdmin(supabase);
-  if (auth.error) return auth.error;
-
-  const { examId } = await params;
-  if (!z.string().uuid().safeParse(examId).success) {
-    return NextResponse.json({ error: "Invalid exam ID" }, { status: 400 });
-  }
-
-  try {
-    await deleteExam(supabase, examId);
-    revalidatePath("/dashboard/exams");
-    revalidatePath("/admin/exams");
-    return new NextResponse(null, { status: 204 });
+    return NextResponse.json({ data: combo }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });

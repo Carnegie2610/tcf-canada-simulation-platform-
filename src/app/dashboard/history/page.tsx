@@ -3,6 +3,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { HistoryPanel } from "@/components/organisms/student/HistoryPanel";
 import { getStudentData } from "@/lib/student/queries";
 
+export const dynamic = "force-dynamic";
+
 export default async function HistoryPage() {
   const supabase = await createSupabaseServerClient();
   const {

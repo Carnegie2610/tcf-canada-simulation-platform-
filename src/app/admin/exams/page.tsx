@@ -4,12 +4,20 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ExamManagementTable } from "@/components/organisms/admin/ExamManagementTable";
 import { ExamForm } from "@/components/molecules/admin/ExamForm";
-import type { AdminExamListResponse, Exam } from "@/lib/admin/types";
+import { CombinationForm } from "@/components/molecules/admin/CombinationForm";
+import type {
+  AdminCombinationListResponse,
+  AdminExamListResponse,
+  Combination,
+  Exam,
+} from "@/lib/admin/types";
 
 export default function ExamsPage() {
   const router = useRouter();
-  const [data, setData] = useState<AdminExamListResponse | null>(null);
+  const [examData, setExamData] = useState<AdminExamListResponse | null>(null);
+  const [comboData, setComboData] = useState<AdminCombinationListResponse | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showCreateCombo, setShowCreateCombo] = useState(false);
   const [search, setSearch] = useState("");
   const [examType, setExamType] = useState("");
   const [section, setSection] = useState("");
@@ -21,17 +29,34 @@ export default function ExamsPage() {
     if (sec) params.set("section", sec);
     const res = await fetch(`/api/admin/exams?${params}`);
     const json = (await res.json()) as { data: AdminExamListResponse };
-    setData(json.data);
+    setExamData(json.data);
+  }
+
+  async function fetchCombinations(q?: string, et?: string) {
+    const params = new URLSearchParams({ pageSize: "50" });
+    if (q) params.set("search", q);
+    if (et) params.set("exam_type", et);
+    const res = await fetch(`/api/admin/combinations?${params}`);
+    const json = (await res.json()) as { data: AdminCombinationListResponse };
+    setComboData(json.data);
+  }
+
+  function fetchAll(q?: string, et?: string, sec?: string) {
+    void fetchExams(q, et, sec);
+    void fetchCombinations(q, et);
   }
 
   useEffect(() => {
-    void fetchExams();
+    fetchAll();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    void fetchExams(search || undefined, examType || undefined, section || undefined);
+    fetchAll(search || undefined, examType || undefined, section || undefined);
   }
+
+  const loading = examData === null || comboData === null;
 
   return (
     <div className="p-8">
@@ -42,12 +67,20 @@ export default function ExamsPage() {
             Gestion des sujets de simulation (TEF / TCF)
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="rounded-lg bg-[var(--blue-600)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--blue-500)] transition-colors"
-        >
-          + Créer une question
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="rounded-lg border border-[var(--slate-700)] px-4 py-2 text-sm font-semibold text-[var(--slate-300)] hover:text-[var(--brand-white)] transition-colors"
+          >
+            + Créer une question
+          </button>
+          <button
+            onClick={() => setShowCreateCombo(true)}
+            className="rounded-lg bg-[var(--blue-600)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--blue-500)] transition-colors"
+          >
+            + Créer une combinaison
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -95,22 +128,37 @@ export default function ExamsPage() {
       </form>
 
       <div className="mt-6">
-        {data === null ? (
+        {loading ? (
           <p className="text-sm text-[var(--slate-500)]">Chargement...</p>
         ) : (
-          <ExamManagementTable exams={data.exams} />
+          <ExamManagementTable
+            exams={examData.exams}
+            combinations={comboData.combinations}
+          />
         )}
       </div>
 
       {showCreate && (
         <ExamForm
           mode="create"
-          onSuccess={() => {
+          onSuccess={(_exam: Exam) => {
             setShowCreate(false);
-            void fetchExams(search || undefined, examType || undefined, section || undefined);
+            fetchAll(search || undefined, examType || undefined, section || undefined);
             router.refresh();
           }}
           onCancel={() => setShowCreate(false)}
+        />
+      )}
+
+      {showCreateCombo && (
+        <CombinationForm
+          mode="create"
+          onSuccess={(_combo: Combination) => {
+            setShowCreateCombo(false);
+            fetchAll(search || undefined, examType || undefined, section || undefined);
+            router.refresh();
+          }}
+          onCancel={() => setShowCreateCombo(false)}
         />
       )}
     </div>

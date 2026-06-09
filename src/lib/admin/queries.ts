@@ -1,15 +1,20 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeStudentAnalytics } from "./analytics";
 import type {
+  AdminCombinationListResponse,
   AdminExamListResponse,
   AdminProfile,
   AdminUserListResponse,
+  Combination,
+  CombinationTasks,
+  CreateCombinationInput,
   CreateExamInput,
   CreateUserInput,
   Exam,
   ExamSearchParams,
   StudentAuditData,
   SubmissionWithEvaluation,
+  UpdateCombinationInput,
   UpdateExamInput,
   UpdateUserInput,
   UserSearchParams,
@@ -250,5 +255,78 @@ export async function deleteExam(
   examId: string
 ): Promise<void> {
   const { error } = await supabase.from("exams").delete().eq("id", examId);
+  if (error) throw new Error(error.message);
+}
+
+export async function listCombinations(
+  supabase: SupabaseClient,
+  params: { search?: string; exam_type?: string; page: number; pageSize: number }
+): Promise<AdminCombinationListResponse> {
+  const { page, pageSize, search, exam_type } = params;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
+    .from("combinations")
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (search) query = query.ilike("title", `%${search}%`);
+  if (exam_type) query = query.eq("exam_type", exam_type);
+
+  const { data, count } = await query;
+
+  return {
+    combinations: (data ?? []) as Combination[],
+    total: count ?? 0,
+    page,
+    pageSize,
+  };
+}
+
+export async function createCombination(
+  supabase: SupabaseClient,
+  data: CreateCombinationInput
+): Promise<Combination> {
+  const { data: combo, error } = await supabase
+    .from("combinations")
+    .insert({
+      title: data.title,
+      exam_type: data.exam_type,
+      global_duration: data.global_duration,
+      tasks: data.tasks as unknown as CombinationTasks,
+    })
+    .select()
+    .single();
+
+  if (error || !combo) throw new Error(error?.message ?? "Failed to create combination");
+  return combo as Combination;
+}
+
+export async function updateCombination(
+  supabase: SupabaseClient,
+  combinationId: string,
+  data: UpdateCombinationInput
+): Promise<Combination> {
+  const { data: combo, error } = await supabase
+    .from("combinations")
+    .update(data as unknown as CombinationTasks)
+    .eq("id", combinationId)
+    .select()
+    .single();
+
+  if (error || !combo) throw new Error(error?.message ?? "Failed to update combination");
+  return combo as Combination;
+}
+
+export async function deleteCombination(
+  supabase: SupabaseClient,
+  combinationId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("combinations")
+    .delete()
+    .eq("id", combinationId);
   if (error) throw new Error(error.message);
 }

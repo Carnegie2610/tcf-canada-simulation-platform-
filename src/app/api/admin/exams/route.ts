@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { listExams, createExam } from "@/lib/admin/queries";
 import { ExamSearchParamsSchema, CreateExamSchema } from "@/lib/schemas-admin";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
   const { data: { user } } = await supabase.auth.getUser();
@@ -48,6 +49,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const exam = await createExam(supabase, parsed.data);
+    revalidatePath("/dashboard/exams");
+    revalidatePath("/admin/exams");
     return NextResponse.json({ data: exam }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Internal server error";

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 const StartSubmissionSchema = z.object({
   examId: z.string().uuid(),
@@ -63,5 +64,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "create_failed" }, { status: 500 });
   }
 
+  revalidatePath("/dashboard/exams");
   return NextResponse.json({ submissionId: submission.id, resumed: false });
 }

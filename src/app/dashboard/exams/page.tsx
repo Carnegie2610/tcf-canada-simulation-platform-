@@ -3,6 +3,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ExamPortalGrid } from "@/components/organisms/student/ExamPortalGrid";
 import { listExamsWithStatus } from "@/lib/student/queries";
 
+export const dynamic = "force-dynamic";
+
 export default async function ExamsPage() {
   const supabase = await createSupabaseServerClient();
   const {

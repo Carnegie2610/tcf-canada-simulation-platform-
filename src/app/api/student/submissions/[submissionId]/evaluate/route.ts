@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { DiagnosticReportSchema } from "@/lib/schemas";
+import { revalidatePath } from "next/cache";
 
 export const maxDuration = 60;
 
@@ -128,6 +129,7 @@ export async function POST(
     return NextResponse.json({ error: "save_failed" }, { status: 500 });
   }
 
+  revalidatePath("/dashboard/history");
   return NextResponse.json({ evaluation });
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export async function POST(
   _request: NextRequest,
@@ -27,5 +28,7 @@ export async function POST(
     return NextResponse.json({ error: "submit_failed" }, { status: 500 });
   }
 
+  revalidatePath("/dashboard/history");
+  revalidatePath("/dashboard/exams");
   return NextResponse.json({ submitted: true });
 }

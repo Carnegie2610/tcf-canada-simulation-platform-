@@ -183,3 +183,46 @@ export interface UpdateExamInput {
   min_words?: number;
   max_duration?: number;
 }
+
+export interface CombinationTask {
+  question: string;
+  solution: string;
+  minWords: number;
+  maxWords: number;
+}
+
+export interface CombinationTasks {
+  tache_1: CombinationTask;
+  tache_2: CombinationTask;
+  tache_3: CombinationTask;
+}
+
+export interface Combination {
+  id: string;
+  title: string;
+  exam_type: ExamType;
+  global_duration: number;
+  tasks: CombinationTasks;
+  created_at: string;
+}
+
+export interface AdminCombinationListResponse {
+  combinations: Combination[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateCombinationInput {
+  title: string;
+  exam_type: ExamType;
+  global_duration: number;
+  tasks: CombinationTasks;
+}
+
+export interface UpdateCombinationInput {
+  title?: string;
+  exam_type?: ExamType;
+  global_duration?: number;
+  tasks?: CombinationTasks;
+}
