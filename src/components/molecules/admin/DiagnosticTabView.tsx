@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ScorePill } from "@/components/atoms/ScorePill";
+import { ProtectedContent } from "@/components/atoms/ProtectedContent";
 import type { Evaluation } from "@/lib/admin/types";
 
 interface DiagnosticTabViewProps {
@@ -97,11 +98,11 @@ export function DiagnosticTabView({ evaluation, aiEnabled }: DiagnosticTabViewPr
       )}
 
       {activeTab === "modele" && (
-        <div className="max-h-64 overflow-y-auto rounded-lg border border-[var(--slate-700)] bg-[var(--slate-900)] p-4">
+        <ProtectedContent className="max-h-64 overflow-y-auto rounded-lg border border-[var(--slate-700)] bg-[var(--slate-900)] p-4">
           <p className="text-sm leading-relaxed text-[var(--slate-300)] whitespace-pre-wrap">
             {evaluation.model_answer_c2}
           </p>
-        </div>
+        </ProtectedContent>
       )}
     </div>
   );

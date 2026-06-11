@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { AdminTableCell } from "@/components/atoms/AdminTableCell";
 import { ExamForm } from "@/components/molecules/admin/ExamForm";
 import { CombinationForm } from "@/components/molecules/admin/CombinationForm";
@@ -11,10 +12,13 @@ import type { Combination, Exam } from "@/lib/admin/types";
 interface ExamManagementTableProps {
   exams: Exam[];
   combinations: Combination[];
+  onDeleted?: () => void;
 }
 
-export function ExamManagementTable({ exams, combinations }: ExamManagementTableProps) {
+export function ExamManagementTable({ exams, combinations, onDeleted }: ExamManagementTableProps) {
   const router = useRouter();
+  const [localExams, setLocalExams] = useState<Exam[]>(exams);
+  const [localCombos, setLocalCombos] = useState<Combination[]>(combinations);
   const [editing, setEditing] = useState<Exam | null>(null);
   const [editingCombo, setEditingCombo] = useState<Combination | null>(null);
   const [deleting, setDeleting] = useState<{
@@ -24,6 +28,43 @@ export function ExamManagementTable({ exams, combinations }: ExamManagementTable
   } | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  useEffect(() => {
+    setLocalExams(exams);
+    setLocalCombos(combinations);
+  }, [exams, combinations]);
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    const examChannel = supabase
+      .channel("admin-exams-delete")
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "exams" },
+        (payload) => {
+          const deletedId = (payload.old as { id?: string }).id;
+          if (deletedId) setLocalExams((prev) => prev.filter((e) => e.id !== deletedId));
+        }
+      )
+      .subscribe();
+
+    const comboChannel = supabase
+      .channel("admin-combos-delete")
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "combinations" },
+        (payload) => {
+          const deletedId = (payload.old as { id?: string }).id;
+          if (deletedId) setLocalCombos((prev) => prev.filter((c) => c.id !== deletedId));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(examChannel);
+      supabase.removeChannel(comboChannel);
+    };
+  }, []);
+
   async function handleDelete() {
     if (!deleting) return;
     setDeleteLoading(true);
@@ -32,7 +73,15 @@ export function ExamManagementTable({ exams, combinations }: ExamManagementTable
         deleting.kind === "exam"
           ? `/api/admin/exams/${deleting.id}`
           : `/api/admin/combinations/${deleting.id}`;
-      await fetch(url, { method: "DELETE" });
+      const res = await fetch(url, { method: "DELETE" });
+      if (res.ok) {
+        if (deleting.kind === "exam") {
+          setLocalExams((prev) => prev.filter((e) => e.id !== deleting.id));
+        } else {
+          setLocalCombos((prev) => prev.filter((c) => c.id !== deleting.id));
+        }
+        onDeleted?.();
+      }
       setDeleting(null);
       router.refresh();
     } finally {
@@ -40,7 +89,7 @@ export function ExamManagementTable({ exams, combinations }: ExamManagementTable
     }
   }
 
-  const isEmpty = exams.length === 0 && combinations.length === 0;
+  const isEmpty = localExams.length === 0 && localCombos.length === 0;
 
   return (
     <>
@@ -70,7 +119,7 @@ export function ExamManagementTable({ exams, combinations }: ExamManagementTable
               </tr>
             ) : (
               <>
-                {exams.map((exam) => (
+                {localExams.map((exam) => (
                   <tr
                     key={exam.id}
                     className="border-t border-[var(--slate-700)] hover:bg-[var(--slate-800)]/40 transition-colors"
@@ -116,7 +165,7 @@ export function ExamManagementTable({ exams, combinations }: ExamManagementTable
                   </tr>
                 ))}
 
-                {combinations.map((combo) => (
+                {localCombos.map((combo) => (
                   <tr
                     key={combo.id}
                     className="border-t border-[var(--slate-700)] hover:bg-[var(--slate-800)]/40 transition-colors"

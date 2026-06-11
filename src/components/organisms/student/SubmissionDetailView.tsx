@@ -1,4 +1,5 @@
 import { AiCorrectionTrigger } from "@/components/molecules/student/AiCorrectionTrigger";
+import { LibraryCanvas } from "@/components/organisms/student/LibraryCanvas";
 import { cefrColorClass } from "@/lib/admin/cefr";
 import type { SubmissionWithEvaluation } from "@/lib/admin/types";
 
@@ -83,14 +84,16 @@ export function SubmissionDetailView({ submission }: SubmissionDetailViewProps) 
             </section>
           </div>
 
-          {/* C2 Model answer */}
+          {/* C2 Model answer — copy-protected */}
           <section>
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
               Modèle corrigé (niveau C2)
             </h2>
-            <div className="rounded-xl border border-[var(--blue-500)]/30 bg-[var(--blue-600)]/5 p-5 text-sm text-[var(--slate-200)] leading-relaxed whitespace-pre-wrap">
-              {evaluation.model_answer_c2}
-            </div>
+            <LibraryCanvas>
+              <div className="rounded-xl border border-[var(--blue-500)]/30 bg-[var(--blue-600)]/5 p-5 text-sm text-[var(--slate-200)] leading-relaxed whitespace-pre-wrap">
+                {evaluation.model_answer_c2}
+              </div>
+            </LibraryCanvas>
           </section>
         </>
       ) : (

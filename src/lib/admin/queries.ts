@@ -1,24 +1,32 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { computeStudentAnalytics } from "./analytics";
+import { computeStudentAnalytics, computeActivityDays } from "./analytics";
 import type {
+  ActivityFeedRow,
   AdminCombinationListResponse,
   AdminExamListResponse,
   AdminProfile,
   AdminUserListResponse,
+  CefrDistributionItem,
+  CefrLevel,
   Combination,
+  CombinationSubmission,
   CombinationTasks,
   CreateCombinationInput,
   CreateExamInput,
   CreateUserInput,
+  DashboardFilter,
+  DashboardStats,
   Exam,
   ExamSearchParams,
   StudentAuditData,
+  SubmissionsByDay,
   SubmissionWithEvaluation,
   UpdateCombinationInput,
   UpdateExamInput,
   UpdateUserInput,
   UserSearchParams,
 } from "./types";
+import type { ActivityDay } from "@/components/organisms/student/ConsistencyTracker";
 
 export async function getStudentAuditData(
   supabase: SupabaseClient,
@@ -329,4 +337,249 @@ export async function deleteCombination(
     .delete()
     .eq("id", combinationId);
   if (error) throw new Error(error.message);
+}
+
+// ─── Dashboard query helpers ─────────────────────────────────────────────────
+
+function getFilterRange(filter: DashboardFilter, date?: string): { gte?: string; lt?: string } {
+  if (filter === "custom" && date) {
+    const start = new Date(`${date}T00:00:00.000Z`);
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 1);
+    return { gte: start.toISOString(), lt: end.toISOString() };
+  }
+
+  const now = new Date();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
+  if (filter === "today") {
+    return { gte: todayStart.toISOString() };
+  }
+  if (filter === "yesterday") {
+    const start = new Date(todayStart);
+    start.setDate(start.getDate() - 1);
+    return { gte: start.toISOString(), lt: todayStart.toISOString() };
+  }
+  if (filter === "before_yesterday") {
+    const start = new Date(todayStart);
+    start.setDate(start.getDate() - 2);
+    const end = new Date(todayStart);
+    end.setDate(end.getDate() - 1);
+    return { gte: start.toISOString(), lt: end.toISOString() };
+  }
+  return {};
+}
+
+function getPrevRange(filter: DashboardFilter, date?: string): { gte?: string; lt?: string } {
+  if (filter === "all" || filter === "custom") {
+    if (filter === "custom" && date) {
+      // previous day
+      const d = new Date(`${date}T00:00:00.000Z`);
+      d.setUTCDate(d.getUTCDate() - 1);
+      const prevDate = d.toISOString().slice(0, 10);
+      return getFilterRange("custom", prevDate);
+    }
+    return {};
+  }
+  const now = new Date();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
+  if (filter === "today") {
+    const start = new Date(todayStart);
+    start.setDate(start.getDate() - 1);
+    return { gte: start.toISOString(), lt: todayStart.toISOString() };
+  }
+  if (filter === "yesterday") {
+    const start = new Date(todayStart);
+    start.setDate(start.getDate() - 2);
+    const end = new Date(todayStart);
+    end.setDate(end.getDate() - 1);
+    return { gte: start.toISOString(), lt: end.toISOString() };
+  }
+  if (filter === "before_yesterday") {
+    const start = new Date(todayStart);
+    start.setDate(start.getDate() - 3);
+    const end = new Date(todayStart);
+    end.setDate(end.getDate() - 2);
+    return { gte: start.toISOString(), lt: end.toISOString() };
+  }
+  return {};
+}
+
+async function countInRange(
+  supabase: SupabaseClient,
+  table: string,
+  range: { gte?: string; lt?: string },
+  extraFilter?: { column: string; value: string }
+): Promise<number> {
+  let q = supabase
+    .from(table)
+    .select("*", { count: "exact", head: true });
+  if (range.gte) q = q.gte("created_at", range.gte);
+  if (range.lt) q = q.lt("created_at", range.lt);
+  if (extraFilter) q = q.eq(extraFilter.column, extraFilter.value);
+  const { count } = await q;
+  return count ?? 0;
+}
+
+export async function getDashboardStats(
+  supabase: SupabaseClient,
+  filter: DashboardFilter,
+  date?: string
+): Promise<DashboardStats> {
+  const curr = getFilterRange(filter, date);
+  const prev = getPrevRange(filter, date);
+
+  const [studentsCount, studentsPrev, submissionsCount, submissionsPrev, combinationsCount, combinationsPrev] =
+    await Promise.all([
+      countInRange(supabase, "profiles", curr, { column: "role", value: "student" }),
+      countInRange(supabase, "profiles", prev, { column: "role", value: "student" }),
+      countInRange(supabase, "combination_submissions", curr),
+      countInRange(supabase, "combination_submissions", prev),
+      countInRange(supabase, "combinations", curr),
+      countInRange(supabase, "combinations", prev),
+    ]);
+
+  return {
+    studentsCount,
+    studentsPrev,
+    submissionsCount,
+    submissionsPrev,
+    combinationsCount,
+    combinationsPrev,
+  };
+}
+
+export async function getDashboardFeed(
+  supabase: SupabaseClient,
+  filter: DashboardFilter,
+  page: number,
+  date?: string
+): Promise<{ rows: ActivityFeedRow[]; total: number }> {
+  const range = getFilterRange(filter, date);
+  const from = (page - 1) * 20;
+  const to = from + 19;
+
+  let q = supabase
+    .from("combination_submissions")
+    .select(
+      `id, created_at, user_id,
+       combination:combinations ( id, title ),
+       profile:profiles ( id, full_name, email, assigned_plan, simulations_remaining, simulations_quota, expires_at )`,
+      { count: "exact" }
+    )
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (range.gte) q = q.gte("created_at", range.gte);
+  if (range.lt) q = q.lt("created_at", range.lt);
+
+  const { data, count } = await q;
+
+  const rows: ActivityFeedRow[] = (data ?? []).map((row: Record<string, unknown>) => {
+    const combo = Array.isArray(row.combination) ? row.combination[0] : row.combination as Record<string, unknown>;
+    const profile = Array.isArray(row.profile) ? row.profile[0] : row.profile as Record<string, unknown>;
+    return {
+      submissionId: row.id as string,
+      userId: row.user_id as string,
+      fullName: profile?.full_name as string ?? "",
+      email: profile?.email as string ?? "",
+      assignedPlan: (profile?.assigned_plan as ActivityFeedRow["assignedPlan"]) ?? "PLAN_5000",
+      simulationsRemaining: (profile?.simulations_remaining as number) ?? 0,
+      simulationsQuota: (profile?.simulations_quota as number) ?? 0,
+      combinationTitle: combo?.title as string ?? "",
+      createdAt: row.created_at as string,
+      expiresAt: profile?.expires_at as string ?? "",
+    };
+  });
+
+  return { rows, total: count ?? 0 };
+}
+
+export async function getDashboardChartData(
+  supabase: SupabaseClient,
+  filter: DashboardFilter,
+  date?: string
+): Promise<{ byDay: SubmissionsByDay[]; cefrDistribution: CefrDistributionItem[] }> {
+  const range = getFilterRange(filter, date);
+
+  let subsQuery = supabase
+    .from("combination_submissions")
+    .select("created_at")
+    .eq("is_completed", true)
+    .limit(1000);
+
+  if (range.gte) subsQuery = subsQuery.gte("created_at", range.gte);
+  if (range.lt) subsQuery = subsQuery.lt("created_at", range.lt);
+
+  const { data: subsData } = await subsQuery;
+
+  const dayMap = new Map<string, number>();
+  for (const row of subsData ?? []) {
+    const d = (row.created_at as string).slice(0, 10);
+    dayMap.set(d, (dayMap.get(d) ?? 0) + 1);
+  }
+  const byDay: SubmissionsByDay[] = Array.from(dayMap.entries())
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const { data: evalData } = await supabase
+    .from("evaluations")
+    .select("cefr_level");
+
+  const levelMap = new Map<string, number>();
+  for (const row of evalData ?? []) {
+    const lvl = row.cefr_level as string;
+    levelMap.set(lvl, (levelMap.get(lvl) ?? 0) + 1);
+  }
+  const cefrOrder: CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
+  const cefrDistribution: CefrDistributionItem[] = cefrOrder
+    .filter((l) => levelMap.has(l))
+    .map((l) => ({ level: l, count: levelMap.get(l)! }));
+
+  return { byDay, cefrDistribution };
+}
+
+export async function getCombinationActivityDays(
+  supabase: SupabaseClient,
+  studentId: string
+): Promise<{ activityDays: ActivityDay[]; streak: number; totalCompleted: number }> {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+
+  const { data } = await supabase
+    .from("combination_submissions")
+    .select("*")
+    .eq("user_id", studentId)
+    .gte("created_at", sevenDaysAgo.toISOString());
+
+  const subs = (data ?? []) as CombinationSubmission[];
+  const activityDays = computeActivityDays(subs);
+
+  const { count: totalCompleted } = await supabase
+    .from("combination_submissions")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", studentId)
+    .eq("is_completed", true);
+
+  // Compute streak by walking back from today
+  let streak = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (let i = 0; i < 30; i++) {
+    const day = new Date(today);
+    day.setDate(today.getDate() - i);
+    const dayStr = day.toISOString().slice(0, 10);
+    const hadActivity = subs.some((s) => s.created_at.slice(0, 10) === dayStr);
+    if (hadActivity) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return { activityDays, streak, totalCompleted: totalCompleted ?? 0 };
 }

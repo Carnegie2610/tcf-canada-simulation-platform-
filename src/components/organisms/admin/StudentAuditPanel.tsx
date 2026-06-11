@@ -1,13 +1,21 @@
 import { AnalyticsSummaryCard } from "@/components/molecules/admin/AnalyticsSummaryCard";
-import { CefrBadge } from "@/components/atoms/CefrBadge";
 import { DeltaIndicator } from "@/components/atoms/DeltaIndicator";
 import { CefrProgressChart } from "./CefrProgressChart";
 import { SubmissionListWithDrawer } from "./SubmissionListWithDrawer";
-import type { StudentAuditData } from "@/lib/admin/types";
+import { LiveQuotaBar } from "@/components/molecules/admin/LiveQuotaBar";
+import { TaskPerformanceChart } from "@/components/molecules/admin/TaskPerformanceChart";
+import { CefrDistributionMiniChart } from "@/components/molecules/admin/CefrDistributionMiniChart";
+import { ConsistencyTracker } from "@/components/organisms/student/ConsistencyTracker";
+import { computeTaskPerformance } from "@/lib/admin/analytics";
+import type { StudentAuditData, CefrDistributionItem, CefrLevel } from "@/lib/admin/types";
+import type { ActivityDay } from "@/components/organisms/student/ConsistencyTracker";
 import { numericToCefr } from "@/lib/admin/cefr";
 
 interface StudentAuditPanelProps {
   auditData: StudentAuditData;
+  activityDays: ActivityDay[];
+  currentStreak: number;
+  totalCompleted: number;
 }
 
 const planLabel: Record<string, string> = {
@@ -17,12 +25,32 @@ const planLabel: Record<string, string> = {
   PLAN_20000: "20 000 F",
 };
 
-export function StudentAuditPanel({ auditData }: StudentAuditPanelProps) {
+export function StudentAuditPanel({
+  auditData,
+  activityDays,
+  currentStreak,
+  totalCompleted,
+}: StudentAuditPanelProps) {
   const { profile, submissions, analytics } = auditData;
 
   const avgCefrLabel = analytics.averageGlobalScore !== null
     ? (numericToCefr(Math.round(analytics.cefrProgression.reduce((s, d) => s + d.cefrNumeric, 0) / (analytics.cefrProgression.length || 1))) ?? "—")
     : "—";
+
+  // Build per-student CEFR distribution from their evaluations
+  const cefrMap = new Map<string, number>();
+  for (const sub of submissions) {
+    if (sub.evaluation) {
+      const lvl = sub.evaluation.cefr_level;
+      cefrMap.set(lvl, (cefrMap.get(lvl) ?? 0) + 1);
+    }
+  }
+  const cefrOrder: CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
+  const cefrDistribution: CefrDistributionItem[] = cefrOrder
+    .filter((l) => cefrMap.has(l))
+    .map((l) => ({ level: l, count: cefrMap.get(l)! }));
+
+  const taskPerformance = computeTaskPerformance(submissions);
 
   return (
     <div className="space-y-8">
@@ -56,35 +84,11 @@ export function StudentAuditPanel({ auditData }: StudentAuditPanelProps) {
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-          <div>
-            <p className="text-xs text-[var(--slate-500)]">Quota restant</p>
-            <p
-              className={`font-semibold ${
-                profile.simulations_remaining === 0
-                  ? "text-red-400"
-                  : "text-[var(--brand-white)]"
-              }`}
-            >
-              {profile.simulations_remaining}/{profile.simulations_quota}
-            </p>
-          </div>
+        <div className="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
           <div>
             <p className="text-xs text-[var(--slate-500)]">Inscrit le</p>
             <p className="font-medium text-[var(--slate-300)]">
               {new Date(profile.created_at).toLocaleDateString("fr-CA")}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-[var(--slate-500)]">Expire le</p>
-            <p
-              className={`font-medium ${
-                new Date(profile.expires_at) < new Date()
-                  ? "text-red-400"
-                  : "text-[var(--slate-300)]"
-              }`}
-            >
-              {new Date(profile.expires_at).toLocaleDateString("fr-CA")}
             </p>
           </div>
           <div>
@@ -94,7 +98,24 @@ export function StudentAuditPanel({ auditData }: StudentAuditPanelProps) {
             </p>
           </div>
         </div>
+
+        {/* Live quota bar */}
+        <div className="mt-5 border-t border-[var(--slate-700)] pt-4">
+          <LiveQuotaBar
+            userId={profile.id}
+            initialQuota={profile.simulations_quota}
+            initialRemaining={profile.simulations_remaining}
+            expiresAt={profile.expires_at}
+          />
+        </div>
       </section>
+
+      {/* Consistency heatmap */}
+      <ConsistencyTracker
+        activityDays={activityDays}
+        currentStreak={currentStreak}
+        totalCompleted={totalCompleted}
+      />
 
       {/* Analytics cards */}
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -143,18 +164,37 @@ export function StudentAuditPanel({ auditData }: StudentAuditPanelProps) {
         />
       </section>
 
-      {/* CEFR progression chart */}
-      <section className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-6">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[var(--slate-400)]">
-          Progression CEFR
-        </h3>
-        <CefrProgressChart dataPoints={analytics.cefrProgression} />
+      {/* Charts row */}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* CEFR trajectory */}
+        <div className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-5">
+          <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-[var(--slate-400)]">
+            Trajectoire globale du niveau CECRL
+          </h3>
+          <CefrProgressChart dataPoints={analytics.cefrProgression} />
+        </div>
+
+        {/* Performance panel */}
+        <div className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-5 space-y-4">
+          <div>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--slate-400)]">
+              Performance moyenne par tâche
+            </h3>
+            <TaskPerformanceChart data={taskPerformance} />
+          </div>
+          <div>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--slate-400)]">
+              Distribution des notes (CECRL)
+            </h3>
+            <CefrDistributionMiniChart data={cefrDistribution} />
+          </div>
+        </div>
       </section>
 
       {/* Submission list */}
       <section>
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--slate-400)]">
-          Historique des soumissions
+          Historique des copies de l&apos;étudiant
         </h3>
         <SubmissionListWithDrawer
           submissions={submissions}

@@ -1,40 +1,101 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AdminTableCell } from "@/components/atoms/AdminTableCell";
 import { UserForm } from "@/components/molecules/admin/UserForm";
 import { ConfirmDeleteModal } from "@/components/molecules/admin/ConfirmDeleteModal";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { AdminProfile, UserRole } from "@/lib/admin/types";
 
 interface UserManagementTableProps {
   users: AdminProfile[];
   currentUserRole: UserRole;
   currentUserId: string;
+  onDeleted?: () => void;
 }
 
 const planLabel: Record<string, string> = {
-  PLAN_5000: "5 000 F",
+  PLAN_5000:  "5 000 F",
   PLAN_10000: "10 000 F",
   PLAN_15000: "15 000 F",
   PLAN_20000: "20 000 F",
 };
 
+function ResetPasswordButton({ email }: { email: string }) {
+  const [status, setStatus] = useState<"idle" | "sent" | "error">("idle");
+
+  async function handleReset() {
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    setStatus(error ? "error" : "sent");
+    setTimeout(() => setStatus("idle"), 3000);
+  }
+
+  return (
+    <button
+      onClick={handleReset}
+      className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+        status === "sent"
+          ? "text-green-400 bg-green-500/10"
+          : status === "error"
+            ? "text-red-400 bg-red-500/10"
+            : "text-[var(--slate-400)] hover:bg-[var(--slate-700)] hover:text-[var(--brand-white)]"
+      }`}
+    >
+      {status === "sent" ? "✓ Envoyé" : status === "error" ? "Erreur" : "Réinitialiser"}
+    </button>
+  );
+}
+
 export function UserManagementTable({
   users,
   currentUserRole,
   currentUserId,
+  onDeleted,
 }: UserManagementTableProps) {
   const router = useRouter();
+  const [localUsers, setLocalUsers] = useState<AdminProfile[]>(users);
   const [editing, setEditing] = useState<AdminProfile | null>(null);
   const [deleting, setDeleting] = useState<AdminProfile | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const isSuperAdmin = currentUserRole === "super_admin";
+
+  useEffect(() => {
+    setLocalUsers(users);
+  }, [users]);
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    const channel = supabase
+      .channel("admin-users-delete")
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "profiles" },
+        (payload) => {
+          const deletedId = (payload.old as { id?: string }).id;
+          if (deletedId) {
+            setLocalUsers((prev) => prev.filter((u) => u.id !== deletedId));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   async function handleDelete() {
     if (!deleting) return;
     setDeleteLoading(true);
     try {
-      await fetch(`/api/admin/users/${deleting.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/users/${deleting.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setLocalUsers((prev) => prev.filter((u) => u.id !== deleting.id));
+        onDeleted?.();
+      }
       setDeleting(null);
       router.refresh();
     } finally {
@@ -59,7 +120,7 @@ export function UserManagementTable({
             </tr>
           </thead>
           <tbody className="bg-[var(--slate-900)]">
-            {users.length === 0 ? (
+            {localUsers.length === 0 ? (
               <tr>
                 <td
                   colSpan={7}
@@ -69,7 +130,7 @@ export function UserManagementTable({
                 </td>
               </tr>
             ) : (
-              users.map((u) => (
+              localUsers.map((u) => (
                 <tr
                   key={u.id}
                   className="border-t border-[var(--slate-700)] hover:bg-[var(--slate-800)]/40 transition-colors"
@@ -106,13 +167,21 @@ export function UserManagementTable({
                   </AdminTableCell>
                   <AdminTableCell align="right">
                     <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => setEditing(u)}
-                        className="rounded px-2.5 py-1 text-xs font-medium text-[var(--slate-400)] hover:bg-[var(--slate-700)] hover:text-[var(--brand-white)] transition-colors"
-                      >
-                        Modifier
-                      </button>
-                      {currentUserRole === "super_admin" && u.id !== currentUserId && (
+                      {/* Trigger password reset — visible to all admins */}
+                      <ResetPasswordButton email={u.email} />
+
+                      {/* Edit — super_admin only */}
+                      {isSuperAdmin && (
+                        <button
+                          onClick={() => setEditing(u)}
+                          className="rounded px-2.5 py-1 text-xs font-medium text-[var(--slate-400)] hover:bg-[var(--slate-700)] hover:text-[var(--brand-white)] transition-colors"
+                        >
+                          Modifier
+                        </button>
+                      )}
+
+                      {/* Delete — super_admin only, not self */}
+                      {isSuperAdmin && u.id !== currentUserId && (
                         <button
                           onClick={() => setDeleting(u)}
                           className="rounded px-2.5 py-1 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
@@ -133,6 +202,7 @@ export function UserManagementTable({
         <UserForm
           mode="edit"
           initial={editing}
+          currentUserRole={currentUserRole}
           onSuccess={() => { setEditing(null); router.refresh(); }}
           onCancel={() => setEditing(null)}
         />
