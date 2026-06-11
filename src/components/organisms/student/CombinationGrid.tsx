@@ -1,0 +1,76 @@
+import { CombinationCard } from "@/components/molecules/student/CombinationCard";
+import { QuotaStatusBar } from "@/components/molecules/student/QuotaStatusBar";
+import type { CombinationWithSubmission } from "@/lib/student/queries";
+
+interface CombinationGridProps {
+  combinationsWithStatus: CombinationWithSubmission[];
+  simulationsUsed: number;
+  simulationsTotal: number;
+  expiresAt: string;
+}
+
+export function CombinationGrid({
+  combinationsWithStatus,
+  simulationsUsed,
+  simulationsTotal,
+  expiresAt,
+}: CombinationGridProps) {
+  const isExpired = new Date(expiresAt) < new Date();
+  const quotaExceeded = isExpired || simulationsUsed >= simulationsTotal;
+
+  const tcf = combinationsWithStatus.filter((c) => c.combination.exam_type === "TCF");
+  const tef = combinationsWithStatus.filter((c) => c.combination.exam_type === "TEF");
+
+  function renderGroup(items: CombinationWithSubmission[], startIndex: number) {
+    return (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map(({ combination, submission }, i) => (
+          <CombinationCard
+            key={combination.id}
+            combination={combination}
+            submission={submission}
+            index={startIndex + i + 1}
+            quotaExceeded={quotaExceeded}
+            expiresAt={expiresAt}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <QuotaStatusBar
+        used={simulationsUsed}
+        total={simulationsTotal}
+        expiresAt={expiresAt}
+      />
+
+      {tcf.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            TCF Canada
+          </h2>
+          {renderGroup(tcf, 0)}
+        </section>
+      )}
+
+      {tef.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            TEF Canada
+          </h2>
+          {renderGroup(tef, tcf.length)}
+        </section>
+      )}
+
+      {combinationsWithStatus.length === 0 && (
+        <div className="flex h-48 items-center justify-center rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]">
+          <p className="text-sm text-[var(--slate-500)]">
+            Aucune combinaison disponible pour le moment.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}

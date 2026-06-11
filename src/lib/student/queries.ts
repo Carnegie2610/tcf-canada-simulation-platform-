@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeStudentAnalytics } from "@/lib/admin/analytics";
 import type {
   AdminProfile,
+  Combination,
+  CombinationSubmission,
   Exam,
   StudentAuditData,
   SubmissionWithEvaluation,
@@ -146,4 +148,36 @@ export async function getSubmissionDetail(
       ? (s.evaluation[0] ?? null)
       : (s.evaluation as SubmissionWithEvaluation["evaluation"]),
   };
+}
+
+export interface CombinationWithSubmission {
+  combination: Combination;
+  submission: CombinationSubmission | null;
+}
+
+export async function listCombinationsWithStatus(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<CombinationWithSubmission[]> {
+  const [{ data: combinations }, { data: rawSubs }] = await Promise.all([
+    supabase
+      .from("combinations")
+      .select("*")
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("combination_submissions")
+      .select("*")
+      .eq("user_id", userId),
+  ]);
+
+  const subMap = new Map<string, CombinationSubmission>();
+  for (const s of rawSubs ?? []) {
+    const row = s as Record<string, unknown>;
+    subMap.set(row.combination_id as string, row as unknown as CombinationSubmission);
+  }
+
+  return (combinations ?? []).map((c) => ({
+    combination: c as Combination,
+    submission: subMap.get(c.id) ?? null,
+  }));
 }

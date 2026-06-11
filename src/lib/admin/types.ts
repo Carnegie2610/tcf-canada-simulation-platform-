@@ -226,3 +226,59 @@ export interface UpdateCombinationInput {
   global_duration?: number;
   tasks?: CombinationTasks;
 }
+
+export interface CombinationSubmission {
+  id: string;
+  user_id: string;
+  combination_id: string;
+  draft_task_1: string;
+  draft_task_2: string;
+  draft_task_3: string;
+  word_count_1: number;
+  word_count_2: number;
+  word_count_3: number;
+  is_completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+}
+
+// ─── Dashboard types ────────────────────────────────────────────────────────
+
+export type DashboardFilter = "today" | "yesterday" | "before_yesterday" | "all" | "custom";
+
+export interface ActivityFeedRow {
+  submissionId: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  assignedPlan: AssignedPlan;
+  simulationsRemaining: number;
+  simulationsQuota: number;
+  combinationTitle: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface DashboardStats {
+  studentsCount: number;
+  studentsPrev: number;
+  submissionsCount: number;
+  submissionsPrev: number;
+  combinationsCount: number;
+  combinationsPrev: number;
+}
+
+export interface SubmissionsByDay {
+  date: string;
+  count: number;
+}
+
+export interface CefrDistributionItem {
+  level: CefrLevel;
+  count: number;
+}
+
+export interface TaskPerformancePoint {
+  task: "Tâche 1" | "Tâche 2" | "Tâche 3";
+  avgScore: number | null;
+}

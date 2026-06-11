@@ -1,14 +1,76 @@
 import { CefrProgressChart } from "@/components/organisms/admin/CefrProgressChart";
 import { SubmissionHistoryRow } from "@/components/molecules/student/SubmissionHistoryRow";
-import type { StudentAuditData } from "@/lib/admin/types";
+import type { StudentAuditData, CefrLevel } from "@/lib/admin/types";
 
 interface HistoryPanelProps {
   data: StudentAuditData;
 }
 
+const CEFR_LEVELS: CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
+const IMMIGRATION_TARGET: CefrLevel = "C1";
+
+function CefrTargetStrip({ currentLevel }: { currentLevel: CefrLevel | null }) {
+  return (
+    <div className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] px-5 py-4 space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+        Trajectoire CLB
+      </p>
+
+      <div className="flex items-center gap-0">
+        {CEFR_LEVELS.map((level, i) => {
+          const isCurrent = level === currentLevel;
+          const isTarget = level === IMMIGRATION_TARGET;
+          const isConnector = i < CEFR_LEVELS.length - 1;
+
+          return (
+            <div key={level} className="flex items-center">
+              <div className="flex flex-col items-center gap-1">
+                <div
+                  className={[
+                    "flex h-8 min-w-[42px] items-center justify-center rounded-md border px-2 text-xs font-bold transition-all",
+                    isCurrent
+                      ? "border-blue-500 bg-blue-600/20 text-blue-300 ring-2 ring-blue-500/40"
+                      : isTarget
+                        ? "border-amber-500/60 bg-amber-500/10 text-amber-400"
+                        : "border-[var(--slate-700)] bg-[var(--slate-800)] text-[var(--slate-500)]",
+                  ].join(" ")}
+                >
+                  {level}
+                </div>
+                {(isCurrent || isTarget) && (
+                  <span className={`text-[10px] font-medium ${isCurrent ? "text-blue-400" : "text-amber-400"}`}>
+                    {isCurrent && isTarget ? "Vous / Cible" : isCurrent ? "Vous" : "Cible"}
+                  </span>
+                )}
+              </div>
+              {isConnector && (
+                <div className="mx-1 h-px w-4 bg-[var(--slate-700)] shrink-0" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-xs text-[var(--slate-500)]">
+        L&apos;immigration au Canada (CLB&nbsp;7–9) exige généralement un niveau B2 minimum, avec C1 comme cible optimale.
+        {currentLevel && currentLevel !== IMMIGRATION_TARGET && (
+          <span className="ml-1 text-[var(--slate-400)]">
+            Niveau actuel&nbsp;: <span className="font-semibold text-blue-400">{currentLevel}</span>.
+          </span>
+        )}
+      </p>
+    </div>
+  );
+}
+
 export function HistoryPanel({ data }: HistoryPanelProps) {
   const { submissions, analytics } = data;
   const hasEvaluated = analytics.completedCount > 0;
+
+  const currentLevel: CefrLevel | null =
+    analytics.cefrProgression.length > 0
+      ? analytics.cefrProgression[analytics.cefrProgression.length - 1].cefrLevel
+      : null;
 
   return (
     <div className="space-y-8">
@@ -28,7 +90,7 @@ export function HistoryPanel({ data }: HistoryPanelProps) {
         </div>
       )}
 
-      {/* CEFR Trajectory */}
+      {/* CEFR Trajectory chart */}
       <section>
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
           Trajectoire CECR
@@ -37,6 +99,9 @@ export function HistoryPanel({ data }: HistoryPanelProps) {
           <CefrProgressChart dataPoints={analytics.cefrProgression} />
         </div>
       </section>
+
+      {/* CEFR Target Strip */}
+      <CefrTargetStrip currentLevel={currentLevel} />
 
       {/* Submission list */}
       <section>

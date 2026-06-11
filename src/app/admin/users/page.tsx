@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UserManagementTable } from "@/components/organisms/admin/UserManagementTable";
 import { UserForm } from "@/components/molecules/admin/UserForm";
+import { PaginationBar } from "@/components/atoms/PaginationBar";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { AdminProfile, AdminUserListResponse } from "@/lib/admin/types";
+
+const PAGE_SIZE = 20;
 
 export default function UsersPage() {
   const router = useRouter();
@@ -12,9 +16,10 @@ export default function UsersPage() {
   const [currentUser, setCurrentUser] = useState<{ id: string; role: string } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
-  async function fetchUsers(q?: string) {
-    const params = new URLSearchParams({ pageSize: "50" });
+  async function fetchUsers(q?: string, p = page) {
+    const params = new URLSearchParams({ pageSize: String(PAGE_SIZE), page: String(p) });
     if (q) params.set("search", q);
     const res = await fetch(`/api/admin/users?${params}`);
     const json = (await res.json()) as { data: AdminUserListResponse };
@@ -22,24 +27,34 @@ export default function UsersPage() {
   }
 
   async function fetchCurrentUser() {
-    const res = await fetch("/api/admin/users?pageSize=1");
-    if (res.ok) {
-      const r = (await res.json()) as { data: AdminUserListResponse };
-      if (r.data.users.length > 0) {
-        const me = r.data.users[0];
-        setCurrentUser({ id: me.id, role: me.role });
-      }
+    const supabase = createSupabaseBrowserClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("id", user.id)
+      .single();
+    if (profile) {
+      setCurrentUser({ id: profile.id as string, role: profile.role as string });
     }
   }
 
   useEffect(() => {
     void fetchUsers();
     void fetchCurrentUser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    void fetchUsers(search);
+    setPage(1);
+    void fetchUsers(search || undefined, 1);
+  }
+
+  function handlePageChange(p: number) {
+    setPage(p);
+    void fetchUsers(search || undefined, p);
   }
 
   return (
@@ -51,12 +66,14 @@ export default function UsersPage() {
             Gestion des comptes étudiants et administrateurs
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="rounded-lg bg-[var(--blue-600)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--blue-500)] transition-colors"
-        >
-          + Créer un utilisateur
-        </button>
+        {currentUser?.role === "super_admin" && (
+          <button
+            onClick={() => setShowCreate(true)}
+            className="rounded-lg bg-[var(--blue-600)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--blue-500)] transition-colors"
+          >
+            + Créer un utilisateur
+          </button>
+        )}
       </div>
 
       {/* Search */}
@@ -80,11 +97,20 @@ export default function UsersPage() {
         {data === null ? (
           <p className="text-sm text-[var(--slate-500)]">Chargement...</p>
         ) : (
-          <UserManagementTable
-            users={data.users}
-            currentUserRole={(currentUser?.role ?? "admin") as AdminProfile["role"]}
-            currentUserId={currentUser?.id ?? ""}
-          />
+          <>
+            <UserManagementTable
+              users={data.users}
+              currentUserRole={(currentUser?.role ?? "admin") as AdminProfile["role"]}
+              currentUserId={currentUser?.id ?? ""}
+              onDeleted={() => fetchUsers(search || undefined, page)}
+            />
+            <PaginationBar
+              total={data.total}
+              page={page}
+              pageSize={PAGE_SIZE}
+              onPageChange={handlePageChange}
+            />
+          </>
         )}
       </div>
 
@@ -93,7 +119,7 @@ export default function UsersPage() {
           mode="create"
           onSuccess={() => {
             setShowCreate(false);
-            void fetchUsers(search || undefined);
+            void fetchUsers(search || undefined, page);
             router.refresh();
           }}
           onCancel={() => setShowCreate(false)}

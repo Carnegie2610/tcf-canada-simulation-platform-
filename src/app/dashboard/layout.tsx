@@ -28,6 +28,7 @@ export default async function DashboardLayout({
 
   return (
     <StudentPageTemplate
+      userId={user.id}
       currentUserName={profile.full_name ?? user.email ?? "Étudiant"}
       simulationsUsed={profile.simulations_quota - profile.simulations_remaining}
       simulationsTotal={profile.simulations_quota}

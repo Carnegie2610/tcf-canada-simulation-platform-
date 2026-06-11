@@ -1,4 +1,5 @@
 import { LibraryCanvas } from "@/components/organisms/student/LibraryCanvas";
+import { BackButton } from "@/components/atoms/BackButton";
 
 const RESOURCES = [
   {
@@ -95,7 +96,8 @@ export default function LibraryPage() {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--brand-white)]">
+        <BackButton href="/dashboard" label="Tableau de bord" />
+        <h1 className="mt-2 text-2xl font-bold text-[var(--brand-white)]">
           Bibliothèque de ressources
         </h1>
         <p className="mt-1 text-sm text-[var(--slate-400)]">

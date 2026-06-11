@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getStudentAuditData } from "@/lib/admin/queries";
+import { getStudentAuditData, getCombinationActivityDays } from "@/lib/admin/queries";
 import { StudentAuditPanel } from "@/components/organisms/admin/StudentAuditPanel";
+import { BackButton } from "@/components/atoms/BackButton";
 
 export default async function StudentAuditPage({
   params,
@@ -16,22 +16,26 @@ export default async function StudentAuditPage({
   if (!uuidRegex.test(studentId)) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const auditData = await getStudentAuditData(supabase, studentId);
+
+  const [auditData, activityResult] = await Promise.all([
+    getStudentAuditData(supabase, studentId),
+    getCombinationActivityDays(supabase, studentId),
+  ]);
 
   if (!auditData) notFound();
 
   return (
     <div className="p-8">
-      {/* Breadcrumb */}
-      <nav className="mb-6 flex items-center gap-2 text-sm text-[var(--slate-500)]">
-        <Link href="/admin/audit" className="hover:text-[var(--brand-white)] transition-colors">
-          Auditor
-        </Link>
-        <span>/</span>
-        <span className="text-[var(--slate-300)]">{auditData.profile.full_name}</span>
-      </nav>
+      <div className="mb-6">
+        <BackButton href="/admin" label="Retour au Tableau de bord" />
+      </div>
 
-      <StudentAuditPanel auditData={auditData} />
+      <StudentAuditPanel
+        auditData={auditData}
+        activityDays={activityResult.activityDays}
+        currentStreak={activityResult.streak}
+        totalCompleted={activityResult.totalCompleted}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { SupportTicketForm } from "@/components/molecules/student/SupportTicketForm";
+import { SignOutButton } from "@/components/molecules/student/SignOutButton";
 import type { AdminProfile } from "@/lib/admin/types";
 
 interface BillingPanelProps {
@@ -83,6 +84,19 @@ export function BillingPanel({ profile }: BillingPanelProps) {
               Corrections IA : {profile.ai_corrections_enabled ? "Activées" : "Désactivées"}
             </span>
           </div>
+        </div>
+      </section>
+
+      {/* Sign out */}
+      <section>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+          Compte
+        </h2>
+        <div className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-4 flex items-center justify-between">
+          <p className="text-sm text-[var(--slate-400)]">
+            Se déconnecter de votre session.
+          </p>
+          <SignOutButton />
         </div>
       </section>
 

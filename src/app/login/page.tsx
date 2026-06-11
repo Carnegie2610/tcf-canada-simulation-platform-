@@ -11,6 +11,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  async function handleForgotPassword(email: string): Promise<string | null> {
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    return error ? "Aucun compte trouvé pour cette adresse ou erreur réseau." : null;
+  }
+
   async function handleSignIn(email: string, password: string) {
     setLoading(true);
     setError(null);
@@ -44,7 +52,12 @@ export default function LoginPage() {
 
   return (
     <AuthPageTemplate>
-      <AuthForm onSubmit={handleSignIn} loading={loading} error={error} />
+      <AuthForm
+        onSubmit={handleSignIn}
+        loading={loading}
+        error={error}
+        onForgotPassword={handleForgotPassword}
+      />
     </AuthPageTemplate>
   );
 }

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ExamPortalGrid } from "@/components/organisms/student/ExamPortalGrid";
 import { listExamsWithStatus } from "@/lib/student/queries";
+import { BackButton } from "@/components/atoms/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,8 @@ export default async function ExamsPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--brand-white)]">
+        <BackButton href="/dashboard" label="Tableau de bord" />
+        <h1 className="mt-2 text-2xl font-bold text-[var(--brand-white)]">
           Portail des simulations
         </h1>
         <p className="mt-1 text-sm text-[var(--slate-400)]">
