@@ -3,15 +3,15 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CombinationEditor } from "@/components/organisms/student/CombinationEditor";
 import type { Combination, CombinationSubmission } from "@/lib/admin/types";
 
-interface CombinationWorkspacePageProps {
+interface ArenaPageProps {
   params: Promise<{ combinationId: string }>;
   searchParams: Promise<{ sid?: string }>;
 }
 
-export default async function CombinationWorkspacePage({
+export default async function ArenaPage({
   params,
   searchParams,
-}: CombinationWorkspacePageProps) {
+}: ArenaPageProps) {
   const { combinationId } = await params;
   const { sid } = await searchParams;
 
@@ -24,7 +24,6 @@ export default async function CombinationWorkspacePage({
 
   if (!user) redirect("/login");
 
-  // Fetch combination
   const { data: combination } = await supabase
     .from("combinations")
     .select("*")
@@ -33,7 +32,6 @@ export default async function CombinationWorkspacePage({
 
   if (!combination) notFound();
 
-  // Fetch the student's submission
   const { data: submission } = await supabase
     .from("combination_submissions")
     .select("*")
@@ -43,7 +41,6 @@ export default async function CombinationWorkspacePage({
 
   if (!submission) redirect("/dashboard/combinations");
 
-  // Block re-entry if already completed
   if ((submission as CombinationSubmission).is_completed) {
     redirect("/dashboard/combinations");
   }
