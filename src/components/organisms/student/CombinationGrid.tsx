@@ -1,6 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import { CombinationCard } from "@/components/molecules/student/CombinationCard";
 import { QuotaStatusBar } from "@/components/molecules/student/QuotaStatusBar";
+import { PaginationBar } from "@/components/atoms/PaginationBar";
 import type { CombinationWithSubmission } from "@/lib/student/queries";
+
+const PAGE_SIZE = 30;
 
 interface CombinationGridProps {
   combinationsWithStatus: CombinationWithSubmission[];
@@ -15,11 +21,22 @@ export function CombinationGrid({
   simulationsTotal,
   expiresAt,
 }: CombinationGridProps) {
+  const [page, setPage] = useState(1);
+
   const isExpired = new Date(expiresAt) < new Date();
   const quotaExceeded = isExpired || simulationsUsed >= simulationsTotal;
 
-  const tcf = combinationsWithStatus.filter((c) => c.combination.exam_type === "TCF");
-  const tef = combinationsWithStatus.filter((c) => c.combination.exam_type === "TEF");
+  const paginated = combinationsWithStatus.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
+
+  const tcf = paginated.filter((c) => c.combination.exam_type === "TCF");
+  const tef = paginated.filter((c) => c.combination.exam_type === "TEF");
+
+  // Offsets so card index numbering is consistent across pages
+  const pageOffset = (page - 1) * PAGE_SIZE;
+  const tcfAll = combinationsWithStatus.filter((c) => c.combination.exam_type === "TCF");
 
   function renderGroup(items: CombinationWithSubmission[], startIndex: number) {
     return (
@@ -51,7 +68,7 @@ export function CombinationGrid({
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             TCF Canada
           </h2>
-          {renderGroup(tcf, 0)}
+          {renderGroup(tcf, pageOffset)}
         </section>
       )}
 
@@ -60,7 +77,7 @@ export function CombinationGrid({
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             TEF Canada
           </h2>
-          {renderGroup(tef, tcf.length)}
+          {renderGroup(tef, pageOffset + tcfAll.length)}
         </section>
       )}
 
@@ -71,6 +88,13 @@ export function CombinationGrid({
           </p>
         </div>
       )}
+
+      <PaginationBar
+        total={combinationsWithStatus.length}
+        page={page}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

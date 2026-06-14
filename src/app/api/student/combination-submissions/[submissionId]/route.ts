@@ -45,3 +45,32 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ submissionId: string }> }
+) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const { submissionId } = await params;
+
+  const { error } = await supabase
+    .from("combination_submissions")
+    .delete()
+    .eq("id", submissionId)
+    .eq("user_id", user.id)
+    .eq("is_completed", false);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

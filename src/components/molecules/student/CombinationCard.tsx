@@ -65,14 +65,14 @@ export function CombinationCard({
         setLoading(false);
         return;
       }
-      router.push(`/dashboard/combinations/${combination.id}?sid=${data.submissionId}`);
+      router.push(`/arena/${combination.id}?sid=${data.submissionId}`);
     } catch {
       setLoading(false);
     }
   }
 
   function handleResume() {
-    router.push(`/dashboard/combinations/${combination.id}?sid=${submission!.id}`);
+    router.push(`/arena/${combination.id}?sid=${submission!.id}`);
   }
 
   return (
