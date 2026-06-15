@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useExamTimer } from "@/hooks/useExamTimer";
+import { SubmissionGate } from "@/components/organisms/student/SubmissionGate";
+import { AiLoadingHub } from "@/components/organisms/student/AiLoadingHub";
 import type { Combination } from "@/lib/admin/types";
 
 interface CombinationEditorProps {
@@ -75,6 +77,9 @@ export function CombinationEditor({
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
   const [showExpiredOverlay, setShowExpiredOverlay] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showAiHub, setShowAiHub] = useState(false);
+  const [aiError, setAiError] = useState(false);
 
   const { timeLeft, isExpired } = useExamTimer(combination.global_duration);
 
@@ -150,9 +155,10 @@ export function CombinationEditor({
 
       sessionStorage.removeItem(storageKey(submissionId));
       setIsLocked(true);
-      router.push("/dashboard/combinations");
+      setShowExpiredOverlay(false);
+      setIsSubmitted(true);
     },
-    [isLocked, isSubmitting, submissionId, router]
+    [isLocked, isSubmitting, submissionId]
   );
 
   // Show overlay on expiry, then auto-submit after 2 seconds
@@ -252,6 +258,38 @@ export function CombinationEditor({
           </div>
           <style>{`@keyframes slideIn { from { width: 0% } to { width: 100% } }`}</style>
         </div>
+      )}
+
+      {/* ── SUBMISSION GATE (post-submit decision) ── */}
+      {isSubmitted && !showAiHub && (
+        <SubmissionGate
+          onDashboard={() => router.push("/dashboard/combinations")}
+          onEvaluate={() => { setAiError(false); setShowAiHub(true); }}
+        />
+      )}
+
+      {/* ── AI CORRECTION ERROR FALLBACK ── */}
+      {aiError && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-sm">
+          <p className="text-2xl font-bold text-red-400 mb-3">Erreur de correction</p>
+          <p className="text-sm text-slate-400 mb-6">
+            Une erreur est survenue. Vos copies restent sauvegardées.
+          </p>
+          <button
+            onClick={() => { setAiError(false); setShowAiHub(false); }}
+            className="rounded-xl border border-slate-700 px-5 py-2 text-sm text-slate-300 hover:bg-slate-800 transition-colors"
+          >
+            Retour au choix
+          </button>
+        </div>
+      )}
+
+      {/* ── AI LOADING HUB ── */}
+      {showAiHub && !aiError && (
+        <AiLoadingHub
+          submissionId={submissionId}
+          onError={() => { setShowAiHub(false); setAiError(true); }}
+        />
       )}
 
       {/* ── RECOVERY BANNER ── */}

@@ -40,3 +40,38 @@ export const DiagnosticReportSchema = z.object({
 
 export type SubmissionInput = z.infer<typeof SubmissionInputSchema>;
 export type DiagnosticReport = z.infer<typeof DiagnosticReportSchema>;
+
+// ── Combination AI Evaluation ──────────────────────────────────────────────
+
+const CombinationOrthoItemSchema = z.object({
+  erreur: z.string(),
+  correction: z.string(),
+  type: z.string(),
+  explication: z.string(),
+});
+
+const CombinationTaskEvalSchema = z.object({
+  score: z.string(),
+  consigne: z.string(),
+  votre_texte: z.string(),
+  comprehension_du_sujet: z.string(),
+  respect_de_methodologie: z.string(),
+  niveau_linguistique: z.string(),
+  appreciation_generale: z.string(),
+  correction_orthographique: z.array(CombinationOrthoItemSchema),
+  version_corrigee_et_amelioree: z.string(),
+});
+
+export const CombinationEvaluationSchema = z.object({
+  global_metrics: z.object({
+    score_final: z.string(),
+    niveau_cecr: z.string(),
+    appreciation: z.string(),
+  }),
+  task_1_evaluation: CombinationTaskEvalSchema,
+  task_2_evaluation: CombinationTaskEvalSchema,
+  task_3_evaluation: CombinationTaskEvalSchema,
+});
+
+export type CombinationEvaluation = z.infer<typeof CombinationEvaluationSchema>;
+export type CombinationTaskEval = z.infer<typeof CombinationTaskEvalSchema>;
