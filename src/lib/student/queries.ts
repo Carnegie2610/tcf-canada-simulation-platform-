@@ -181,3 +181,52 @@ export async function listCombinationsWithStatus(
     submission: subMap.get(c.id) ?? null,
   }));
 }
+
+export interface CombinationResultDetail {
+  submission: CombinationSubmission;
+  combination: Combination;
+  evaluation: {
+    id: string;
+    global_score: number;
+    cefr_level: string;
+    appreciation: string;
+    task_1_evaluation: Record<string, unknown>;
+    task_2_evaluation: Record<string, unknown>;
+    task_3_evaluation: Record<string, unknown>;
+    created_at: string;
+  } | null;
+}
+
+export async function getCombinationResultDetail(
+  supabase: SupabaseClient,
+  submissionId: string,
+  userId: string
+): Promise<CombinationResultDetail | null> {
+  const { data: rawSub } = await supabase
+    .from("combination_submissions")
+    .select("*")
+    .eq("id", submissionId)
+    .eq("user_id", userId)
+    .single();
+
+  if (!rawSub) return null;
+
+  const sub = rawSub as CombinationSubmission;
+
+  const [{ data: rawCombination }, { data: rawEval }] = await Promise.all([
+    supabase.from("combinations").select("*").eq("id", sub.combination_id).single(),
+    supabase
+      .from("combination_evaluations")
+      .select("*")
+      .eq("submission_id", submissionId)
+      .maybeSingle(),
+  ]);
+
+  if (!rawCombination) return null;
+
+  return {
+    submission: sub,
+    combination: rawCombination as Combination,
+    evaluation: rawEval as CombinationResultDetail["evaluation"] ?? null,
+  };
+}
