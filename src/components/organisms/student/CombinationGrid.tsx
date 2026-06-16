@@ -26,7 +26,12 @@ export function CombinationGrid({
   const isExpired = new Date(expiresAt) < new Date();
   const quotaExceeded = isExpired || simulationsUsed >= simulationsTotal;
 
-  const paginated = combinationsWithStatus.slice(
+  // Only show unattempted + in-progress combinations; completed ones live in Historique & Progrès
+  const active = combinationsWithStatus.filter(
+    ({ submission }) => submission?.is_completed !== true
+  );
+
+  const paginated = active.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE
   );
@@ -36,7 +41,7 @@ export function CombinationGrid({
 
   // Offsets so card index numbering is consistent across pages
   const pageOffset = (page - 1) * PAGE_SIZE;
-  const tcfAll = combinationsWithStatus.filter((c) => c.combination.exam_type === "TCF");
+  const tcfAll = active.filter((c) => c.combination.exam_type === "TCF");
 
   function renderGroup(items: CombinationWithSubmission[], startIndex: number) {
     return (
@@ -81,16 +86,16 @@ export function CombinationGrid({
         </section>
       )}
 
-      {combinationsWithStatus.length === 0 && (
+      {active.length === 0 && (
         <div className="flex h-48 items-center justify-center rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]">
           <p className="text-sm text-[var(--slate-500)]">
-            Aucune combinaison disponible pour le moment.
+            Toutes vos simulations sont complètes. Consultez votre Historique &amp; Progrès.
           </p>
         </div>
       )}
 
       <PaginationBar
-        total={combinationsWithStatus.length}
+        total={active.length}
         page={page}
         pageSize={PAGE_SIZE}
         onPageChange={setPage}

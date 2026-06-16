@@ -182,6 +182,67 @@ export async function listCombinationsWithStatus(
   }));
 }
 
+export interface CompletedCombinationWithEvaluation {
+  combination: Combination;
+  submission: CombinationSubmission;
+  evaluation: {
+    id: string;
+    global_score: number;
+    cefr_level: string;
+    appreciation: string;
+  } | null;
+}
+
+export async function listCompletedCombinationsWithEvaluation(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<CompletedCombinationWithEvaluation[]> {
+  const { data: rawSubs } = await supabase
+    .from("combination_submissions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_completed", true)
+    .order("completed_at", { ascending: false });
+
+  if (!rawSubs || rawSubs.length === 0) return [];
+
+  const subs = rawSubs as CombinationSubmission[];
+  const combinationIds = subs.map((s) => s.combination_id);
+  const submissionIds = subs.map((s) => s.id);
+
+  const [{ data: rawCombinations }, { data: rawEvals }] = await Promise.all([
+    supabase.from("combinations").select("*").in("id", combinationIds),
+    supabase
+      .from("combination_evaluations")
+      .select("id, submission_id, global_score, cefr_level, appreciation")
+      .in("submission_id", submissionIds),
+  ]);
+
+  const combinationMap = new Map<string, Combination>();
+  for (const c of rawCombinations ?? []) {
+    combinationMap.set((c as Combination).id, c as Combination);
+  }
+
+  const evalMap = new Map<string, CompletedCombinationWithEvaluation["evaluation"]>();
+  for (const e of rawEvals ?? []) {
+    const row = e as Record<string, unknown>;
+    evalMap.set(row.submission_id as string, {
+      id: row.id as string,
+      global_score: row.global_score as number,
+      cefr_level: row.cefr_level as string,
+      appreciation: row.appreciation as string,
+    });
+  }
+
+  return subs
+    .filter((s) => combinationMap.has(s.combination_id))
+    .map((s) => ({
+      combination: combinationMap.get(s.combination_id)!,
+      submission: s,
+      evaluation: evalMap.get(s.id) ?? null,
+    }));
+}
+
 export interface CombinationResultDetail {
   submission: CombinationSubmission;
   combination: Combination;

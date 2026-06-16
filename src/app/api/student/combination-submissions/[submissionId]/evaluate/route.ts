@@ -3,52 +3,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CombinationEvaluationSchema } from "@/lib/schemas";
 import { callAI } from "@/lib/ai/providers";
+import { COMBINATION_EVALUATION_DEFAULT } from "@/lib/ai/prompts";
 import type { Combination, CombinationSubmission } from "@/lib/admin/types";
 
 export const maxDuration = 120;
-
-const SYSTEM_PROMPT = `You are the Lead Senior Examiner for the TCF Canada writing module at OBJECTIF 4C2. Your role is to evaluate student drafts with extreme rigor, consistency, and professional accuracy.
-
-### STRICT EVALUATION RULES & GRADING METRICS
-You must grade the submitted exam across three distinct tasks. Do not deviate from these strict score allocations:
-1. Tâche 1 (Courriel amical): Graded strictly out of 4 points. Maximum possible score is 4.0.
-2. Tâche 2 (Article de Blog): Graded strictly out of 7 points. Maximum possible score is 7.0.
-3. Tâche 3 (Synthèse & Argumentation): Graded strictly out of 9 points. Maximum possible score is 9.0.
-
-The Global Score (score_final) is the absolute mathematical sum of the three tasks:
-Global Score = Score_Tâche1 + Score_Tâche2 + Score_Tâche3 (e.g., 1.8 + 2.1 + 4.95 = 8.85, rounded to 8.8/20).
-
-### CEFR & APPRECIATION MAPPING MATRIX
-Based on the Global Score out of 20, assign the overall CEFR level and qualitative appreciation tag strictly according to this matrix:
-- Score >= 18.0: level "C2", appreciation "Excellent"
-- 15.0 <= Score < 18.0: level "C1", appreciation "Excellent"
-- 12.0 <= Score < 15.0: level "B2", appreciation "Suffisant"
-- 9.0 <= Score < 12.0: level "B1", appreciation "Moyen"
-- 6.0 <= Score < 9.0: level "A2", appreciation "Insuffisant"
-- Score < 6.0: level "A1", appreciation "Insuffisant"
-
-### REQUIRED TASKS PARADIGM
-For each of the three tasks, you must analyze and output these exact fields:
-- "score": A string representation of the grade earned out of the task's maximum limit (e.g., "1.8/4", "2.1/7", "4.95/9").
-- "consigne": The exact prompt instructions of the task.
-- "votre_texte": The verbatim draft written by the student.
-- "comprehension_du_sujet": Analyze whether the student understood the prompt's context or went off-topic.
-- "respect_de_methodologie": Evaluate structural rules (e.g., salutations, word counts, paragraph distribution, connectivity).
-- "niveau_linguistique": Review syntactic maturity, vocabulary richness, and grammar level suitability.
-- "appreciation_generale": Summarize strengths and constructive advice.
-- "correction_orthographique": An array of spelling, grammar, or preposition errors. For each error, provide:
-  * "erreur": The exact erroneous string from the student text.
-  * "correction": The corrected word or phrase.
-  * "type": The error category (e.g., "accord", "préposition", "conjugaison", "orthographe").
-  * "explication": A brief, professional grammatical explanation of why it was wrong and how to fix it.
-  * If no errors are found, return an empty array: [].
-- "version_corrigee_et_amelioree": Rewrite the student's text to elevate it to a native C1/C2 band, preserving their original intent but upgrading flow and vocabulary.
-
-### RESPONSE FORMAT CONSTRAINT
-You must output ONLY a valid, minified JSON object matching the exact schema below. Do not include markdown code block wraps (like \`\`\`json), commentary, or leading/trailing text outside the JSON object.
-
-### TARGET JSON OUTPUT SCHEMA
-{"global_metrics":{"score_final":"string","niveau_cecr":"string","appreciation":"string"},"task_1_evaluation":{"score":"string","consigne":"string","votre_texte":"string","comprehension_du_sujet":"string","respect_de_methodologie":"string","niveau_linguistique":"string","appreciation_generale":"string","correction_orthographique":[{"erreur":"string","correction":"string","type":"string","explication":"string"}],"version_corrigee_et_amelioree":"string"},"task_2_evaluation":{"score":"string","consigne":"string","votre_texte":"string","comprehension_du_sujet":"string","respect_de_methodologie":"string","niveau_linguistique":"string","appreciation_generale":"string","correction_orthographique":[{"erreur":"string","correction":"string","type":"string","explication":"string"}],"version_corrigee_et_amelioree":"string"},"task_3_evaluation":{"score":"string","consigne":"string","votre_texte":"string","comprehension_du_sujet":"string","respect_de_methodologie":"string","niveau_linguistique":"string","appreciation_generale":"string","correction_orthographique":[{"erreur":"string","correction":"string","type":"string","explication":"string"}],"version_corrigee_et_amelioree":"string"}}`;
 
 function buildUserPrompt(
   combination: Combination,
@@ -160,16 +118,37 @@ export async function POST(
 
   const userPrompt = buildUserPrompt(combination, sub);
 
-  let rawText: string;
+  // Prefer DB-stored prompt; fall back to hardcoded constant
+  const adminSupabaseForPrompt = createSupabaseAdminClient();
+  const { data: promptRow } = await adminSupabaseForPrompt
+    .from("ai_prompts")
+    .select("prompt_text")
+    .eq("prompt_key", "combination_evaluation")
+    .maybeSingle();
+  const activeSystemPrompt = promptRow?.prompt_text ?? COMBINATION_EVALUATION_DEFAULT;
+
+  let aiResult: import("@/lib/ai/providers").AiResult;
   try {
-    rawText = await callAI(SYSTEM_PROMPT, userPrompt);
+    aiResult = await callAI(activeSystemPrompt, userPrompt);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown";
+    console.error("[evaluate] AI call failed:", msg, {
+      provider: process.env.ACTIVE_AI_PROVIDER ?? "auto",
+      submissionId,
+    });
+    // Fire-and-forget usage log for failed call
+    void Promise.resolve(
+      createSupabaseAdminClient()
+        .from("ai_api_calls")
+        .insert({ submission_type: "combination", provider: "unknown", model: "unknown", success: false })
+    ).catch(console.error);
     if (msg === "no_ai_provider_configured") {
       return NextResponse.json({ error: "ai_not_configured" }, { status: 503 });
     }
-    return NextResponse.json({ error: "ai_request_failed" }, { status: 502 });
+    return NextResponse.json({ error: "ai_request_failed", detail: msg }, { status: 502 });
   }
+
+  const rawText = aiResult.text;
 
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
@@ -190,6 +169,19 @@ export async function POST(
 
   const report = validated.data;
   const scoreNum = parseFloat(report.global_metrics.score_final.replace("/20", "").trim());
+
+  // Fire-and-forget usage log
+  void Promise.resolve(
+    createSupabaseAdminClient()
+      .from("ai_api_calls")
+      .insert({
+        submission_type: "combination",
+        provider: aiResult.provider,
+        model: aiResult.model,
+        success: true,
+        duration_ms: aiResult.durationMs,
+      })
+  ).catch(console.error);
 
   const adminSupabase = createSupabaseAdminClient();
   const { data: evaluation, error: evalError } = await adminSupabase

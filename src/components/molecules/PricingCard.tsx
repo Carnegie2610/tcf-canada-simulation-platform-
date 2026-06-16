@@ -1,13 +1,13 @@
+"use client";
+
 import { Badge } from "@/components/atoms/Badge";
-import { Button } from "@/components/atoms/Button";
 
 export interface PricingCardProps {
   name: string;
   price: string;
   currency: string;
-  duration: string;
-  quota: string;
-  hasAiCorrection: boolean;
+  description: string;
+  features: string[];
   buttonLabel: string;
   isHighlighted?: boolean;
 }
@@ -27,24 +27,22 @@ export function PricingCard({
   name,
   price,
   currency,
-  duration,
-  quota,
-  hasAiCorrection,
+  description,
+  features,
   buttonLabel,
   isHighlighted = false,
 }: PricingCardProps) {
-  const features = [
-    quota,
-    "Accès Sections A et B",
-    "Tableau de bord de progression",
-    ...(hasAiCorrection
-      ? ["Corrections IA avec scores CECRL", "Réponses modèles niveau C2"]
-      : []),
-  ];
+  function handlePlanSelection() {
+    const phoneNumber = "237697443878";
+    const message = encodeURIComponent(
+      `Bonjour OBJECTIF 4C2, je souhaite souscrire au *${name}* (${price} F CFA) pour commencer mes simulations d'expression écrite du TCF Canada. Veuillez m'indiquer la procédure d'activation.`
+    );
+    window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
+  }
 
   return (
     <div
-      className={`relative flex flex-col rounded-2xl border p-8 transition-all ${
+      className={`relative flex flex-col rounded-2xl border p-8 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)] ${
         isHighlighted
           ? "border-[--blue-500] shadow-xl shadow-blue-500/10"
           : "border-[--slate-800] bg-[--slate-900]"
@@ -65,7 +63,7 @@ export function PricingCard({
           {price}{" "}
           <span className="text-sm font-normal text-[--slate-400]">{currency}</span>
         </p>
-        <p className="mt-1 text-sm text-[--slate-400]">{duration}</p>
+        <p className="mt-1 text-sm text-[--slate-400]">{description}</p>
       </div>
 
       <ul className="mt-6 flex-1 space-y-3">
@@ -78,13 +76,16 @@ export function PricingCard({
       </ul>
 
       <div className="mt-8">
-        <Button
-          variant={isHighlighted ? "primary" : "secondary"}
-          href="/login"
-          className="w-full justify-center"
+        <button
+          onClick={handlePlanSelection}
+          className={`w-full justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-95 ${
+            isHighlighted
+              ? "bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-900/30"
+              : "border border-[--slate-700] bg-[--slate-800] text-[--slate-200] hover:bg-[--slate-700]"
+          }`}
         >
           {buttonLabel}
-        </Button>
+        </button>
       </div>
     </div>
   );

@@ -61,6 +61,7 @@ export function CombinationEditor({
 }: CombinationEditorProps) {
   const router = useRouter();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mobileTextareaRef = useRef<HTMLTextAreaElement>(null);
   const draftsRef = useRef<[string, string, string]>(initialDrafts);
 
   const [activeTask, setActiveTask] = useState<TaskKey>(1);
@@ -186,8 +187,8 @@ export function CombinationEditor({
     scheduleSave(task, value);
   }
 
-  function insertAccent(char: string) {
-    const el = textareaRef.current;
+  function insertAccent(char: string, ref: React.RefObject<HTMLTextAreaElement | null>) {
+    const el = ref.current;
     if (!el) return;
     const start = el.selectionStart ?? el.value.length;
     const end = el.selectionEnd ?? el.value.length;
@@ -299,23 +300,21 @@ export function CombinationEditor({
         </div>
       )}
 
-      {/* ── COMPONENT 1: HEADER (h-14) ── */}
-      <header className="shrink-0 flex h-14 items-center justify-between border-b border-slate-800/60 bg-slate-950/80 px-6 backdrop-blur-md">
+      {/* ── COMPONENT 1: HEADER (shared desktop + mobile) ── */}
+      <header className="shrink-0 flex h-14 items-center justify-between border-b border-slate-800/60 bg-slate-950/80 px-4 md:px-6 backdrop-blur-md">
         {/* Left: Branding */}
-        <div className="flex items-center gap-3">
-          <span
-            className="select-none bg-gradient-to-r from-[#2563eb] to-[#06b6d4] bg-clip-text text-base font-extrabold uppercase tracking-widest text-transparent"
-          >
+        <div className="flex items-center gap-2 md:gap-3">
+          <span className="select-none bg-gradient-to-r from-[#2563eb] to-[#06b6d4] bg-clip-text text-sm md:text-base font-extrabold uppercase tracking-widest text-transparent">
             OBJECTIF 4C2
           </span>
-          <span className="select-none text-slate-700">|</span>
-          <span className="select-none text-xs font-light uppercase tracking-wider text-slate-500">
+          <span className="hidden md:block select-none text-slate-700">|</span>
+          <span className="hidden md:block select-none text-xs font-light uppercase tracking-wider text-slate-500">
             Examen Simulateur
           </span>
         </div>
 
-        {/* Center: Session badge */}
-        <div className="flex items-center gap-2">
+        {/* Center: Session badge (hidden on mobile) */}
+        <div className="hidden md:flex items-center gap-2">
           <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
           <span className="select-none text-xs font-medium uppercase tracking-wide text-emerald-400">
             Session Sécurisée (SSL)
@@ -325,7 +324,7 @@ export function CombinationEditor({
         {/* Right: Timer + save status */}
         <div className="flex shrink-0 flex-col items-end">
           <span
-            className={`font-mono text-lg font-bold leading-none ${
+            className={`font-mono text-base md:text-lg font-bold leading-none ${
               isExpired
                 ? "text-red-400"
                 : "text-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
@@ -337,8 +336,10 @@ export function CombinationEditor({
         </div>
       </header>
 
-      {/* ── BODY: 3-COLUMN LAYOUT ── */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/*  DESKTOP LAYOUT (md+): 3-column flex-row                  */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      <div className="hidden md:flex flex-1 overflow-hidden">
 
         {/* ── LEFT COLUMN (15%) ── */}
         <aside className="flex w-[15%] shrink-0 flex-col gap-3 overflow-y-auto border-r border-slate-800 bg-slate-900/40 p-3">
@@ -395,7 +396,7 @@ export function CombinationEditor({
             </div>
           </div>
 
-          {/* Spacer — pushes actions to bottom */}
+          {/* Spacer */}
           <div className="flex-1" />
 
           {/* Component 4: Actions */}
@@ -438,7 +439,7 @@ export function CombinationEditor({
             </div>
           </div>
 
-          {/* Component 6: Secure Textarea — fills remaining height */}
+          {/* Component 6: Secure Textarea */}
           <textarea
             ref={textareaRef}
             value={activeDraft}
@@ -488,7 +489,7 @@ export function CombinationEditor({
                   <button
                     key={char}
                     type="button"
-                    onClick={() => insertAccent(char)}
+                    onClick={() => insertAccent(char, textareaRef)}
                     disabled={isLocked || isExpired}
                     title={`Insérer ${char}`}
                     className="rounded px-1 py-1.5 text-sm font-medium text-slate-300 transition-colors bg-slate-800 hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
@@ -500,6 +501,129 @@ export function CombinationEditor({
             </div>
           </div>
         </aside>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/*  MOBILE LAYOUT (< md): stacked vertical                   */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      <div className="flex flex-col flex-1 overflow-auto md:hidden">
+
+        {/* 3. Task dropdown + nav buttons (side-by-side) */}
+        <div className="shrink-0 flex items-center gap-2 border-b border-slate-800 bg-slate-900/60 px-3 py-2">
+          <select
+            value={activeTask}
+            onChange={(e) => setActiveTask(Number(e.target.value) as TaskKey)}
+            disabled={isLocked}
+            className="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-200 focus:border-blue-600 focus:outline-none disabled:opacity-50"
+          >
+            {tasks.map(({ key, label, task }) => (
+              <option key={key} value={key}>
+                {label} ({task.minWords}–{task.maxWords} mots)
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => goTo(-1)}
+            disabled={activeTask === 1 || isLocked}
+            className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-400 transition-colors hover:bg-slate-800 disabled:opacity-30"
+          >
+            ◀
+          </button>
+          <button
+            onClick={() => goTo(1)}
+            disabled={activeTask === 3 || isLocked}
+            className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-400 transition-colors hover:bg-slate-800 disabled:opacity-30"
+          >
+            ▶
+          </button>
+          {/* Status dot */}
+          <div className="flex items-center gap-1 pl-1">
+            {tasks.map(({ key }) => (
+              <span
+                key={key}
+                className={`h-2 w-2 rounded-full ${tabDotClass(key)} ${activeTask === key ? "ring-1 ring-blue-500" : ""}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* 4. Active question (scrollable, max 35vh) */}
+        <div className="shrink-0 max-h-[35vh] overflow-y-auto border-b border-slate-800 bg-slate-900/30 px-4 py-3">
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            {activeTaskData.label} — Sujet
+          </p>
+          <div className="pointer-events-none select-none whitespace-pre-wrap text-sm leading-relaxed text-slate-300">
+            {activeTaskData.task.question}
+          </div>
+        </div>
+
+        {/* 5. Textarea (fixed height) */}
+        <textarea
+          ref={mobileTextareaRef}
+          value={activeDraft}
+          onChange={(e) => handleChange(e.target.value)}
+          disabled={isLocked || isExpired}
+          placeholder="Commencez à rédiger votre réponse ici…"
+          className="shrink-0 h-[40vh] resize-none bg-slate-950 px-4 py-4 font-mono text-sm leading-relaxed text-slate-200 placeholder-slate-700 focus:outline-none disabled:opacity-60"
+        />
+
+        {/* 6. Word counter + accents (side-by-side) */}
+        <div className="shrink-0 grid grid-cols-2 gap-2 border-t border-slate-800 bg-slate-900/40 p-3">
+          {/* Word counter */}
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
+            <p
+              className={`text-2xl font-bold leading-none ${
+                activeWordCount === 0
+                  ? "text-slate-500"
+                  : wordCountValid
+                    ? "text-emerald-400"
+                    : "text-red-400"
+              }`}
+            >
+              {activeWordCount}
+            </p>
+            <p className="mt-0.5 text-[10px] text-slate-500">mots</p>
+            <p className="mt-1 text-[10px] text-slate-600">
+              {minWords}–{maxWords}
+            </p>
+          </div>
+
+          {/* Accents keyboard */}
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-1.5">
+            <div className="grid grid-cols-6 gap-0.5">
+              {ACCENTS.map((char) => (
+                <button
+                  key={char}
+                  type="button"
+                  onClick={() => insertAccent(char, mobileTextareaRef)}
+                  disabled={isLocked || isExpired}
+                  title={`Insérer ${char}`}
+                  className="rounded px-1 py-1 text-xs font-medium text-slate-300 transition-colors bg-slate-800 hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {char}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile submit + quit row */}
+        <div className="shrink-0 flex gap-2 border-t border-slate-800 bg-slate-900/60 p-3">
+          <button
+            onClick={handleQuit}
+            disabled={isLocked}
+            className="flex-none rounded-lg border border-red-800/60 px-3 py-2 text-xs font-medium text-red-400 transition-colors hover:bg-red-950/40 disabled:opacity-40"
+          >
+            Quitter
+          </button>
+          <button
+            onClick={() => submitAll()}
+            disabled={isLocked || isSubmitting}
+            className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 py-2.5 text-xs font-semibold text-white shadow transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSubmitting ? "Soumission…" : "Soumettre mon évaluation"}
+          </button>
+        </div>
       </div>
     </div>
   );

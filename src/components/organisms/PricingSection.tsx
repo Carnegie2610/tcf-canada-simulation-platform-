@@ -2,24 +2,51 @@ import { PricingCard } from "@/components/molecules/PricingCard";
 
 const tiers = [
   {
-    name: "Accès 1 Mois",
-    price: "20 000",
+    name: "Plan de Base",
+    price: "5 000",
     currency: "FCFA",
-    duration: "Accès valable 30 jours",
-    quota: "35 simulations de rédaction",
-    hasAiCorrection: true,
-    buttonLabel: "Commencer maintenant",
+    description: "40 Sujets d'entraînement + Solutions d'examens rédigées",
+    features: [
+      "40 Sujets d'entraînement",
+      "Solutions d'examens rédigées",
+      "Accès simulateur Tâche 1, 2 et 3",
+      "Corrections IA avec scores CECRL",
+      "Réponses modèles niveau C2",
+    ],
+    buttonLabel: "S'inscrire",
     isHighlighted: false,
   },
   {
-    name: "Accès 2 Mois",
-    price: "35 000",
+    name: "Plan Pro / Premium",
+    price: "10 000",
     currency: "FCFA",
-    duration: "Accès valable 60 jours",
-    quota: "35 simulations de rédaction",
-    hasAiCorrection: true,
-    buttonLabel: "Choisir cette formule",
+    description: "80 Sujets d'entraînement + Solutions d'examens rédigées",
+    features: [
+      "80 Sujets d'entraînement",
+      "Solutions d'examens rédigées",
+      "Accès simulateur Tâche 1, 2 et 3",
+      "Corrections IA avec scores CECRL",
+      "Réponses modèles niveau C2",
+      "Tableau de bord de progression",
+    ],
+    buttonLabel: "Choisir ce plan",
     isHighlighted: true,
+  },
+  {
+    name: "Plan Élite / VIP",
+    price: "3 000",
+    currency: "FCFA",
+    description: "120 Sujets d'entraînement + Solutions d'examens rédigées",
+    features: [
+      "120 Sujets d'entraînement",
+      "Solutions d'examens rédigées",
+      "Accès simulateur Tâche 1, 2 et 3",
+      "Corrections IA avec scores CECRL",
+      "Réponses modèles niveau C2",
+      "Tableau de bord de progression",
+    ],
+    buttonLabel: "Choisir ce plan",
+    isHighlighted: false,
   },
 ];
 
@@ -37,7 +64,7 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="mx-auto grid max-w-3xl grid-cols-1 items-stretch gap-6 md:grid-cols-2">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 items-stretch gap-6 md:grid-cols-3">
           {tiers.map((tier) => (
             <PricingCard key={tier.name} {...tier} />
           ))}

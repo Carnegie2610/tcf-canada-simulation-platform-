@@ -18,7 +18,10 @@ export default async function CombinationResultPage({ params }: Props) {
 
   if (!user) redirect("/login");
 
-  const result = await getCombinationResultDetail(supabase, submissionId, user.id);
+  const [result, profileResult] = await Promise.all([
+    getCombinationResultDetail(supabase, submissionId, user.id),
+    supabase.from("profiles").select("full_name, email").eq("id", user.id).single(),
+  ]);
 
   if (!result) notFound();
 
@@ -27,6 +30,8 @@ export default async function CombinationResultPage({ params }: Props) {
   }
 
   const ev = result.evaluation;
+  const profile = profileResult.data;
+  const studentName = profile?.full_name ?? profile?.email ?? "";
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -40,6 +45,8 @@ export default async function CombinationResultPage({ params }: Props) {
         task2={ev.task_2_evaluation as unknown as CombinationTaskEval}
         task3={ev.task_3_evaluation as unknown as CombinationTaskEval}
         createdAt={ev.created_at}
+        combination={result.combination}
+        studentName={studentName}
       />
     </div>
   );

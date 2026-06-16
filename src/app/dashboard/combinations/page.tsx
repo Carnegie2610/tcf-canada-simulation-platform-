@@ -30,10 +30,11 @@ export default async function CombinationsPage() {
       <div>
         <BackButton href="/dashboard" label="Tableau de bord" />
         <h1 className="mt-2 text-2xl font-bold text-[var(--brand-white)]">
-          Combinaisons
+          Simulateur d&apos;expression écrite
         </h1>
         <p className="mt-1 text-sm text-[var(--slate-400)]">
           Simulez l&apos;examen complet TEF/TCF Canada avec 3 tâches d&apos;expression écrite en temps réel.
+          Les simulations déjà soumises sont disponibles dans votre Historique &amp; Progrès.
         </p>
       </div>
       <CombinationGrid

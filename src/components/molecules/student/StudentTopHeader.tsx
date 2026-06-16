@@ -15,9 +15,8 @@ interface StudentTopHeaderProps {
 
 const navItems = [
   { label: "Tableau de bord", href: "/dashboard" },
-  { label: "Simulations", href: "/dashboard/exams" },
-  { label: "Combinaisons", href: "/dashboard/combinations" },
-  { label: "Historique", href: "/dashboard/history" },
+  { label: "Simulateur d'expression écrite", href: "/dashboard/combinations" },
+  { label: "Historique & Progrès", href: "/dashboard/history" },
   { label: "Ressources", href: "/dashboard/library" },
   { label: "Mon compte", href: "/dashboard/billing" },
 ];
