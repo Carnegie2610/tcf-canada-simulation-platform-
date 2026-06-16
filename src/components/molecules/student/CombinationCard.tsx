@@ -7,7 +7,6 @@ import type { Combination, CombinationSubmission } from "@/lib/admin/types";
 interface CombinationCardProps {
   combination: Combination;
   submission: CombinationSubmission | null;
-  index: number;
   quotaExceeded: boolean;
   expiresAt: string;
 }
@@ -15,7 +14,6 @@ interface CombinationCardProps {
 export function CombinationCard({
   combination,
   submission,
-  index,
   quotaExceeded,
   expiresAt,
 }: CombinationCardProps) {
@@ -118,12 +116,9 @@ export function CombinationCard({
 
         {/* 2. Bold Name & Theme */}
         <div className="mb-6">
-          <h3 className="text-xl font-extrabold text-slate-100 group-hover:text-white transition-colors duration-200">
-            📁 Combinaison {index}
+          <h3 className="flex items-start gap-2 text-xl font-extrabold text-slate-100 group-hover:text-white line-clamp-2 transition-colors duration-200">
+            <span>📁</span> {combination.title}
           </h3>
-          <p className="text-sm text-slate-400 group-hover:text-slate-300 mt-1.5 line-clamp-2 transition-colors duration-200">
-            {combination.title}
-          </p>
         </div>
 
         {/* 3. Metadata Row */}

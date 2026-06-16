@@ -52,6 +52,8 @@ export function StudentTopHeader({
   const [expiryStr, setExpiryStr] = useState(expiresAt);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // Recalculate days once per minute
   useEffect(() => {
@@ -97,6 +99,9 @@ export function StudentTopHeader({
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleOutside);
     return () => document.removeEventListener("mousedown", handleOutside);
@@ -129,7 +134,7 @@ export function StudentTopHeader({
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--slate-800)] bg-[var(--slate-900)] px-4 sm:px-6">
-      {/* Left: Brand + Nav */}
+      {/* Left: Brand + Nav (desktop) */}
       <div className="flex items-center gap-6">
         <Link href="/dashboard" className="flex items-center gap-1.5 shrink-0">
           <span className="font-bold text-[var(--brand-red)] text-base leading-none">4C2</span>
@@ -185,22 +190,53 @@ export function StudentTopHeader({
               <div className="px-3 py-2 border-b border-[var(--slate-800)]">
                 <p className="truncate text-xs font-medium text-[var(--brand-white)]">{currentUserName}</p>
               </div>
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setDropdownOpen(false)}
-                  className="flex items-center px-3 py-2 text-xs text-[var(--slate-400)] hover:bg-[var(--slate-800)] hover:text-[var(--brand-white)] transition-colors lg:hidden"
-                >
-                  {item.label}
-                </Link>
-              ))}
               <button
                 onClick={handleSignOut}
                 className="w-full px-3 py-2 text-left text-xs text-[var(--slate-500)] hover:bg-[var(--slate-800)] hover:text-[var(--slate-300)] transition-colors"
               >
                 Se déconnecter
               </button>
+            </div>
+          )}
+        </div>
+
+        {/* Hamburger nav menu (mobile) */}
+        <div className="relative lg:hidden" ref={mobileMenuRef}>
+          <button
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-label="Ouvrir le menu de navigation"
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--slate-700)] hover:bg-[var(--slate-800)] transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              className="h-4 w-4 text-[var(--slate-300)]"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+
+          {mobileMenuOpen && (
+            <div
+              onClick={() => setMobileMenuOpen(false)}
+              className="absolute right-0 top-full mt-1.5 w-56 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] py-1 shadow-xl"
+            >
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center px-3 py-2 text-xs text-[var(--slate-400)] hover:bg-[var(--slate-800)] hover:text-[var(--brand-white)] transition-colors"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
           )}
         </div>

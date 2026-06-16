@@ -34,6 +34,25 @@ function storageKey(submissionId: string): string {
   return `combination_draft_${submissionId}`;
 }
 
+function Card({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`rounded-xl border border-slate-800 bg-slate-900/40 p-3 ${className}`}>
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
+        {title}
+      </p>
+      {children}
+    </div>
+  );
+}
+
 function loadFromStorage(
   submissionId: string,
   initial: [string, string, string]
@@ -209,6 +228,7 @@ export function CombinationEditor({
     await fetch(`/api/student/combination-submissions/${submissionId}`, {
       method: "DELETE",
     });
+    router.refresh();
     router.push("/dashboard/combinations");
   }
 
@@ -264,7 +284,7 @@ export function CombinationEditor({
       {/* ── SUBMISSION GATE (post-submit decision) ── */}
       {isSubmitted && !showAiHub && (
         <SubmissionGate
-          onDashboard={() => router.push("/dashboard/combinations")}
+          onDashboard={() => { router.refresh(); router.push("/dashboard/combinations"); }}
           onEvaluate={() => { setAiError(false); setShowAiHub(true); }}
         />
       )}
@@ -344,11 +364,8 @@ export function CombinationEditor({
         {/* ── LEFT COLUMN (15%) ── */}
         <aside className="flex w-[15%] shrink-0 flex-col gap-3 overflow-y-auto border-r border-slate-800 bg-slate-900/40 p-3">
 
-          {/* Component 2: Vertical Task Tabs */}
-          <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
-              Sélecteur de tâche
-            </p>
+          {/* Card: Tâches */}
+          <Card title="Tâches">
             <div className="flex flex-col gap-1">
               {tasks.map(({ key, label, task }) => (
                 <button
@@ -371,54 +388,36 @@ export function CombinationEditor({
                 </button>
               ))}
             </div>
-          </div>
+          </Card>
 
-          {/* Component 3: Navigator */}
-          <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
-              Navigation
-            </p>
-            <div className="flex gap-1">
+          {/* Card: Navigation (Préc/Suiv + Quitter) */}
+          <Card title="Navigation">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-1">
+                <button
+                  onClick={() => goTo(-1)}
+                  disabled={activeTask === 1 || isLocked}
+                  className="flex-1 rounded-lg border border-slate-700 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  ◀ Préc.
+                </button>
+                <button
+                  onClick={() => goTo(1)}
+                  disabled={activeTask === 3 || isLocked}
+                  className="flex-1 rounded-lg border border-slate-700 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  Suiv. ▶
+                </button>
+              </div>
               <button
-                onClick={() => goTo(-1)}
-                disabled={activeTask === 1 || isLocked}
-                className="flex-1 rounded-lg border border-slate-700 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+                onClick={handleQuit}
+                disabled={isLocked}
+                className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-red-400 transition-colors hover:bg-red-950/40 hover:text-red-300 disabled:opacity-40"
               >
-                ◀ Préc.
-              </button>
-              <button
-                onClick={() => goTo(1)}
-                disabled={activeTask === 3 || isLocked}
-                className="flex-1 rounded-lg border border-slate-700 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                Suiv. ▶
+                Quitter le test
               </button>
             </div>
-          </div>
-
-          {/* Spacer */}
-          <div className="flex-1" />
-
-          {/* Component 4: Actions */}
-          <div className="flex flex-col gap-2">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-600">
-              Actions
-            </p>
-            <button
-              onClick={handleQuit}
-              disabled={isLocked}
-              className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-red-400 transition-colors hover:bg-red-950/40 hover:text-red-300 disabled:opacity-40"
-            >
-              Quitter le test
-            </button>
-            <button
-              onClick={() => submitAll()}
-              disabled={isLocked || isSubmitting}
-              className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 py-2.5 text-xs font-semibold text-white shadow transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isSubmitting ? "Soumission…" : "Soumettre l'éval."}
-            </button>
-          </div>
+          </Card>
         </aside>
 
         {/* ── CENTER COLUMN (flex-1 / ~70%) ── */}
@@ -451,13 +450,10 @@ export function CombinationEditor({
         </main>
 
         {/* ── RIGHT COLUMN (15%) ── */}
-        <aside className="flex w-[15%] shrink-0 flex-col gap-4 overflow-y-auto border-l border-slate-800 bg-slate-900/40 p-3">
+        <aside className="flex w-[15%] shrink-0 flex-col gap-3 overflow-y-auto border-l border-slate-800 bg-slate-900/40 p-3">
 
-          {/* Component 7: Word Counter */}
-          <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
-              Statistiques
-            </p>
+          {/* Card: Compteur */}
+          <Card title="Compteur">
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
               <p
                 className={`text-3xl font-bold leading-none ${
@@ -476,30 +472,34 @@ export function CombinationEditor({
                 <span className="text-slate-400">Max:</span>{" "}{maxWords}
               </div>
             </div>
-          </div>
+          </Card>
 
-          {/* Component 8: French Accent Keyboard */}
-          <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
-              Accents Français
-            </p>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-2">
-              <div className="grid grid-cols-3 gap-1">
-                {ACCENTS.map((char) => (
-                  <button
-                    key={char}
-                    type="button"
-                    onClick={() => insertAccent(char, textareaRef)}
-                    disabled={isLocked || isExpired}
-                    title={`Insérer ${char}`}
-                    className="rounded px-1 py-1.5 text-sm font-medium text-slate-300 transition-colors bg-slate-800 hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {char}
-                  </button>
-                ))}
-              </div>
+          {/* Card: Caractères spéciaux */}
+          <Card title="Caractères spéciaux">
+            <div className="grid grid-cols-3 gap-1">
+              {ACCENTS.map((char) => (
+                <button
+                  key={char}
+                  type="button"
+                  onClick={() => insertAccent(char, textareaRef)}
+                  disabled={isLocked || isExpired}
+                  title={`Insérer ${char}`}
+                  className="rounded px-1 py-1.5 text-sm font-medium text-slate-300 transition-colors bg-slate-800 hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {char}
+                </button>
+              ))}
             </div>
-          </div>
+          </Card>
+
+          {/* Submit — below Caractères spéciaux on desktop */}
+          <button
+            onClick={() => submitAll()}
+            disabled={isLocked || isSubmitting}
+            className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 py-2.5 text-xs font-semibold text-white shadow transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSubmitting ? "Soumission…" : "Soumettre l'éval."}
+          </button>
         </aside>
       </div>
 
@@ -508,42 +508,63 @@ export function CombinationEditor({
       {/* ══════════════════════════════════════════════════════════ */}
       <div className="flex flex-col flex-1 overflow-auto md:hidden">
 
-        {/* 3. Task dropdown + nav buttons (side-by-side) */}
-        <div className="shrink-0 flex items-center gap-2 border-b border-slate-800 bg-slate-900/60 px-3 py-2">
-          <select
-            value={activeTask}
-            onChange={(e) => setActiveTask(Number(e.target.value) as TaskKey)}
-            disabled={isLocked}
-            className="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs font-semibold text-slate-200 focus:border-blue-600 focus:outline-none disabled:opacity-50"
-          >
-            {tasks.map(({ key, label, task }) => (
-              <option key={key} value={key}>
-                {label} ({task.minWords}–{task.maxWords} mots)
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => goTo(-1)}
-            disabled={activeTask === 1 || isLocked}
-            className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-400 transition-colors hover:bg-slate-800 disabled:opacity-30"
-          >
-            ◀
-          </button>
-          <button
-            onClick={() => goTo(1)}
-            disabled={activeTask === 3 || isLocked}
-            className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-400 transition-colors hover:bg-slate-800 disabled:opacity-30"
-          >
-            ▶
-          </button>
-          {/* Status dot */}
-          <div className="flex items-center gap-1 pl-1">
-            {tasks.map(({ key }) => (
-              <span
-                key={key}
-                className={`h-2 w-2 rounded-full ${tabDotClass(key)} ${activeTask === key ? "ring-1 ring-blue-500" : ""}`}
-              />
-            ))}
+        {/* 3. Tâches (vertical, left) + Navigation (right) */}
+        <div className="shrink-0 flex gap-2 mx-3 mt-3">
+          <div className="flex-[1.3]">
+            <Card title="Tâches">
+              <div className="flex flex-col gap-1.5">
+                {tasks.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveTask(key)}
+                    disabled={isLocked}
+                    className={`flex items-center gap-2 rounded-xl border py-2.5 px-3 text-sm font-bold transition-all disabled:opacity-50 ${
+                      activeTask === key
+                        ? "border-blue-500 bg-blue-950/60 text-blue-300"
+                        : "border-slate-700 bg-slate-800/60 text-slate-400 hover:bg-slate-800"
+                    }`}
+                  >
+                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${tabDotClass(key)}`} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          <div className="flex-1">
+            <Card title="Navigation">
+              <div className="flex flex-col gap-1.5">
+                <button
+                  onClick={() => goTo(-1)}
+                  disabled={activeTask === 1 || isLocked}
+                  className="w-full rounded-lg border border-slate-700 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  ◀ Préc.
+                </button>
+                <button
+                  onClick={() => goTo(1)}
+                  disabled={activeTask === 3 || isLocked}
+                  className="w-full rounded-lg border border-slate-700 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  Suiv. ▶
+                </button>
+                <button
+                  onClick={() => submitAll()}
+                  disabled={isLocked || isSubmitting}
+                  className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 py-2 text-xs font-semibold text-white shadow transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isSubmitting ? "Soumission…" : "Soumettre l'éval."}
+                </button>
+                <button
+                  onClick={handleQuit}
+                  disabled={isLocked}
+                  className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-red-400 transition-colors hover:bg-red-950/40 hover:text-red-300 disabled:opacity-40"
+                >
+                  Quitter le test
+                </button>
+              </div>
+            </Card>
           </div>
         </div>
 
@@ -557,39 +578,43 @@ export function CombinationEditor({
           </div>
         </div>
 
-        {/* 5. Textarea (fixed height) */}
-        <textarea
-          ref={mobileTextareaRef}
-          value={activeDraft}
-          onChange={(e) => handleChange(e.target.value)}
-          disabled={isLocked || isExpired}
-          placeholder="Commencez à rédiger votre réponse ici…"
-          className="shrink-0 h-[40vh] resize-none bg-slate-950 px-4 py-4 font-mono text-sm leading-relaxed text-slate-200 placeholder-slate-700 focus:outline-none disabled:opacity-60"
-        />
+        {/* 5. Textarea — its own bordered block, separate from the row below */}
+        <div className="shrink-0 mx-3 mt-3 overflow-hidden rounded-xl border border-slate-800">
+          <textarea
+            ref={mobileTextareaRef}
+            value={activeDraft}
+            onChange={(e) => handleChange(e.target.value)}
+            disabled={isLocked || isExpired}
+            placeholder="Commencez à rédiger votre réponse ici…"
+            className="h-[40vh] w-full resize-none bg-slate-950 px-4 py-4 font-mono text-sm leading-relaxed text-slate-200 placeholder-slate-700 focus:outline-none disabled:opacity-60"
+          />
+        </div>
 
-        {/* 6. Word counter + accents (side-by-side) */}
-        <div className="shrink-0 grid grid-cols-2 gap-2 border-t border-slate-800 bg-slate-900/40 p-3">
-          {/* Word counter */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
-            <p
-              className={`text-2xl font-bold leading-none ${
-                activeWordCount === 0
-                  ? "text-slate-500"
-                  : wordCountValid
-                    ? "text-emerald-400"
-                    : "text-red-400"
-              }`}
-            >
-              {activeWordCount}
-            </p>
-            <p className="mt-0.5 text-[10px] text-slate-500">mots</p>
-            <p className="mt-1 text-[10px] text-slate-600">
-              {minWords}–{maxWords}
-            </p>
-          </div>
+        {/* 6. Compteur + Caractères spéciaux (each its own card, side-by-side) */}
+        <div className="shrink-0 grid grid-cols-2 gap-2 mx-3 mt-3 mb-3">
+          {/* Card: Compteur */}
+          <Card title="Compteur">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
+              <p
+                className={`text-2xl font-bold leading-none ${
+                  activeWordCount === 0
+                    ? "text-slate-500"
+                    : wordCountValid
+                      ? "text-emerald-400"
+                      : "text-red-400"
+                }`}
+              >
+                {activeWordCount}
+              </p>
+              <p className="mt-0.5 text-[10px] text-slate-500">mots</p>
+              <p className="mt-1 text-[10px] text-slate-600">
+                {minWords}–{maxWords}
+              </p>
+            </div>
+          </Card>
 
-          {/* Accents keyboard */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-1.5">
+          {/* Card: Caractères spéciaux */}
+          <Card title="Caractères spéciaux">
             <div className="grid grid-cols-6 gap-0.5">
               {ACCENTS.map((char) => (
                 <button
@@ -604,25 +629,7 @@ export function CombinationEditor({
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* Mobile submit + quit row */}
-        <div className="shrink-0 flex gap-2 border-t border-slate-800 bg-slate-900/60 p-3">
-          <button
-            onClick={handleQuit}
-            disabled={isLocked}
-            className="flex-none rounded-lg border border-red-800/60 px-3 py-2 text-xs font-medium text-red-400 transition-colors hover:bg-red-950/40 disabled:opacity-40"
-          >
-            Quitter
-          </button>
-          <button
-            onClick={() => submitAll()}
-            disabled={isLocked || isSubmitting}
-            className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 py-2.5 text-xs font-semibold text-white shadow transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSubmitting ? "Soumission…" : "Soumettre mon évaluation"}
-          </button>
+          </Card>
         </div>
       </div>
     </div>

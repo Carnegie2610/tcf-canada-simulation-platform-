@@ -39,19 +39,14 @@ export function CombinationGrid({
   const tcf = paginated.filter((c) => c.combination.exam_type === "TCF");
   const tef = paginated.filter((c) => c.combination.exam_type === "TEF");
 
-  // Offsets so card index numbering is consistent across pages
-  const pageOffset = (page - 1) * PAGE_SIZE;
-  const tcfAll = active.filter((c) => c.combination.exam_type === "TCF");
-
-  function renderGroup(items: CombinationWithSubmission[], startIndex: number) {
+  function renderGroup(items: CombinationWithSubmission[]) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map(({ combination, submission }, i) => (
+        {items.map(({ combination, submission }) => (
           <CombinationCard
             key={combination.id}
             combination={combination}
             submission={submission}
-            index={startIndex + i + 1}
             quotaExceeded={quotaExceeded}
             expiresAt={expiresAt}
           />
@@ -73,7 +68,7 @@ export function CombinationGrid({
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             TCF Canada
           </h2>
-          {renderGroup(tcf, pageOffset)}
+          {renderGroup(tcf)}
         </section>
       )}
 
@@ -82,7 +77,7 @@ export function CombinationGrid({
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             TEF Canada
           </h2>
-          {renderGroup(tef, pageOffset + tcfAll.length)}
+          {renderGroup(tef)}
         </section>
       )}
 

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { pdf } from "@react-pdf/renderer";
 import type { CombinationTaskEval } from "@/lib/schemas";
 import type { Combination } from "@/lib/admin/types";
+import { CombinationPdfDocument } from "@/components/organisms/student/pdf/CombinationPdfDocument";
 
 interface CombinationResultViewProps {
   combinationTitle: string;
@@ -238,6 +240,7 @@ export function CombinationResultView({
 }: CombinationResultViewProps) {
   const [activeTab, setActiveTab] = useState<1 | 2 | 3>(1);
   const [showModal, setShowModal] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const tasks = [
     { key: 1 as const, label: "Tâche 1 — Courriel amical",         task: task1, maxScore: "4 pts" },
@@ -252,27 +255,45 @@ export function CombinationResultView({
     year: "numeric",
   });
 
+  async function handleDownloadPdf() {
+    setIsDownloadingPdf(true);
+    try {
+      const blob = await pdf(
+        <CombinationPdfDocument
+          combinationTitle={combinationTitle}
+          examType={examType}
+          globalScore={globalScore}
+          cefrLevel={cefrLevel}
+          appreciation={appreciation}
+          task1={task1}
+          task2={task2}
+          task3={task3}
+          createdAt={createdAt}
+          studentName={studentName}
+        />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${combinationTitle.replace(/\s+/g, "_")}_rapport.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  }
+
   return (
     <div className="space-y-8">
-      {/* Solution modal — fixed positioning means it won't appear in print */}
+      {/* Solution modal — never included in the PDF export */}
       {showModal && combination && (
         <ModelSolutionModal combination={combination} onClose={() => setShowModal(false)} />
       )}
 
-      {/* Print-only document header */}
-      <div className="hidden print:block mb-6 border-b border-gray-300 pb-4">
-        <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">
-          OBJECTIF 4C2 — Rapport d&apos;évaluation
-        </p>
-        <h1 className="mt-1 text-xl font-bold text-gray-900">{combinationTitle}</h1>
-        {studentName && (
-          <p className="mt-0.5 text-sm text-gray-700">Candidat : {studentName}</p>
-        )}
-        <p className="text-sm text-gray-500">Évalué le {evalDate}</p>
-      </div>
-
-      {/* Toolbar (screen only) */}
-      <div className="flex flex-wrap items-center gap-2 print:hidden">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2">
         <Link
           href="/dashboard/history"
           className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-2 text-xs font-medium text-slate-300 transition-all duration-200 hover:bg-slate-800 hover:text-white"
@@ -289,10 +310,11 @@ export function CombinationResultView({
           </button>
         )}
         <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-2 text-xs font-medium text-slate-300 transition-all duration-200 hover:bg-slate-800 hover:text-white"
+          onClick={handleDownloadPdf}
+          disabled={isDownloadingPdf}
+          className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-2 text-xs font-medium text-slate-300 transition-all duration-200 hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          📥 Télécharger le PDF complet
+          {isDownloadingPdf ? "Génération du PDF…" : "📥 Télécharger le PDF complet"}
         </button>
       </div>
 
@@ -320,13 +342,13 @@ export function CombinationResultView({
           </div>
         </div>
 
-        {/* Tab selector (screen) */}
-        <div className="mt-5 flex gap-2 flex-wrap print:hidden">
+        {/* Tab selector */}
+        <div className="mt-5 grid grid-cols-3 gap-2">
           {tasks.map(({ key, label, task }) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-all ${
+              className={`rounded-lg border px-3 py-3.5 text-sm font-bold transition-all ${
                 activeTab === key
                   ? "border-blue-600/50 bg-blue-950/60 text-blue-300"
                   : "border-slate-800 bg-slate-800/40 text-slate-500 hover:text-slate-300"
@@ -336,87 +358,16 @@ export function CombinationResultView({
             </button>
           ))}
         </div>
-
-        {/* Task scores summary for print */}
-        <div className="hidden print:flex gap-6 mt-4 flex-wrap">
-          {tasks.map(({ label, task }) => (
-            <p key={label} className="text-sm text-gray-700">
-              <span className="font-semibold">{label}</span>: {task.score}
-            </p>
-          ))}
-        </div>
       </div>
 
-      {/* Active task panel (screen) */}
-      <div className="print:hidden">
+      {/* Active task panel */}
+      <div>
         {tasks.map(({ key, label, task, maxScore }) =>
           activeTab === key ? (
             <TaskPanel key={key} label={label} task={task} maxScore={maxScore} />
           ) : null
         )}
       </div>
-
-      {/* All tasks for print */}
-      <div className="hidden print:block space-y-10">
-        {tasks.map(({ key, label, task, maxScore }) => (
-          <TaskPanel key={key} label={label} task={task} maxScore={maxScore} />
-        ))}
-      </div>
-
-      <style>{`
-        @media print {
-          @page {
-            size: A4;
-            margin: 1.2cm 1.5cm;
-          }
-
-          header, nav, aside, footer { display: none !important; }
-          .print\\:hidden { display: none !important; }
-          .print\\:block { display: block !important; }
-          .print\\:flex { display: flex !important; }
-
-          body {
-            background: white !important;
-            color: #1e293b !important;
-          }
-
-          .task-panel {
-            page-break-inside: avoid;
-            border: 1px solid #cbd5e1 !important;
-            border-radius: 8px !important;
-            background: white !important;
-            padding: 1.2rem !important;
-          }
-          .task-panel + .task-panel {
-            page-break-before: always;
-          }
-
-          .criteria-block {
-            border: 1px solid #e2e8f0 !important;
-            background: #f8fafc !important;
-            border-left: 3px solid #3b82f6 !important;
-            page-break-inside: avoid;
-            margin-bottom: 0.6rem;
-          }
-
-          .print-model-solution { display: block !important; }
-          .print-model-solution .rounded-lg {
-            border: 1px solid #a7f3d0 !important;
-            background: #f0fdf4 !important;
-          }
-
-          p, td, li, span { font-size: 10.5pt; line-height: 1.65; }
-          h1 { font-size: 16pt; font-weight: 700; }
-          h3 { font-size: 12pt; font-weight: 700; }
-          table { font-size: 9pt; }
-
-          .secure-canvas-wrapper {
-            user-select: text !important;
-            -webkit-user-select: text !important;
-            pointer-events: auto !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

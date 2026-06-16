@@ -42,6 +42,7 @@ export function ApiKeyManager() {
   const [hasDeployHook, setHasDeployHook] = useState(false);
   const [pendingChanges, setPendingChanges] = useState(false);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const showToast = (msg: string, ok: boolean) => {
     setToast({ msg, ok });
@@ -61,7 +62,10 @@ export function ApiKeyManager() {
 
   const loadUsage = useCallback(async () => {
     const res = await fetch("/api/admin/usage");
-    if (res.ok) setUsage((await res.json()) as UsageData);
+    if (res.ok) {
+      setUsage((await res.json()) as UsageData);
+      setLastUpdated(new Date());
+    }
   }, []);
 
   useEffect(() => {
@@ -72,6 +76,9 @@ export function ApiKeyManager() {
       const d = (await r.json()) as { error?: string };
       setHasDeployHook(!d.error || d.error !== "no_hook_configured");
     }).catch(() => {});
+
+    const interval = setInterval(loadUsage, 60_000);
+    return () => clearInterval(interval);
   }, [loadStatus, loadUsage]);
 
   async function handleSaveKey(providerKey: string) {
@@ -270,7 +277,15 @@ export function ApiKeyManager() {
       {/* Usage summary */}
       {usage && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
-          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-500">Statistiques d&apos;utilisation — 30 derniers jours</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">Statistiques d&apos;utilisation — 30 derniers jours</h2>
+            <button
+              onClick={loadUsage}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-2.5 py-1 text-[10px] font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+            >
+              🔄 Actualiser
+            </button>
+          </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-lg bg-slate-800/50 p-3 text-center">
               <p className="text-2xl font-extrabold text-slate-100">{usage.total}</p>
@@ -291,6 +306,11 @@ export function ApiKeyManager() {
               <p className="text-[10px] text-slate-500 uppercase tracking-wider">Taux succès</p>
             </div>
           </div>
+          {lastUpdated && (
+            <p className="mt-2 text-right text-[10px] text-slate-600">
+              Mis à jour : {lastUpdated.toLocaleTimeString("fr-FR")}
+            </p>
+          )}
         </div>
       )}
     </div>
