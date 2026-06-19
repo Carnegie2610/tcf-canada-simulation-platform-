@@ -17,8 +17,17 @@ interface EnvStatus {
   isDecryptable: boolean;
 }
 
+interface ProviderDetail {
+  total: number;
+  success: number;
+  failed: number;
+  models: Record<string, number>;
+  avgDurationMs: number | null;
+}
+
 interface UsageData {
   byProvider: Record<string, number>;
+  providerDetails: Record<string, ProviderDetail>;
   totalSuccess: number;
   totalFailed: number;
   total: number;
@@ -276,8 +285,8 @@ export function ApiKeyManager() {
 
       {/* Usage summary */}
       {usage && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
-          <div className="mb-4 flex items-center justify-between">
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 space-y-5">
+          <div className="flex items-center justify-between">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">Statistiques d&apos;utilisation — 30 derniers jours</h2>
             <button
               onClick={loadUsage}
@@ -286,6 +295,8 @@ export function ApiKeyManager() {
               🔄 Actualiser
             </button>
           </div>
+
+          {/* Global totals */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-lg bg-slate-800/50 p-3 text-center">
               <p className="text-2xl font-extrabold text-slate-100">{usage.total}</p>
@@ -306,8 +317,63 @@ export function ApiKeyManager() {
               <p className="text-[10px] text-slate-500 uppercase tracking-wider">Taux succès</p>
             </div>
           </div>
+
+          {/* Per-provider breakdown */}
+          <div>
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-600">Détail par fournisseur</p>
+            <div className="overflow-x-auto rounded-lg border border-slate-800">
+              <table className="w-full text-xs">
+                <thead className="bg-slate-800/60">
+                  <tr>
+                    {["Fournisseur", "Modèle utilisé", "Appels", "Succès", "Échecs", "Taux", "Durée moy."].map((h) => (
+                      <th key={h} className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {PROVIDERS.map((p) => {
+                    const d = usage.providerDetails?.[p.id];
+                    if (!d || d.total === 0) {
+                      return (
+                        <tr key={p.id} className="border-t border-slate-800/60">
+                          <td className="px-3 py-2.5">
+                            <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold ${p.badge}`}>{p.label}</span>
+                          </td>
+                          <td className="px-3 py-2.5 text-slate-600" colSpan={6}>Aucun appel</td>
+                        </tr>
+                      );
+                    }
+                    const topModel = Object.entries(d.models).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+                    const rate = d.total > 0 ? Math.round((d.success / d.total) * 100) : 0;
+                    return (
+                      <tr key={p.id} className="border-t border-slate-800/60 hover:bg-slate-800/20">
+                        <td className="px-3 py-2.5">
+                          <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold ${p.badge}`}>{p.label}</span>
+                        </td>
+                        <td className="px-3 py-2.5 font-mono text-[10px] text-slate-400">{topModel}</td>
+                        <td className="px-3 py-2.5 font-bold text-slate-200">{d.total}</td>
+                        <td className="px-3 py-2.5 text-emerald-400">{d.success}</td>
+                        <td className="px-3 py-2.5 text-red-400">{d.failed}</td>
+                        <td className="px-3 py-2.5">
+                          <span className={`font-semibold ${rate >= 90 ? "text-emerald-400" : rate >= 70 ? "text-amber-400" : "text-red-400"}`}>
+                            {rate}%
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 text-slate-500">
+                          {d.avgDurationMs != null ? `${(d.avgDurationMs / 1000).toFixed(1)}s` : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {lastUpdated && (
-            <p className="mt-2 text-right text-[10px] text-slate-600">
+            <p className="text-right text-[10px] text-slate-600">
               Mis à jour : {lastUpdated.toLocaleTimeString("fr-FR")}
             </p>
           )}
