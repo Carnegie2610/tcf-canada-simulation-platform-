@@ -151,6 +151,7 @@ export async function POST(
     console.error("[evaluate] AI call failed:", msg, {
       provider: process.env.ACTIVE_AI_PROVIDER ?? "auto",
       submissionId,
+      stack: err instanceof Error ? err.stack : undefined,
     });
     void Promise.resolve(
       createSupabaseAdminClient()

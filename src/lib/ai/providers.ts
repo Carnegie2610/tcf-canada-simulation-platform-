@@ -40,11 +40,12 @@ async function callGemini(systemPrompt: string, userPrompt: string, apiKey: stri
 
 async function callGroq(systemPrompt: string, userPrompt: string, apiKey: string): Promise<AiResult> {
   const start = Date.now();
+  const model = "llama-3.1-8b-instant";
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
     body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
+      model,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -52,11 +53,15 @@ async function callGroq(systemPrompt: string, userPrompt: string, apiKey: string
       response_format: { type: "json_object" },
     }),
   });
-  if (!res.ok) throw new Error("groq_request_failed");
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => "");
+    console.error(`[callGroq] HTTP ${res.status}:`, errBody);
+    throw new Error(`groq_request_failed:${res.status}`);
+  }
   const data = (await res.json()) as OpenAiCompatibleResponse;
   const text = data.choices?.[0]?.message?.content;
   if (!text) throw new Error("groq_empty_response");
-  return { text, provider: "groq", model: "llama-3.3-70b-versatile", durationMs: Date.now() - start };
+  return { text, provider: "groq", model, durationMs: Date.now() - start };
 }
 
 async function callOpenAI(systemPrompt: string, userPrompt: string, apiKey: string): Promise<AiResult> {
