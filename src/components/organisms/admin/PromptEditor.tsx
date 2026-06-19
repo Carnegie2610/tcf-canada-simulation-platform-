@@ -5,16 +5,16 @@ import type { PromptPreset } from "@/lib/ai/prompts";
 
 const PROMPT_META: Record<string, { label: string; description: string }> = {
   tache_1_evaluation: {
-    label: "Tâche 1 — Courriel Amical",
-    description: "Prompt système pour l'évaluation de la Tâche 1 (courriel amical, noté sur 4 points).",
+    label: "Tâche 1 — Message",
+    description: "Prompt système pour l'évaluation de la Tâche 1 (message, noté sur 4 points).",
   },
   tache_2_evaluation: {
-    label: "Tâche 2 — Article de Blog",
-    description: "Prompt système pour l'évaluation de la Tâche 2 (article de blog, noté sur 7 points).",
+    label: "Tâche 2 — Rédaction",
+    description: "Prompt système pour l'évaluation de la Tâche 2 (rédaction, notée sur 7 points).",
   },
   tache_3_evaluation: {
-    label: "Tâche 3 — Synthèse & Argumentation",
-    description: "Prompt système pour l'évaluation de la Tâche 3 (synthèse et argumentation, notée sur 9 points).",
+    label: "Tâche 3 — Rédaction",
+    description: "Prompt système pour l'évaluation de la Tâche 3 (rédaction, notée sur 9 points).",
   },
   single_evaluation: {
     label: "Évaluation Examen Simple",

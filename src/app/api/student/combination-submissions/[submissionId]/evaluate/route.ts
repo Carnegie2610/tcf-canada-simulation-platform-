@@ -135,9 +135,9 @@ export async function POST(
     fetchPrompt("tache_3_evaluation", TACHE_3_EVALUATION_DEFAULT),
   ]);
 
-  const userPrompt1 = buildTaskUserPrompt("TÂCHE 1 (COURRIEL AMICAL)", t1, sub.draft_task_1);
-  const userPrompt2 = buildTaskUserPrompt("TÂCHE 2 (ARTICLE DE BLOG)", t2, sub.draft_task_2);
-  const userPrompt3 = buildTaskUserPrompt("TÂCHE 3 (SYNTHÈSE ET ARGUMENTATION)", t3, sub.draft_task_3);
+  const userPrompt1 = buildTaskUserPrompt("TÂCHE 1 (MESSAGE)", t1, sub.draft_task_1);
+  const userPrompt2 = buildTaskUserPrompt("TÂCHE 2 (RÉDACTION)", t2, sub.draft_task_2);
+  const userPrompt3 = buildTaskUserPrompt("TÂCHE 3 (RÉDACTION)", t3, sub.draft_task_3);
 
   // Call AI for all 3 tasks in parallel
   let aiResults: Awaited<ReturnType<typeof callAI>>[];

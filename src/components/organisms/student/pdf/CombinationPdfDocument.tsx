@@ -310,9 +310,9 @@ export function CombinationPdfDocument({
   });
 
   const tasks = [
-    { label: "Tâche 1 — Courriel amical", task: task1, maxScore: "4" },
-    { label: "Tâche 2 — Article de Blog", task: task2, maxScore: "7" },
-    { label: "Tâche 3 — Synthèse & Argumentation", task: task3, maxScore: "9" },
+    { label: "Tâche 1 — Message",    task: task1, maxScore: "4" },
+    { label: "Tâche 2 — Rédaction", task: task2, maxScore: "7" },
+    { label: "Tâche 3 — Rédaction", task: task3, maxScore: "9" },
   ];
 
   return (

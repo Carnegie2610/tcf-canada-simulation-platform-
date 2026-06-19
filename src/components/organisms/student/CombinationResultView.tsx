@@ -41,9 +41,9 @@ function ModelSolutionModal({
   onClose: () => void;
 }) {
   const taskSections = [
-    { label: "Tâche 1 — Courriel amical",         task: combination.tasks.tache_1 },
-    { label: "Tâche 2 — Article de Blog",          task: combination.tasks.tache_2 },
-    { label: "Tâche 3 — Synthèse & Argumentation", task: combination.tasks.tache_3 },
+    { label: "Tâche 1 — Message",    task: combination.tasks.tache_1 },
+    { label: "Tâche 2 — Rédaction", task: combination.tasks.tache_2 },
+    { label: "Tâche 3 — Rédaction", task: combination.tasks.tache_3 },
   ];
 
   return (
@@ -243,9 +243,9 @@ export function CombinationResultView({
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const tasks = [
-    { key: 1 as const, label: "Tâche 1 — Courriel amical",         task: task1, maxScore: "4 pts" },
-    { key: 2 as const, label: "Tâche 2 — Article de Blog",          task: task2, maxScore: "7 pts" },
-    { key: 3 as const, label: "Tâche 3 — Synthèse & Argumentation", task: task3, maxScore: "9 pts" },
+    { key: 1 as const, label: "Tâche 1 — Message",    task: task1, maxScore: "4 pts" },
+    { key: 2 as const, label: "Tâche 2 — Rédaction", task: task2, maxScore: "7 pts" },
+    { key: 3 as const, label: "Tâche 3 — Rédaction", task: task3, maxScore: "9 pts" },
   ];
 
   const cefrClass = CEFR_COLOR[cefrLevel] ?? "bg-slate-800 text-slate-300 border-slate-700";
