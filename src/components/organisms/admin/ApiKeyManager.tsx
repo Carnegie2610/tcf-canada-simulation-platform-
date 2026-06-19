@@ -43,6 +43,7 @@ export function ApiKeyManager() {
   const [vercelStatus, setVercelStatus] = useState<VercelStatus | null>(null);
   const [usage, setUsage] = useState<UsageData | null>(null);
   const [keyInputs, setKeyInputs] = useState<Record<string, string>>({});
+  const [maskedKeys, setMaskedKeys] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [activeInput, setActiveInput] = useState<string>("");
@@ -64,6 +65,19 @@ export function ApiKeyManager() {
     if (data.configured) {
       setVercelStatus(data);
       setActiveInput(data.activeProvider ?? "");
+      // Fetch masked values for all configured keys
+      const configuredKeys = PROVIDERS.map((p) => p.key).filter((k) => data.status?.[k]?.configured);
+      const entries = await Promise.all(
+        configuredKeys.map(async (k) => {
+          const r = await fetch(`/api/admin/vercel/env/${k}`);
+          if (!r.ok) return [k, null] as [string, string | null];
+          const d = (await r.json()) as { masked?: string };
+          return [k, d.masked ?? null] as [string, string | null];
+        })
+      );
+      setMaskedKeys(
+        Object.fromEntries(entries.filter((e): e is [string, string] => e[1] !== null))
+      );
     } else {
       setVercelStatus({ configured: false, status: {}, activeProvider: null });
     }
@@ -247,6 +261,11 @@ export function ApiKeyManager() {
                     {isConfigured ? "Configuré" : "Non configuré"}
                   </span>
                   <p className="mt-0.5 text-[10px] text-slate-600">{callCount} appels (30j)</p>
+                  {isConfigured && maskedKeys[p.key] && (
+                    <p className="mt-1 font-mono text-[10px] text-slate-500 tracking-wider">
+                      {maskedKeys[p.key]}
+                    </p>
+                  )}
                 </div>
               </div>
 
