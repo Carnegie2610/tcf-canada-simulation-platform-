@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CreateUserSchema, UpdateUserSchema } from "@/lib/schemas-admin";
 import { SuperAdminSecurityModule } from "./SuperAdminSecurityModule";
 import type { AdminProfile, UserRole } from "@/lib/admin/types";
+import { PLAN_CONFIG as PLANS } from "@/lib/plans";
 
 interface UserFormProps {
   mode: "create" | "edit";
@@ -13,17 +14,17 @@ interface UserFormProps {
   onCancel: () => void;
 }
 
-const PLAN_CONFIG: Record<
-  string,
-  { label: string; quota: number; days: number }
-> = {
-  PLAN_2000:  { label: "Plan Starter (2 000 CFA — 10 sim.)",    quota: 10,  days: 15  },
-  PLAN_3000:  { label: "Plan Essentiel (3 000 CFA — 20 sim.)",  quota: 20,  days: 20  },
-  PLAN_5000:  { label: "Plan de base (5 000 CFA — 40 sim.)",    quota: 40,  days: 30  },
-  PLAN_10000: { label: "Plan Premium (10 000 CFA — 80 sim.)",  quota: 80,  days: 60  },
-  PLAN_15000: { label: "Plan 15 000 CFA — 120 sim.",           quota: 120, days: 90  },
-  PLAN_20000: { label: "Plan 20 000 CFA — 160 sim.",           quota: 160, days: 120 },
-};
+const PLAN_CONFIG: Record<string, { label: string; quota: number; days: number }> =
+  Object.fromEntries(
+    Object.entries(PLANS).map(([k, v]) => [
+      k,
+      {
+        label: `${v.label} (${v.price.toLocaleString("fr-FR")} CFA — ${v.quota} sim.)`,
+        quota: v.quota,
+        days: v.days,
+      },
+    ])
+  );
 
 function addDays(n: number): string {
   const d = new Date();

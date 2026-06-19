@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeStudentAnalytics, computeActivityDays } from "./analytics";
+import { getPlanMeta } from "@/lib/plans";
 import type {
   ActivityFeedRow,
   AdminCombinationListResponse,
@@ -168,6 +169,19 @@ export async function createUser(
 
   if (profileError || !profile) {
     throw new Error(profileError?.message ?? "Failed to create profile");
+  }
+
+  if (data.role === "student") {
+    const meta = getPlanMeta(data.assigned_plan);
+    await adminSupabase.from("payments").insert({
+      user_id: authData.user.id,
+      student_name: data.full_name,
+      student_email: data.email,
+      plan: data.assigned_plan,
+      plan_price: meta.price,
+      commission: meta.commission,
+      payment_status: "confirmed",
+    });
   }
 
   return profile as AdminProfile;

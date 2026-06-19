@@ -2,14 +2,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CommissionsPage } from "@/components/organisms/admin/CommissionsPage";
-
-const PLAN_LABELS: Record<string, string> = {
-  PLAN_2000: "Plan Starter",
-  PLAN_3000: "Plan Essentiel",
-  PLAN_5000: "Plan de Base",
-  PLAN_10000: "Plan Pro / Premium",
-  PLAN_15000: "Plan Élite / VIP",
-};
+import { getPlanMeta } from "@/lib/plans";
 
 export default async function CommissionsAdminPage() {
   const supabase = await createSupabaseServerClient();
@@ -78,7 +71,7 @@ export default async function CommissionsAdminPage() {
   }
   const planDistribution = Array.from(distMap.entries()).map(([plan, count]) => ({
     plan,
-    label: PLAN_LABELS[plan] ?? plan,
+    label: getPlanMeta(plan).label,
     count,
   }));
 
@@ -95,7 +88,7 @@ export default async function CommissionsAdminPage() {
     created_at: r.created_at as string,
     student_name: r.student_name as string,
     student_email: r.student_email as string,
-    plan_label: PLAN_LABELS[r.plan as string] ?? (r.plan as string),
+    plan_label: getPlanMeta(r.plan as string).label,
     plan_price: Number(r.plan_price),
     commission: Number(r.commission),
   }));
