@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-const ALLOWED_PROMPT_KEYS = ["combination_evaluation", "single_evaluation"];
+const ALLOWED_PROMPT_KEYS = ["tache_1_evaluation", "tache_2_evaluation", "tache_3_evaluation", "single_evaluation"];
 
 async function requireSuperAdmin(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
   const { data: { user } } = await supabase.auth.getUser();

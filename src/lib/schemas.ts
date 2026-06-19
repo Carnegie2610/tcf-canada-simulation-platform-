@@ -50,7 +50,7 @@ const CombinationOrthoItemSchema = z.object({
   explication: z.string(),
 });
 
-const CombinationTaskEvalSchema = z.object({
+export const CombinationTaskEvalSchema = z.object({
   score: z.string(),
   consigne: z.string(),
   votre_texte: z.string(),
