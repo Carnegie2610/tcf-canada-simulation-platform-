@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import type { ActivityFeedRow, DashboardFilter } from "@/lib/admin/types";
 
 const PLAN_LABEL: Record<string, string> = {
+  PLAN_2000:  "Starter (2 000 CFA)",
+  PLAN_3000:  "Essentiel (3 000 CFA)",
   PLAN_5000:  "Base (5 000 CFA)",
   PLAN_10000: "Premium (10 000 CFA)",
   PLAN_15000: "Avancé (15 000 CFA)",

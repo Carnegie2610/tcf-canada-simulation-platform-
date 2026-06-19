@@ -4,6 +4,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CommissionsPage } from "@/components/organisms/admin/CommissionsPage";
 
 const PLAN_LABELS: Record<string, string> = {
+  PLAN_2000: "Plan Starter",
+  PLAN_3000: "Plan Essentiel",
   PLAN_5000: "Plan de Base",
   PLAN_10000: "Plan Pro / Premium",
   PLAN_15000: "Plan Élite / VIP",
