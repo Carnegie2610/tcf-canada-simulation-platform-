@@ -16,6 +16,8 @@ interface UserManagementTableProps {
 }
 
 const planLabel: Record<string, string> = {
+  PLAN_2000:  "2 000 F",
+  PLAN_3000:  "3 000 F",
   PLAN_5000:  "5 000 F",
   PLAN_10000: "10 000 F",
   PLAN_15000: "15 000 F",
