@@ -43,6 +43,18 @@ export type DiagnosticReport = z.infer<typeof DiagnosticReportSchema>;
 
 // ── Combination AI Evaluation ──────────────────────────────────────────────
 
+/** Coerce numeric AI scores into the "X.X/N" string format models sometimes skip. */
+function coerceScoreString(val: unknown, suffix?: string): unknown {
+  if (typeof val === "number" && !Number.isNaN(val)) {
+    const formatted = Number.isInteger(val) ? String(val) : val.toFixed(1);
+    return suffix ? `${formatted}${suffix}` : formatted;
+  }
+  if (typeof val === "string" && suffix && val.length > 0 && !val.includes("/")) {
+    return `${val}${suffix}`;
+  }
+  return val;
+}
+
 const CombinationOrthoItemSchema = z.object({
   erreur: z.string(),
   correction: z.string(),
@@ -51,7 +63,7 @@ const CombinationOrthoItemSchema = z.object({
 });
 
 export const CombinationTaskEvalSchema = z.object({
-  score: z.string(),
+  score: z.preprocess((val) => coerceScoreString(val), z.string()),
   consigne: z.string(),
   votre_texte: z.string(),
   comprehension_du_sujet: z.string(),
@@ -64,7 +76,7 @@ export const CombinationTaskEvalSchema = z.object({
 
 export const CombinationEvaluationSchema = z.object({
   global_metrics: z.object({
-    score_final: z.string(),
+    score_final: z.preprocess((val) => coerceScoreString(val, "/20"), z.string()),
     niveau_cecr: z.string(),
     appreciation: z.string(),
   }),
