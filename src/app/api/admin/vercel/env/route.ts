@@ -73,13 +73,31 @@ export async function GET() {
 
   let activeProvider: string | null = null;
 
+  let activeProviderEnvId: string | null = null;
+
   for (const env of envs) {
     if (ALLOWED_KEYS.includes(env.key as AllowedKey)) {
       const k = env.key as AllowedKey;
       status[k] = { configured: true, envId: env.id, isDecryptable: env.type !== "encrypted" };
-      if (k === "ACTIVE_AI_PROVIDER" && env.type !== "encrypted") {
-        activeProvider = env.value;
+      if (k === "ACTIVE_AI_PROVIDER") {
+        if (env.type !== "encrypted") {
+          activeProvider = env.value;
+        } else {
+          activeProviderEnvId = env.id;
+        }
       }
+    }
+  }
+
+  // Decrypt ACTIVE_AI_PROVIDER if it was stored encrypted
+  if (!activeProvider && activeProviderEnvId) {
+    const decryptRes = await fetch(
+      `https://api.vercel.com/v10/projects/${projectId}/env/${activeProviderEnvId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (decryptRes.ok) {
+      const decrypted = (await decryptRes.json()) as { value?: string };
+      activeProvider = decrypted.value ?? null;
     }
   }
 
