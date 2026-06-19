@@ -4,17 +4,9 @@ import { useState } from "react";
 import type { PromptPreset } from "@/lib/ai/prompts";
 
 const PROMPT_META: Record<string, { label: string; description: string }> = {
-  tache_1_evaluation: {
-    label: "Tâche 1 — Message",
-    description: "Prompt système pour l'évaluation de la Tâche 1 (message, noté sur 4 points).",
-  },
-  tache_2_evaluation: {
-    label: "Tâche 2 — Rédaction",
-    description: "Prompt système pour l'évaluation de la Tâche 2 (rédaction, notée sur 7 points).",
-  },
-  tache_3_evaluation: {
-    label: "Tâche 3 — Rédaction",
-    description: "Prompt système pour l'évaluation de la Tâche 3 (rédaction, notée sur 9 points).",
+  combination_evaluation: {
+    label: "Évaluation Combinaison (3 Tâches)",
+    description: "Prompt système pour l'évaluation complète des 3 tâches (Message + Rédaction Blog + Rédaction Argumentation) en un seul appel IA.",
   },
   single_evaluation: {
     label: "Évaluation Examen Simple",
@@ -194,7 +186,7 @@ function PromptPanel({ promptKey, existing, defaultConfig }: PromptPanelProps) {
 }
 
 export function PromptEditor({ prompts, promptDefaults }: PromptEditorProps) {
-  const PROMPT_KEYS = ["tache_1_evaluation", "tache_2_evaluation", "tache_3_evaluation", "single_evaluation"];
+  const PROMPT_KEYS = ["combination_evaluation", "single_evaluation"];
 
   return (
     <div className="space-y-6">

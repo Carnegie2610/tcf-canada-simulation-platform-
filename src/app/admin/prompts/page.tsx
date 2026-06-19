@@ -3,12 +3,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { PromptEditor } from "@/components/organisms/admin/PromptEditor";
 import {
-  TACHE_1_EVALUATION_DEFAULT,
-  TACHE_1_EVALUATION_PRESETS,
-  TACHE_2_EVALUATION_DEFAULT,
-  TACHE_2_EVALUATION_PRESETS,
-  TACHE_3_EVALUATION_DEFAULT,
-  TACHE_3_EVALUATION_PRESETS,
+  COMBINATION_EVALUATION_DEFAULT,
+  COMBINATION_EVALUATION_PRESETS,
   SINGLE_EVALUATION_DEFAULT,
   SINGLE_EVALUATION_PRESETS,
   type PromptPreset,
@@ -23,17 +19,9 @@ interface AiPromptRow {
 }
 
 const PROMPT_DEFAULTS: Record<string, { default: string; presets: PromptPreset[] }> = {
-  tache_1_evaluation: {
-    default: TACHE_1_EVALUATION_DEFAULT,
-    presets: TACHE_1_EVALUATION_PRESETS,
-  },
-  tache_2_evaluation: {
-    default: TACHE_2_EVALUATION_DEFAULT,
-    presets: TACHE_2_EVALUATION_PRESETS,
-  },
-  tache_3_evaluation: {
-    default: TACHE_3_EVALUATION_DEFAULT,
-    presets: TACHE_3_EVALUATION_PRESETS,
+  combination_evaluation: {
+    default: COMBINATION_EVALUATION_DEFAULT,
+    presets: COMBINATION_EVALUATION_PRESETS,
   },
   single_evaluation: {
     default: SINGLE_EVALUATION_DEFAULT,
