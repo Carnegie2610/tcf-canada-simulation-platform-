@@ -27,7 +27,10 @@ async function callGemini(systemPrompt: string, userPrompt: string, apiKey: stri
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: { responseMimeType: "application/json" },
+        generationConfig: {
+          responseMimeType: "application/json",
+          maxOutputTokens: 16384,
+        },
       }),
     }
   );
@@ -40,7 +43,7 @@ async function callGemini(systemPrompt: string, userPrompt: string, apiKey: stri
 
 async function callGroq(systemPrompt: string, userPrompt: string, apiKey: string): Promise<AiResult> {
   const start = Date.now();
-  const model = "llama-3.1-8b-instant";
+  const model = "llama-3.3-70b-versatile";
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
@@ -51,6 +54,7 @@ async function callGroq(systemPrompt: string, userPrompt: string, apiKey: string
         { role: "user", content: userPrompt },
       ],
       response_format: { type: "json_object" },
+      max_tokens: 16384,
     }),
   });
   if (!res.ok) {
@@ -76,6 +80,7 @@ async function callOpenAI(systemPrompt: string, userPrompt: string, apiKey: stri
         { role: "user", content: userPrompt },
       ],
       response_format: { type: "json_object" },
+      max_tokens: 16384,
     }),
   });
   if (!res.ok) throw new Error("openai_request_failed");

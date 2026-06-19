@@ -146,7 +146,13 @@ export async function POST(
 
   const validated = CombinationEvaluationSchema.safeParse(parsed);
   if (!validated.success) {
-    console.error("[evaluate] schema mismatch:", validated.error.issues);
+    const parsedObj = parsed as Record<string, unknown>;
+    console.error("[evaluate] schema mismatch:", validated.error.issues, {
+      provider: aiResult.provider,
+      model: aiResult.model,
+      responseKeys: Object.keys(parsedObj),
+      responseLength: aiResult.text.length,
+    });
     return NextResponse.json({ error: "ai_schema_mismatch" }, { status: 502 });
   }
 
