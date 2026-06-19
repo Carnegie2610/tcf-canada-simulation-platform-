@@ -139,14 +139,13 @@ export async function POST(
   const userPrompt2 = buildTaskUserPrompt("TÂCHE 2 (RÉDACTION)", t2, sub.draft_task_2);
   const userPrompt3 = buildTaskUserPrompt("TÂCHE 3 (RÉDACTION)", t3, sub.draft_task_3);
 
-  // Call AI for all 3 tasks in parallel
+  // Call AI sequentially to avoid rate limit errors (Groq free tier is strict)
   let aiResults: Awaited<ReturnType<typeof callAI>>[];
   try {
-    aiResults = await Promise.all([
-      callAI(prompt1, userPrompt1),
-      callAI(prompt2, userPrompt2),
-      callAI(prompt3, userPrompt3),
-    ]);
+    const r1 = await callAI(prompt1, userPrompt1);
+    const r2 = await callAI(prompt2, userPrompt2);
+    const r3 = await callAI(prompt3, userPrompt3);
+    aiResults = [r1, r2, r3];
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown";
     console.error("[evaluate] AI call failed:", msg, {
