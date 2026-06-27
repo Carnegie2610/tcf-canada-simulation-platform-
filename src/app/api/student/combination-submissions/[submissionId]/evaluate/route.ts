@@ -157,7 +157,29 @@ export async function POST(
   }
 
   const report = validated.data;
-  const scoreNum = parseFloat(report.global_metrics.score_final.replace("/20", "").trim());
+
+  // Recompute score from individual task scores (Bug 2: don't trust AI's score_final)
+  function parseTaskScore(scoreStr: string): number {
+    const n = parseFloat(scoreStr.replace(/\/\d+/, "").trim());
+    return isNaN(n) ? 0 : n;
+  }
+  const t1Score = parseTaskScore(report.task_1_evaluation.score);
+  const t2Score = parseTaskScore(report.task_2_evaluation.score);
+  const t3Score = parseTaskScore(report.task_3_evaluation.score);
+  const scoreNum = Math.round((t1Score + t2Score + t3Score) * 10) / 10;
+
+  // Derive CEFR level and appreciation deterministically (Bug 1: don't trust AI's values)
+  function resolveCefr(score: number): { cefrLevel: string; appreciation: string } {
+    if (score >= 18.0) return { cefrLevel: "C2",  appreciation: "Atteint" };
+    if (score >= 16.0) return { cefrLevel: "C1+", appreciation: "Atteint" };
+    if (score >= 14.0) return { cefrLevel: "C1",  appreciation: "Atteint" };
+    if (score >= 12.0) return { cefrLevel: "B2+", appreciation: "Non Atteint" };
+    if (score >= 10.0) return { cefrLevel: "B2",  appreciation: "Non Atteint" };
+    if (score >= 7.0)  return { cefrLevel: "B1+", appreciation: "Non Atteint" };
+    if (score >= 6.0)  return { cefrLevel: "B1",  appreciation: "Non Atteint" };
+    return             { cefrLevel: "A2",  appreciation: "Non Atteint" };
+  }
+  const { cefrLevel, appreciation } = resolveCefr(scoreNum);
 
   void Promise.resolve(
     createSupabaseAdminClient()
@@ -175,9 +197,9 @@ export async function POST(
     .from("combination_evaluations")
     .insert({
       submission_id: submissionId,
-      global_score: isNaN(scoreNum) ? 0 : scoreNum,
-      cefr_level: report.global_metrics.niveau_cecr,
-      appreciation: report.global_metrics.appreciation,
+      global_score: scoreNum,
+      cefr_level: cefrLevel,
+      appreciation: appreciation,
       task_1_evaluation: report.task_1_evaluation,
       task_2_evaluation: report.task_2_evaluation,
       task_3_evaluation: report.task_3_evaluation,

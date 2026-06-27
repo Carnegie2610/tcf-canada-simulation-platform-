@@ -255,7 +255,7 @@ function TaskPdfPage({
         </View>
       ))}
 
-      <View style={styles.tableSection}>
+      <View style={styles.tableSection} wrap={false}>
         <Text style={styles.boxLabel}>
           Correction orthographique ({task.correction_orthographique.length})
         </Text>
@@ -268,7 +268,7 @@ function TaskPdfPage({
               <Text style={[styles.tableCell, styles.tableCellHeader, { flex: 2.6 }]}>Explication</Text>
             </View>
             {task.correction_orthographique.map((c, i) => (
-              <View key={i} style={styles.tableRow}>
+              <View key={i} style={styles.tableRow} wrap={false}>
                 <Text style={[styles.tableCell, { flex: 1.2, color: "#dc2626" }]}>{c.erreur}</Text>
                 <Text style={[styles.tableCell, { flex: 1.2, color: "#059669" }]}>{c.correction}</Text>
                 <Text style={[styles.tableCell, { flex: 1 }]}>{c.type}</Text>
@@ -281,7 +281,7 @@ function TaskPdfPage({
         )}
       </View>
 
-      <View style={[styles.boxBase, styles.boxGreen]}>
+      <View style={[styles.boxBase, styles.boxGreen]} wrap={false}>
         <Text style={styles.boxLabelGreen}>Version corrigée et améliorée</Text>
         <Text style={styles.boxText}>{task.version_corrigee_et_amelioree}</Text>
       </View>
