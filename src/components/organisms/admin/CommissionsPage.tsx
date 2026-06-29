@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -13,6 +13,8 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import { DayPicker, DateRange } from "react-day-picker";
+import "react-day-picker/src/style.css";
 
 interface LedgerRow {
   id: string;
@@ -32,6 +34,7 @@ interface CommissionsData {
   totalRevenue: number;
   totalRegistrations: number;
   previousDayCommission: number;
+  previousDayRevenue: number;
   previousDayRegistrations: number;
   lifetimeRevenue: number;
   monthlyTrend: TrendPoint[];
@@ -44,9 +47,9 @@ interface CommissionsPageProps {
   initialData: CommissionsData;
 }
 
-type Period = "today" | "yesterday" | "day-before" | "all";
+type Period = "today" | "yesterday" | "day-before" | "all" | "custom";
 
-const PERIOD_LABELS: Record<Period, string> = {
+const PERIOD_LABELS: Record<Exclude<Period, "custom">, string> = {
   today: "Aujourd'hui",
   yesterday: "Hier",
   "day-before": "Avant-hier",
@@ -59,12 +62,14 @@ function fmt(n: number) {
   return n.toLocaleString("fr-FR") + " F CFA";
 }
 
+function fmtDate(d: Date) {
+  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
 function deltaBadge(current: number, previous: number, isCount = false) {
   const diff = current - previous;
   const sign = diff >= 0 ? "+" : "";
-  const label = isCount
-    ? `${sign}${diff}`
-    : `${sign}${fmt(diff)}`;
+  const label = isCount ? `${sign}${diff}` : `${sign}${fmt(diff)}`;
   const color = diff >= 0 ? "text-emerald-400" : "text-red-400";
   return <span className={`text-[11px] font-semibold ${color}`}>{label} vs hier</span>;
 }
@@ -76,10 +81,44 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
   const [data, setData] = useState<CommissionsData>(initialData);
   const [loading, setLoading] = useState(false);
 
-  const fetchData = useCallback(async (p: Period, pg: number, s: string) => {
+  // Custom date range state
+  const [calOpen, setCalOpen] = useState(false);
+  const [calRange, setCalRange] = useState<DateRange | undefined>(undefined);
+  const [customDates, setCustomDates] = useState<{ from: Date; to: Date } | null>(null);
+  const calRef = useRef<HTMLDivElement>(null);
+  // Tracks whether the user has clicked the start date yet (two-phase selection)
+  const clickPhaseRef = useRef<"first" | "second">("first");
+
+  // Close calendar on outside click (but only when open)
+  useEffect(() => {
+    function onMouseDown(e: MouseEvent) {
+      if (calRef.current && !calRef.current.contains(e.target as Node)) {
+        clickPhaseRef.current = "first";
+        setCalRange(undefined);
+        setCalOpen(false);
+      }
+    }
+    if (calOpen) document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [calOpen]);
+
+  const fetchData = useCallback(async (
+    p: Period,
+    pg: number,
+    s: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ period: p, page: String(pg), search: s });
+      const params = new URLSearchParams({ page: String(pg), search: s });
+      if (p === "custom" && dateFrom && dateTo) {
+        params.set("dateFrom", dateFrom);
+        params.set("dateTo", dateTo);
+        params.set("period", "all");
+      } else {
+        params.set("period", p);
+      }
       const res = await fetch(`/api/admin/commissions?${params.toString()}`);
       if (res.ok) {
         const json = (await res.json()) as CommissionsData;
@@ -93,22 +132,83 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
   function handlePeriod(p: Period) {
     setPeriod(p);
     setPage(1);
-    void fetchData(p, 1, search);
+    if (p !== "custom") {
+      setCustomDates(null);
+      setCalRange(undefined);
+      setCalOpen(false);
+      void fetchData(p, 1, search);
+    } else {
+      // Reset phase and open calendar; don't fetch until range is complete
+      clickPhaseRef.current = "first";
+      setCalRange(undefined);
+      setCalOpen(true);
+    }
+  }
+
+  function handleCalSelect(range: DateRange | undefined) {
+    if (!range?.from) return;
+
+    if (clickPhaseRef.current === "first") {
+      // First click: record start date, stay open
+      setCalRange({ from: range.from, to: undefined });
+      clickPhaseRef.current = "second";
+      return;
+    }
+
+    // Second click: finalize the range
+    const startDate = calRange?.from ?? range.from;
+    const endDate = range.from;
+    // Always ensure chronological order
+    const [finalFrom, finalTo] = startDate <= endDate
+      ? [startDate, endDate]
+      : [endDate, startDate];
+
+    setCalRange({ from: finalFrom, to: finalTo });
+    setCustomDates({ from: finalFrom, to: finalTo });
+    setCalOpen(false);
+    clickPhaseRef.current = "first";
+    setPage(1);
+    void fetchData(
+      "custom", 1, search,
+      finalFrom.toISOString().slice(0, 10),
+      finalTo.toISOString().slice(0, 10),
+    );
+  }
+
+  function handleClearCustom() {
+    clickPhaseRef.current = "first";
+    setCustomDates(null);
+    setCalRange(undefined);
+    setPeriod("all");
+    setPage(1);
+    void fetchData("all", 1, search);
   }
 
   function handleSearch(s: string) {
     setSearch(s);
     setPage(1);
-    void fetchData(period, 1, s);
+    if (period === "custom" && customDates) {
+      void fetchData("custom", 1, s, customDates.from.toISOString().slice(0, 10), customDates.to.toISOString().slice(0, 10));
+    } else {
+      void fetchData(period, 1, s);
+    }
   }
 
   function handlePage(pg: number) {
     setPage(pg);
-    void fetchData(period, pg, search);
+    if (period === "custom" && customDates) {
+      void fetchData("custom", pg, search, customDates.from.toISOString().slice(0, 10), customDates.to.toISOString().slice(0, 10));
+    } else {
+      void fetchData(period, pg, search);
+    }
   }
 
   const totalPages = Math.max(1, Math.ceil(data.ledgerTotal / 15));
   const now = Date.now();
+
+  const customLabel = customDates
+    ? `${fmtDate(customDates.from)} → ${fmtDate(customDates.to)}`
+    : "Plage personnalisée";
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
@@ -120,9 +220,9 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
         </p>
       </div>
 
-      {/* Temporal filter bar */}
-      <div className="flex gap-2 flex-wrap">
-        {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
+      {/* Unified filter bar */}
+      <div className="relative flex gap-2 flex-wrap items-center" ref={calRef}>
+        {(Object.keys(PERIOD_LABELS) as Exclude<Period, "custom">[]).map((p) => (
           <button
             key={p}
             onClick={() => handlePeriod(p)}
@@ -135,22 +235,100 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
             {PERIOD_LABELS[p]}
           </button>
         ))}
+
+        {/* Custom range button */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => handlePeriod("custom")}
+            className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors flex items-center gap-1.5 ${
+              period === "custom"
+                ? "border-blue-600 bg-blue-700 text-white"
+                : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600 hover:bg-slate-700"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+            </svg>
+            {customLabel}
+          </button>
+          {customDates && (
+            <button
+              onClick={handleClearCustom}
+              className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs text-slate-400 hover:bg-slate-700 transition-colors"
+              title="Effacer la plage"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
         {loading && (
           <span className="flex items-center text-xs text-slate-500 ml-2">Chargement...</span>
         )}
+
+        {/* Calendar popover */}
+        {calOpen && (
+          <div className="absolute top-full left-0 mt-2 z-50 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl p-3">
+            {clickPhaseRef.current === "first" && (
+              <p className="text-[11px] text-slate-500 mb-2 text-center">Cliquez sur la date de début</p>
+            )}
+            {clickPhaseRef.current === "second" && (
+              <p className="text-[11px] text-amber-400 mb-2 text-center">Cliquez sur la date de fin</p>
+            )}
+            <DayPicker
+              mode="range"
+              selected={calRange}
+              onSelect={handleCalSelect}
+              endMonth={new Date()}
+              numberOfMonths={1}
+              showOutsideDays
+              classNames={{
+                root: "text-slate-200 text-sm",
+                months: "flex flex-col",
+                month_caption: "flex justify-center items-center gap-2 py-2 text-slate-100 font-semibold",
+                nav: "flex items-center gap-1",
+                button_previous: "rounded p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors",
+                button_next: "rounded p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors",
+                weeks: "w-full border-collapse",
+                weekdays: "flex",
+                weekday: "text-slate-500 text-[10px] font-semibold uppercase w-9 text-center",
+                week: "flex w-full mt-1",
+                day: "w-9 h-9 text-center text-xs p-0",
+                day_button: "w-9 h-9 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors cursor-pointer",
+                selected: "bg-blue-700 text-white font-bold",
+                range_start: "bg-blue-600 text-white font-bold",
+                range_end: "bg-blue-600 text-white font-bold",
+                range_middle: "bg-blue-900/50 text-blue-200",
+                today: "text-amber-400 font-bold",
+                outside: "text-slate-600",
+                disabled: "text-slate-700 cursor-not-allowed opacity-40",
+              }}
+            />
+          </div>
+        )}
       </div>
 
-      {/* KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Card 1 */}
+      {/* 2×2 KPI grid */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Top-left: 35% commission */}
         <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-1">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-            Mes Gains (Période)
+            Revenus Principaux (35%)
           </p>
           <p className="text-2xl font-extrabold text-cyan-400">{fmt(data.totalCommission)}</p>
           {deltaBadge(data.totalCommission, data.previousDayCommission)}
         </div>
-        {/* Card 2 */}
+
+        {/* Top-right: 65% secondary */}
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Revenus Secondaires (65%)
+          </p>
+          <p className="text-2xl font-extrabold text-amber-400">{fmt(data.totalRevenue * 0.65)}</p>
+          {deltaBadge(data.totalRevenue * 0.65, data.previousDayRevenue * 0.65)}
+        </div>
+
+        {/* Bottom-left: registrations */}
         <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-1">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
             Inscriptions Payées
@@ -158,13 +336,16 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
           <p className="text-2xl font-extrabold text-slate-100">{data.totalRegistrations}</p>
           {deltaBadge(data.totalRegistrations, data.previousDayRegistrations, true)}
         </div>
-        {/* Card 3 */}
+
+        {/* Bottom-right: total revenue */}
         <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-1">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-            Revenue Total Généré
+            Chiffre d&apos;Affaires Total
           </p>
-          <p className="text-2xl font-extrabold text-slate-100">{fmt(data.lifetimeRevenue)}</p>
-          <span className="text-[11px] text-slate-600">Cumul depuis le lancement</span>
+          <p className="text-2xl font-extrabold text-slate-100">{fmt(data.totalRevenue)}</p>
+          <span className="text-[11px] text-slate-600">
+            {period === "all" ? "Cumul depuis le lancement" : "Sur la période sélectionnée"}
+          </span>
         </div>
       </div>
 
@@ -251,7 +432,6 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
 
       {/* Ledger */}
       <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
-        {/* Table header */}
         <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-5 py-4">
           <p className="text-sm font-bold text-slate-100">Grand Livre des Commissions</p>
           <input
@@ -323,7 +503,6 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-slate-800 px-5 py-3">
             <p className="text-[11px] text-slate-500">

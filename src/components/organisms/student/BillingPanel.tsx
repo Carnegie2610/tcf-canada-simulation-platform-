@@ -7,12 +7,9 @@ interface BillingPanelProps {
 }
 
 const planLabel: Record<string, string> = {
-  PLAN_2000: "Plan Starter (2 000 F CFA)",
-  PLAN_3000: "Plan Essentiel (3 000 F CFA)",
-  PLAN_5000: "Plan 5 000",
-  PLAN_10000: "Plan 10 000",
-  PLAN_15000: "Plan 15 000",
-  PLAN_20000: "Plan 20 000",
+  PLAN_5000:  "Forfait Découverte (5 000 F CFA)",
+  PLAN_10000: "Forfait Standard (10 000 F CFA)",
+  PLAN_30000: "Forfait Excellence (30 000 F CFA)",
 };
 
 export function BillingPanel({ profile }: BillingPanelProps) {

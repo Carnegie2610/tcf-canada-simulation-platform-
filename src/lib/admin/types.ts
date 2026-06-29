@@ -1,11 +1,8 @@
 export type UserRole = "student" | "admin" | "super_admin";
 export type AssignedPlan =
-  | "PLAN_2000"
-  | "PLAN_3000"
   | "PLAN_5000"
   | "PLAN_10000"
-  | "PLAN_15000"
-  | "PLAN_20000";
+  | "PLAN_30000";
 export type ExamSection = "SECTION_A" | "SECTION_B";
 export type ExamType = "TEF" | "TCF";
 export type CefrLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";

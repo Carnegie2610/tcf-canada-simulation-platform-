@@ -2,51 +2,56 @@ import { PricingCard } from "@/components/molecules/PricingCard";
 
 const tiers = [
   {
-    name: "Plan de Base",
+    name: "Forfait Découverte",
     price: "5 000",
     currency: "FCFA",
-    description: "40 Sujets d'entraînement + Solutions d'examens rédigées",
+    duration: "1 Mois",
+    description: "L'entrée idéale pour commencer avec l'IA.",
     features: [
-      "40 Sujets d'entraînement",
-      "Solutions d'examens rédigées",
-      "Accès simulateur Tâche 1, 2 et 3",
+      "★ 40 simulations d'expression écrite",
       "Corrections IA avec scores CECRL",
       "Réponses modèles niveau C2",
+      "Matériaux de préparation (PDFs)",
+      "Compréhension orale & écrite",
     ],
-    buttonLabel: "S'inscrire",
+    buttonLabel: "Choisir Découverte",
     isHighlighted: false,
+    isSecondary: false,
   },
   {
-    name: "Plan Pro / Premium",
+    name: "Forfait Excellence",
+    price: "30 000",
+    currency: "FCFA",
+    duration: "1 Mois",
+    description: "L'écosystème complet pour viser les meilleurs scores NCLC.",
+    features: [
+      "40 simulations d'expression écrite complètes",
+      "Simulations d'expression orale",
+      "Mentorat personnalisé & cohorte live",
+      "Archives d'anciens sujets réels",
+      "Compréhension orale & écrite (modules complets)",
+    ],
+    buttonLabel: "Rejoindre la Cohorte",
+    isHighlighted: true,
+    isSecondary: false,
+  },
+  {
+    name: "Forfait Standard",
     price: "10 000",
     currency: "FCFA",
-    description: "80 Sujets d'entraînement + Solutions d'examens rédigées",
+    duration: "2 Mois",
+    description: "80 simulations avec feedback IA complet sur 2 mois.",
     features: [
-      "80 Sujets d'entraînement",
-      "Solutions d'examens rédigées",
-      "Accès simulateur Tâche 1, 2 et 3",
-      "Corrections IA avec scores CECRL",
-      "Réponses modèles niveau C2",
+      "★ 80 simulations d'expression écrite",
+      "Corrections IA détaillées (niveaux CECRL)",
+      "Rapports diagnostiques complets",
+      "Préparation complète lecture & écoute (PDFs)",
       "Tableau de bord de progression",
     ],
-    buttonLabel: "Choisir ce plan",
-    isHighlighted: true,
-  },
-  {
-    name: "Plan Élite / VIP",
-    price: "3 000",
-    currency: "FCFA",
-    description: "120 Sujets d'entraînement + Solutions d'examens rédigées",
-    features: [
-      "120 Sujets d'entraînement",
-      "Solutions d'examens rédigées",
-      "Accès simulateur Tâche 1, 2 et 3",
-      "Corrections IA avec scores CECRL",
-      "Réponses modèles niveau C2",
-      "Tableau de bord de progression",
-    ],
-    buttonLabel: "Choisir ce plan",
+    buttonLabel: "Saisir l'Offre",
     isHighlighted: false,
+    isSecondary: true,
+    badge: "🔥 MEILLEURE OPTION EN AUTONOMIE",
   },
 ];
 
@@ -64,7 +69,7 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="mx-auto grid max-w-5xl grid-cols-1 items-stretch gap-6 md:grid-cols-3">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 items-start gap-6 md:grid-cols-3">
           {tiers.map((tier) => (
             <PricingCard key={tier.name} {...tier} />
           ))}

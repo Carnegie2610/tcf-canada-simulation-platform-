@@ -40,11 +40,12 @@ export default async function CommissionsAdminPage() {
   prevEnd.setHours(23, 59, 59, 999);
   const { data: prevRows } = await adminClient
     .from("payments")
-    .select("commission")
+    .select("commission, plan_price")
     .eq("payment_status", "confirmed")
     .gte("created_at", prevStart.toISOString())
     .lte("created_at", prevEnd.toISOString());
   const previousDayCommission = (prevRows ?? []).reduce((s, r) => s + Number(r.commission), 0);
+  const previousDayRevenue = (prevRows ?? []).reduce((s, r) => s + Number(r.plan_price), 0);
   const previousDayRegistrations = (prevRows ?? []).length;
 
   // Monthly trend
@@ -98,6 +99,7 @@ export default async function CommissionsAdminPage() {
     totalRevenue,
     totalRegistrations,
     previousDayCommission,
+    previousDayRevenue,
     previousDayRegistrations,
     lifetimeRevenue,
     monthlyTrend,

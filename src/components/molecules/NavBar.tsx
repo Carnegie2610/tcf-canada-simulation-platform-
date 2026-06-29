@@ -35,7 +35,7 @@ export function NavBar({ navItems }: NavBarProps) {
         aria-label="Objectif 4C2 pour tous — Accueil"
         className="flex items-center gap-2 text-lg font-black tracking-tight"
       >
-        <span>🇨🇦</span>
+        <img src="/4c2-logo.svg" alt="Objectif 4C2 Academy Logo" className="h-8 w-8 object-contain" />
         <span className="bg-gradient-to-r from-[--brand-red] to-[--brand-white] bg-clip-text text-transparent">
           Objectif 4C2 pour tous
         </span>

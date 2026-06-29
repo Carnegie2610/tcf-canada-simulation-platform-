@@ -61,9 +61,19 @@ export async function GET(request: NextRequest) {
   const period = searchParams.get("period") ?? "all";
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
   const search = searchParams.get("search")?.trim() ?? "";
+  const dateFrom = searchParams.get("dateFrom")?.trim() ?? "";
+  const dateTo = searchParams.get("dateTo")?.trim() ?? "";
   const PAGE_SIZE = 15;
 
-  const { start, end } = getPeriodRange(period);
+  // dateFrom/dateTo override period when both are provided
+  let start: string | null;
+  let end: string | null;
+  if (dateFrom && dateTo) {
+    start = new Date(dateFrom + "T00:00:00.000Z").toISOString();
+    end = new Date(dateTo + "T23:59:59.999Z").toISOString();
+  } else {
+    ({ start, end } = getPeriodRange(period));
+  }
 
   // Period-scoped KPIs
   let kpiQuery = adminClient
@@ -82,11 +92,12 @@ export async function GET(request: NextRequest) {
   const prev = getPreviousDayRange();
   const { data: prevRows, count: prevCount } = await adminClient
     .from("payments")
-    .select("commission", { count: "exact" })
+    .select("commission, plan_price", { count: "exact" })
     .eq("payment_status", "confirmed")
     .gte("created_at", prev.start)
     .lte("created_at", prev.end);
   const previousDayCommission = (prevRows ?? []).reduce((s, r) => s + Number(r.commission), 0);
+  const previousDayRevenue = (prevRows ?? []).reduce((s, r) => s + Number(r.plan_price), 0);
   const previousDayRegistrations = prevCount ?? 0;
 
   // Lifetime revenue (always all-time for 3rd KPI card)
@@ -166,6 +177,7 @@ export async function GET(request: NextRequest) {
     totalRevenue,
     totalRegistrations,
     previousDayCommission,
+    previousDayRevenue,
     previousDayRegistrations,
     lifetimeRevenue,
     monthlyTrend,

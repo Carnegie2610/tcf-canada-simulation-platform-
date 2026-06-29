@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   title: "Objectif 4C2 pour tous — Préparation TEF/TCF Canada",
   description:
     "Préparez l'examen TEF ou TCF Canada avec des simulations d'écriture réalistes et des corrections personnalisées par intelligence artificielle.",
+  icons: {
+    icon: "/4c2-logo.svg",
+  },
 };
 
 export default function RootLayout({
