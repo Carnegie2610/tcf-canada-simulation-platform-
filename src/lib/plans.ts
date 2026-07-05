@@ -12,6 +12,11 @@ export const PLAN_CONFIG: Record<string, PlanMeta> = {
   PLAN_30000: { label: "Forfait Excellence", price: 30000, commission: 10500, quota: 40, days: 30 },
 };
 
+export const ADMIN_ONLY_PLAN_CONFIG: Record<string, PlanMeta> = {
+  PLAN_2000: { label: "Forfait Essentiel",     price: 2000, commission: 700,  quota: 10, days: 30 },
+  PLAN_3000: { label: "Forfait Intermédiaire", price: 3000, commission: 1050, quota: 20, days: 30 },
+};
+
 export function getPlanMeta(key: string): PlanMeta {
-  return PLAN_CONFIG[key] ?? { label: key, price: 0, commission: 0, quota: 0, days: 0 };
+  return PLAN_CONFIG[key] ?? ADMIN_ONLY_PLAN_CONFIG[key] ?? { label: key, price: 0, commission: 0, quota: 0, days: 0 };
 }

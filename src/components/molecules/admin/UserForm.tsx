@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CreateUserSchema, UpdateUserSchema } from "@/lib/schemas-admin";
 import { SuperAdminSecurityModule } from "./SuperAdminSecurityModule";
 import type { AdminProfile, UserRole } from "@/lib/admin/types";
-import { PLAN_CONFIG as PLANS } from "@/lib/plans";
+import { PLAN_CONFIG as PLANS, ADMIN_ONLY_PLAN_CONFIG } from "@/lib/plans";
 
 interface UserFormProps {
   mode: "create" | "edit";
@@ -14,9 +14,9 @@ interface UserFormProps {
   onCancel: () => void;
 }
 
-const PLAN_CONFIG: Record<string, { label: string; quota: number; days: number }> =
-  Object.fromEntries(
-    Object.entries(PLANS).map(([k, v]) => [
+function buildPlanOptions(source: typeof PLANS) {
+  return Object.fromEntries(
+    Object.entries(source).map(([k, v]) => [
       k,
       {
         label: `${v.label} (${v.price.toLocaleString("fr-FR")} CFA — ${v.quota} sim.)`,
@@ -25,6 +25,10 @@ const PLAN_CONFIG: Record<string, { label: string; quota: number; days: number }
       },
     ])
   );
+}
+
+const PLAN_CONFIG = buildPlanOptions(PLANS);
+const ADMIN_ONLY_PLANS = buildPlanOptions(ADMIN_ONLY_PLAN_CONFIG);
 
 function addDays(n: number): string {
   const d = new Date();
@@ -78,7 +82,7 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
       set("assigned_plan", plan as typeof form.assigned_plan);
       return;
     }
-    const cfg = PLAN_CONFIG[plan];
+    const cfg = PLAN_CONFIG[plan] ?? ADMIN_ONLY_PLANS[plan];
     setForm((prev) => ({
       ...prev,
       assigned_plan: plan as typeof form.assigned_plan,
@@ -190,9 +194,18 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
               onChange={(e) => handlePlanChange(e.target.value)}
               className={inputCls}
             >
-              {Object.entries(PLAN_CONFIG).map(([key, cfg]) => (
-                <option key={key} value={key}>{cfg.label}</option>
-              ))}
+              {mode === "create" && (
+                <optgroup label="Plans spéciaux">
+                  {Object.entries(ADMIN_ONLY_PLANS).map(([key, cfg]) => (
+                    <option key={key} value={key}>{cfg.label}</option>
+                  ))}
+                </optgroup>
+              )}
+              <optgroup label="Plans standards">
+                {Object.entries(PLAN_CONFIG).map(([key, cfg]) => (
+                  <option key={key} value={key}>{cfg.label}</option>
+                ))}
+              </optgroup>
             </select>
           </Field>
 

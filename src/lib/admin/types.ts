@@ -1,5 +1,7 @@
 export type UserRole = "student" | "admin" | "super_admin";
 export type AssignedPlan =
+  | "PLAN_2000"
+  | "PLAN_3000"
   | "PLAN_5000"
   | "PLAN_10000"
   | "PLAN_30000";
