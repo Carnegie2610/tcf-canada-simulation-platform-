@@ -16,6 +16,9 @@ interface CombinationResultViewProps {
   task1: CombinationTaskEval;
   task2: CombinationTaskEval;
   task3: CombinationTaskEval;
+  wordCount1: number;
+  wordCount2: number;
+  wordCount3: number;
   createdAt: string;
   combination?: Combination;
   studentName?: string;
@@ -110,19 +113,34 @@ function TaskPanel({
   label,
   task,
   maxScore,
+  wordCount,
 }: {
   label: string;
   task: CombinationTaskEval;
   maxScore: string;
+  wordCount: number;
 }) {
+  const pointsForts = task.points_forts ?? [];
+  const prioritesATravailler = task.priorites_a_travailler ?? [];
+  const erreursRecurrentes = task.erreurs_recurrentes ?? [];
+  const enrichissementLexical = task.enrichissement_lexical ?? [];
+  const connecteursLogiques = task.connecteurs_logiques ?? { utilises: [], manquants: [] };
+
   return (
     <div className="task-panel rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
       {/* Task header */}
       <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-6 py-4">
         <h3 className="text-base font-bold text-slate-100">{label}</h3>
-        <span className="rounded-full bg-slate-800 px-4 py-1 text-sm font-bold text-slate-300">
-          {task.score} pts
-        </span>
+        <div className="flex items-center gap-2">
+          {task.pertinence_verdict && (
+            <span className="rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1 text-[11px] font-semibold text-slate-400">
+              {task.pertinence_verdict}
+            </span>
+          )}
+          <span className="rounded-full bg-slate-800 px-4 py-1 text-sm font-bold text-slate-300">
+            {task.score} pts
+          </span>
+        </div>
       </div>
 
       <div className="p-6 space-y-6">
@@ -143,6 +161,12 @@ function TaskPanel({
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
             Section B — Critères CECR
           </p>
+          <div className="criteria-block rounded-lg bg-slate-800/40 p-4 border-l-2 border-emerald-700/40">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              Nombre de mots (comptage réel)
+            </p>
+            <p className="text-sm text-slate-300 leading-relaxed">{wordCount} mots</p>
+          </div>
           <div className="space-y-3">
             {[
               { label: "Compréhension du sujet",  value: task.comprehension_du_sujet },
@@ -163,12 +187,12 @@ function TaskPanel({
           </div>
         </div>
 
-        {/* Section C — Corrections orthographiques */}
+        {/* Corrections orthographiques (kept alongside Section B) */}
         <div className="print-section-c space-y-2">
           {task.correction_orthographique.length > 0 ? (
             <>
               <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                Section C — Corrections orthographiques ({task.correction_orthographique.length})
+                Corrections orthographiques ({task.correction_orthographique.length})
               </p>
               <div className="overflow-x-auto rounded-lg border border-slate-800">
                 <table className="w-full text-xs">
@@ -206,6 +230,160 @@ function TaskPanel({
           )}
         </div>
 
+        {/* Section C — Points forts, priorités, erreurs récurrentes, analyse de longueur */}
+        {(pointsForts.length > 0 ||
+          prioritesATravailler.length > 0 ||
+          erreursRecurrentes.length > 0 ||
+          task.analyse_longueur ||
+          task.registre_et_tonalite ||
+          enrichissementLexical.length > 0 ||
+          connecteursLogiques.utilises.length > 0 ||
+          connecteursLogiques.manquants.length > 0 ||
+          task.exercice_recommande ||
+          task.comparaison_niveau_vise) && (
+          <div className="print-section-c-analysis space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+              Section C — Analyse complémentaire
+            </p>
+
+            {pointsForts.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Points forts
+                </p>
+                {pointsForts.map((p, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg bg-emerald-950/20 border-l-2 border-emerald-700/40 p-4"
+                  >
+                    <p className="text-sm text-slate-300 leading-relaxed">{p}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {prioritesATravailler.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Priorités à travailler
+                </p>
+                {prioritesATravailler.map((p, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-blue-800/30 bg-blue-950/20 p-4"
+                  >
+                    <p className="text-sm text-slate-300 leading-relaxed">{p}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {erreursRecurrentes.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Erreurs récurrentes
+                </p>
+                {erreursRecurrentes.map((r, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg bg-amber-950/20 border-l-2 border-amber-700/40 p-4"
+                  >
+                    <p className="text-sm font-semibold text-amber-300">
+                      {r.pattern} <span className="font-normal text-amber-500">— {r.occurrences}×</span>
+                    </p>
+                    {r.exemples.length > 0 && (
+                      <p className="mt-1 text-sm text-slate-400 leading-relaxed">{r.exemples.join(" · ")}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {task.analyse_longueur && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Analyse de la longueur
+                </p>
+                <div className="rounded-lg bg-slate-800/40 p-4">
+                  <p className="text-sm text-slate-300 leading-relaxed">{task.analyse_longueur}</p>
+                </div>
+              </div>
+            )}
+
+            {task.registre_et_tonalite && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Registre et tonalité
+                </p>
+                <div className="rounded-lg bg-slate-800/40 p-4">
+                  <p className="text-sm text-slate-300 leading-relaxed">{task.registre_et_tonalite}</p>
+                </div>
+              </div>
+            )}
+
+            {enrichissementLexical.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Enrichissement lexical
+                </p>
+                {enrichissementLexical.map((e, i) => (
+                  <div key={i} className="rounded-lg bg-slate-800/40 p-4">
+                    <p className="text-sm font-semibold text-slate-200">
+                      {e.mot_utilise} <span className="text-slate-500">→</span>{" "}
+                      <span className="text-emerald-400">{e.suggestion}</span>
+                    </p>
+                    <p className="mt-1 text-sm text-slate-400 leading-relaxed">{e.explication}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {(connecteursLogiques.utilises.length > 0 || connecteursLogiques.manquants.length > 0) && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Connecteurs logiques
+                </p>
+                <div className="rounded-lg bg-slate-800/40 p-4 space-y-1">
+                  {connecteursLogiques.utilises.length > 0 && (
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      <span className="text-slate-500">Utilisés : </span>
+                      {connecteursLogiques.utilises.join(", ")}
+                    </p>
+                  )}
+                  {connecteursLogiques.manquants.length > 0 && (
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      <span className="text-slate-500">À enrichir : </span>
+                      {connecteursLogiques.manquants.join(", ")}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {task.exercice_recommande && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Exercice recommandé
+                </p>
+                <div className="rounded-lg bg-slate-800/40 p-4">
+                  <p className="text-sm text-slate-300 leading-relaxed">{task.exercice_recommande}</p>
+                </div>
+              </div>
+            )}
+
+            {task.comparaison_niveau_vise && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Comparaison au niveau visé
+                </p>
+                <div className="rounded-lg bg-slate-800/40 p-4">
+                  <p className="text-sm text-slate-300 leading-relaxed">{task.comparaison_niveau_vise}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Section D — Solution proposée par l'IA (always visible, no toggle) */}
         <div className="print-model-solution space-y-2">
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
@@ -234,6 +412,9 @@ export function CombinationResultView({
   task1,
   task2,
   task3,
+  wordCount1,
+  wordCount2,
+  wordCount3,
   createdAt,
   combination,
   studentName,
@@ -243,9 +424,9 @@ export function CombinationResultView({
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const tasks = [
-    { key: 1 as const, label: "Tâche 1 — Message",    task: task1, maxScore: "4 pts" },
-    { key: 2 as const, label: "Tâche 2 — Rédaction", task: task2, maxScore: "7 pts" },
-    { key: 3 as const, label: "Tâche 3 — Rédaction", task: task3, maxScore: "9 pts" },
+    { key: 1 as const, label: "Tâche 1 — Message",    task: task1, maxScore: "4 pts", wordCount: wordCount1 },
+    { key: 2 as const, label: "Tâche 2 — Rédaction", task: task2, maxScore: "7 pts", wordCount: wordCount2 },
+    { key: 3 as const, label: "Tâche 3 — Rédaction", task: task3, maxScore: "9 pts", wordCount: wordCount3 },
   ];
 
   const cefrClass = CEFR_COLOR[cefrLevel] ?? "bg-slate-800 text-slate-300 border-slate-700";
@@ -268,6 +449,9 @@ export function CombinationResultView({
           task1={task1}
           task2={task2}
           task3={task3}
+          wordCount1={wordCount1}
+          wordCount2={wordCount2}
+          wordCount3={wordCount3}
           createdAt={createdAt}
           studentName={studentName}
         />
@@ -362,9 +546,9 @@ export function CombinationResultView({
 
       {/* Active task panel */}
       <div>
-        {tasks.map(({ key, label, task, maxScore }) =>
+        {tasks.map(({ key, label, task, maxScore, wordCount }) =>
           activeTab === key ? (
-            <TaskPanel key={key} label={label} task={task} maxScore={maxScore} />
+            <TaskPanel key={key} label={label} task={task} maxScore={maxScore} wordCount={wordCount} />
           ) : null
         )}
       </div>

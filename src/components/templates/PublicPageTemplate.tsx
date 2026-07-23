@@ -1,5 +1,6 @@
 import { GlobalNav } from "@/components/organisms/GlobalNav";
 import { PageFooter } from "@/components/organisms/PageFooter";
+import { WhatsAppButton } from "@/components/atoms/WhatsAppButton";
 
 interface PublicPageTemplateProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ export function PublicPageTemplate({ children }: PublicPageTemplateProps) {
       <GlobalNav />
       <main className="flex-1">{children}</main>
       <PageFooter />
+      <WhatsAppButton />
     </div>
   );
 }

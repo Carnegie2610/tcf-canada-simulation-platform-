@@ -10,6 +10,9 @@ export interface CombinationPdfDocumentProps {
   task1: CombinationTaskEval;
   task2: CombinationTaskEval;
   task3: CombinationTaskEval;
+  wordCount1: number;
+  wordCount2: number;
+  wordCount3: number;
   createdAt: string;
   studentName?: string;
 }
@@ -284,6 +287,18 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     color: C.white,
   },
+  verdictPill: {
+    backgroundColor: C.slate700,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    marginRight: 6,
+  },
+  verdictPillText: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    color: C.slate100,
+  },
   consigneBox: {
     backgroundColor: C.white,
     borderLeftWidth: 4,
@@ -370,6 +385,80 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     color: C.slate800,
     lineHeight: 1.5,
+  },
+  wordCountCell: {
+    width: "100%",
+    backgroundColor: "#ecfdf5",
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+    borderRadius: 6,
+    padding: 9,
+  },
+  wordCountLabel: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    color: C.green,
+    marginBottom: 4,
+    textDecoration: "underline",
+  },
+  wordCountText: {
+    fontSize: 9.5,
+    color: C.slate800,
+    lineHeight: 1.5,
+    fontFamily: "Helvetica-Bold",
+  },
+  lengthAnalysisText: {
+    fontSize: 9,
+    color: C.slate700,
+    lineHeight: 1.5,
+    marginTop: 4,
+  },
+
+  // ── Recurring errors / strengths / priorities ─────────────────────
+  calloutCell: {
+    width: "100%",
+    borderRadius: 6,
+    padding: 9,
+    marginBottom: 6,
+  },
+  recurringCell: {
+    backgroundColor: "#fffbeb",
+    borderWidth: 1,
+    borderColor: "#fde68a",
+  },
+  strengthCell: {
+    backgroundColor: "#ecfdf5",
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+  },
+  priorityCell: {
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+  },
+  calloutTitle: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: C.slate900,
+    marginBottom: 2,
+  },
+  calloutText: {
+    fontSize: 9,
+    color: C.slate700,
+    lineHeight: 1.45,
+  },
+
+  // ── Section headings ──────────────────────────────────────────────
+  sectionHeading: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    textTransform: "uppercase",
+    letterSpacing: 1.5,
+    color: C.crimson,
+    marginBottom: 6,
+    marginTop: 2,
   },
 
   // ── Correction table ──────────────────────────────────────────────
@@ -605,10 +694,12 @@ function TaskPage({
   label,
   task,
   maxScore,
+  wordCount,
 }: {
   label: string;
   task: CombinationTaskEval;
   maxScore: number;
+  wordCount: number;
 }) {
   const criteria: { key: string; value: string; highlight: boolean }[] = [
     { key: "Comprehension du sujet",     value: task.comprehension_du_sujet,    highlight: false },
@@ -617,13 +708,26 @@ function TaskPage({
     { key: "Appreciation generale",      value: task.appreciation_generale,     highlight: true  },
   ];
 
+  const pointsForts = task.points_forts ?? [];
+  const prioritesATravailler = task.priorites_a_travailler ?? [];
+  const erreursRecurrentes = task.erreurs_recurrentes ?? [];
+  const enrichissementLexical = task.enrichissement_lexical ?? [];
+  const connecteursLogiques = task.connecteurs_logiques ?? { utilises: [], manquants: [] };
+
   return (
     <Page size="A4" style={styles.page}>
       {/* Header */}
       <View style={styles.taskHeaderBar}>
         <Text style={styles.taskHeaderLabel}>{label}</Text>
-        <View style={styles.scorePill}>
-          <Text style={styles.scorePillText}>{task.score} / {maxScore} pts</Text>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {task.pertinence_verdict ? (
+            <View style={styles.verdictPill}>
+              <Text style={styles.verdictPillText}>{task.pertinence_verdict}</Text>
+            </View>
+          ) : null}
+          <View style={styles.scorePill}>
+            <Text style={styles.scorePillText}>{task.score} / {maxScore} pts</Text>
+          </View>
         </View>
       </View>
 
@@ -633,13 +737,21 @@ function TaskPage({
         <Text style={styles.consigneText}>{task.consigne}</Text>
       </View>
 
-      {/* Candidate text */}
+      {/* Section A — Votre texte */}
+      <Text style={styles.sectionHeading}>Section A — Votre texte</Text>
       <View style={styles.candidateTextBox}>
         <Text style={styles.candidateTextLabel}>Votre texte</Text>
         <Text style={styles.candidateText}>{task.votre_texte || "—"}</Text>
       </View>
 
-      {/* 2×2 Analysis grid */}
+      {/* Section B — Criteres CECR */}
+      <Text style={styles.sectionHeading}>Section B — Criteres CECR</Text>
+      <View style={styles.analysisGrid}>
+        <View style={styles.wordCountCell}>
+          <Text style={styles.wordCountLabel}>Nombre de mots (comptage reel)</Text>
+          <Text style={styles.wordCountText}>{wordCount} mots</Text>
+        </View>
+      </View>
       <View style={styles.analysisGrid}>
         {criteria.map((c) => (
           <View key={c.key} style={c.highlight ? styles.analysisCellHighlight : styles.analysisCell}>
@@ -651,7 +763,7 @@ function TaskPage({
         ))}
       </View>
 
-      {/* Correction table */}
+      {/* Correction table (detailed error list, kept alongside Section B) */}
       <View style={styles.tableSection} wrap={false}>
         <Text style={styles.tableSectionLabel}>
           Corrections orthographiques ({task.correction_orthographique.length})
@@ -678,7 +790,122 @@ function TaskPage({
         )}
       </View>
 
-      {/* Improved version */}
+      {/* Section C — Points forts, priorites, erreurs recurrentes, analyse longueur, et plus */}
+      {(pointsForts.length > 0 ||
+        prioritesATravailler.length > 0 ||
+        erreursRecurrentes.length > 0 ||
+        task.analyse_longueur ||
+        task.registre_et_tonalite ||
+        enrichissementLexical.length > 0 ||
+        connecteursLogiques.utilises.length > 0 ||
+        connecteursLogiques.manquants.length > 0 ||
+        task.exercice_recommande ||
+        task.comparaison_niveau_vise) && (
+        <>
+          <Text style={styles.sectionHeading}>Section C — Analyse complementaire</Text>
+
+          {pointsForts.length > 0 && (
+            <View style={styles.tableSection} wrap={false}>
+              <Text style={styles.tableSectionLabel}>Points forts</Text>
+              {pointsForts.map((p, i) => (
+                <View key={i} style={[styles.calloutCell, styles.strengthCell]}>
+                  <Text style={styles.calloutText}>{p}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {prioritesATravailler.length > 0 && (
+            <View style={styles.tableSection} wrap={false}>
+              <Text style={styles.tableSectionLabel}>Priorites a travailler</Text>
+              {prioritesATravailler.map((p, i) => (
+                <View key={i} style={[styles.calloutCell, styles.priorityCell]}>
+                  <Text style={styles.calloutText}>{p}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {erreursRecurrentes.length > 0 && (
+            <View style={styles.tableSection} wrap={false}>
+              <Text style={styles.tableSectionLabel}>Erreurs recurrentes</Text>
+              {erreursRecurrentes.map((r, i) => (
+                <View key={i} style={[styles.calloutCell, styles.recurringCell]}>
+                  <Text style={styles.calloutTitle}>{r.pattern} — {r.occurrences}x</Text>
+                  {r.exemples.length > 0 && (
+                    <Text style={styles.calloutText}>{r.exemples.join(" · ")}</Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {task.analyse_longueur ? (
+            <View style={styles.tableSection} wrap={false}>
+              <Text style={styles.tableSectionLabel}>Analyse de la longueur</Text>
+              <View style={styles.calloutCell}>
+                <Text style={styles.calloutText}>{task.analyse_longueur}</Text>
+              </View>
+            </View>
+          ) : null}
+
+          {task.registre_et_tonalite ? (
+            <View style={styles.tableSection} wrap={false}>
+              <Text style={styles.tableSectionLabel}>Registre et tonalite</Text>
+              <View style={styles.calloutCell}>
+                <Text style={styles.calloutText}>{task.registre_et_tonalite}</Text>
+              </View>
+            </View>
+          ) : null}
+
+          {enrichissementLexical.length > 0 && (
+            <View style={styles.tableSection} wrap={false}>
+              <Text style={styles.tableSectionLabel}>Enrichissement lexical</Text>
+              {enrichissementLexical.map((e, i) => (
+                <View key={i} style={styles.calloutCell}>
+                  <Text style={styles.calloutTitle}>{e.mot_utilise} → {e.suggestion}</Text>
+                  <Text style={styles.calloutText}>{e.explication}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {(connecteursLogiques.utilises.length > 0 || connecteursLogiques.manquants.length > 0) && (
+            <View style={styles.tableSection} wrap={false}>
+              <Text style={styles.tableSectionLabel}>Connecteurs logiques</Text>
+              <View style={styles.calloutCell}>
+                {connecteursLogiques.utilises.length > 0 && (
+                  <Text style={styles.calloutText}>Utilises : {connecteursLogiques.utilises.join(", ")}</Text>
+                )}
+                {connecteursLogiques.manquants.length > 0 && (
+                  <Text style={styles.calloutText}>A enrichir : {connecteursLogiques.manquants.join(", ")}</Text>
+                )}
+              </View>
+            </View>
+          )}
+
+          {task.exercice_recommande ? (
+            <View style={styles.tableSection} wrap={false}>
+              <Text style={styles.tableSectionLabel}>Exercice recommande</Text>
+              <View style={styles.calloutCell}>
+                <Text style={styles.calloutText}>{task.exercice_recommande}</Text>
+              </View>
+            </View>
+          ) : null}
+
+          {task.comparaison_niveau_vise ? (
+            <View style={styles.tableSection} wrap={false}>
+              <Text style={styles.tableSectionLabel}>Comparaison au niveau vise</Text>
+              <View style={styles.calloutCell}>
+                <Text style={styles.calloutText}>{task.comparaison_niveau_vise}</Text>
+              </View>
+            </View>
+          ) : null}
+        </>
+      )}
+
+      {/* Section D — Solution proposee par l'IA */}
+      <Text style={styles.sectionHeading}>Section D — Solution proposee par l&apos;IA</Text>
       <View style={styles.improvedBox} wrap={false}>
         <Text style={styles.improvedLabel}>✦  Version corrigee et amelioree</Text>
         <Text style={styles.improvedText}>{task.version_corrigee_et_amelioree}</Text>
@@ -695,9 +922,9 @@ export function CombinationPdfDocument(props: CombinationPdfDocumentProps) {
   return (
     <Document>
       <CoverPage {...props} />
-      <TaskPage label="Tache 1 — Message"    task={props.task1} maxScore={4} />
-      <TaskPage label="Tache 2 — Redaction"  task={props.task2} maxScore={7} />
-      <TaskPage label="Tache 3 — Redaction"  task={props.task3} maxScore={9} />
+      <TaskPage label="Tache 1 — Message"    task={props.task1} maxScore={4} wordCount={props.wordCount1} />
+      <TaskPage label="Tache 2 — Redaction"  task={props.task2} maxScore={7} wordCount={props.wordCount2} />
+      <TaskPage label="Tache 3 — Redaction"  task={props.task3} maxScore={9} wordCount={props.wordCount3} />
     </Document>
   );
 }

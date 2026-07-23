@@ -62,6 +62,23 @@ const CombinationOrthoItemSchema = z.object({
   explication: z.string(),
 });
 
+const CombinationErreurRecurrenteSchema = z.object({
+  pattern: z.string(),
+  occurrences: z.coerce.number(),
+  exemples: z.array(z.string()),
+});
+
+const CombinationEnrichissementLexicalItemSchema = z.object({
+  mot_utilise: z.string(),
+  suggestion: z.string(),
+  explication: z.string(),
+});
+
+const CombinationConnecteursLogiquesSchema = z.object({
+  utilises: z.array(z.string()),
+  manquants: z.array(z.string()),
+});
+
 export const CombinationTaskEvalSchema = z.object({
   score: z.preprocess((val) => coerceScoreString(val), z.string()),
   consigne: z.string(),
@@ -71,6 +88,19 @@ export const CombinationTaskEvalSchema = z.object({
   niveau_linguistique: z.string(),
   appreciation_generale: z.string(),
   correction_orthographique: z.array(CombinationOrthoItemSchema),
+  pertinence_verdict: z.string().optional().default(""),
+  points_forts: z.array(z.string()).optional().default([]),
+  priorites_a_travailler: z.array(z.string()).optional().default([]),
+  erreurs_recurrentes: z.array(CombinationErreurRecurrenteSchema).optional().default([]),
+  analyse_longueur: z.string().optional().default(""),
+  registre_et_tonalite: z.string().optional().default(""),
+  enrichissement_lexical: z.array(CombinationEnrichissementLexicalItemSchema).optional().default([]),
+  connecteurs_logiques: CombinationConnecteursLogiquesSchema.optional().default({
+    utilises: [],
+    manquants: [],
+  }),
+  exercice_recommande: z.string().optional().default(""),
+  comparaison_niveau_vise: z.string().optional().default(""),
   version_corrigee_et_amelioree: z.string(),
 });
 

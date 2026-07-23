@@ -1,42 +1,108 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { CombinationEvaluationSchema } from "@/lib/schemas";
-import { callAI } from "@/lib/ai/providers";
+import { CombinationTaskEvalSchema, type CombinationTaskEval } from "@/lib/schemas";
+import { callAI, type AiResult } from "@/lib/ai/providers";
 import { COMBINATION_EVALUATION_DEFAULT } from "@/lib/ai/prompts";
 import type { Combination, CombinationSubmission } from "@/lib/admin/types";
 
 export const maxDuration = 120;
 
-function buildUserPrompt(combination: Combination, sub: CombinationSubmission): string {
-  const t1 = combination.tasks.tache_1;
-  const t2 = combination.tasks.tache_2;
-  const t3 = combination.tasks.tache_3;
+type TaskNumber = 1 | 2 | 3;
 
-  return `Évalue la production écrite suivante du candidat pour les 3 tâches. Analyse chaque tâche selon les règles du système et retourne l'objet JSON structuré.
+const TASK_META: Record<
+  TaskNumber,
+  { key: "tache_1" | "tache_2" | "tache_3"; label: string; jsonKey: string }
+> = {
+  1: { key: "tache_1", label: "MESSAGE", jsonKey: "task_1_evaluation" },
+  2: { key: "tache_2", label: "RÉDACTION BLOG", jsonKey: "task_2_evaluation" },
+  3: { key: "tache_3", label: "RÉDACTION ARGUMENTATION", jsonKey: "task_3_evaluation" },
+};
 
----
-### EXAMEN : ${combination.title} (${combination.exam_type} Canada)
+function draftForTask(sub: CombinationSubmission, taskNumber: TaskNumber): string {
+  if (taskNumber === 1) return sub.draft_task_1;
+  if (taskNumber === 2) return sub.draft_task_2;
+  return sub.draft_task_3;
+}
 
-#### TÂCHE 1 — MESSAGE
-- Contraintes : ${t1.minWords} mots minimum / ${t1.maxWords} mots maximum
-- Consigne : "${t1.question}"
-- Texte soumis : "${sub.draft_task_1}"
+function buildTaskUserPrompt(
+  taskNumber: TaskNumber,
+  combination: Combination,
+  sub: CombinationSubmission
+): string {
+  const meta = TASK_META[taskNumber];
+  const task = combination.tasks[meta.key];
+  const draft = draftForTask(sub, taskNumber);
 
----
-#### TÂCHE 2 — RÉDACTION BLOG
-- Contraintes : ${t2.minWords} mots minimum / ${t2.maxWords} mots maximum
-- Consigne : "${t2.question}"
-- Texte soumis : "${sub.draft_task_2}"
+  return `Évalue UNIQUEMENT la Tâche ${taskNumber} — ${meta.label} du candidat, pour l'examen : ${combination.title} (${combination.exam_type} Canada).
 
----
-#### TÂCHE 3 — RÉDACTION ARGUMENTATION
-- Contraintes : ${t3.minWords} mots minimum / ${t3.maxWords} mots maximum
-- Consigne : "${t3.question}"
-- Texte soumis : "${sub.draft_task_3}"
+- Contraintes : ${task.minWords} mots minimum / ${task.maxWords} mots maximum
+- Consigne : "${task.question}"
+- Texte soumis : "${draft}"
 
----
-Retourne uniquement du JSON minifié valide couvrant les 3 évaluations et les métriques globales.`;
+IMPORTANT : ignore les 2 autres tâches et les métriques globales (global_metrics) décrites dans le prompt système — elles ne s'appliquent pas à cet appel. Retourne uniquement du JSON minifié valide de la forme {"${meta.jsonKey}": { ... }}, avec exactement les champs définis dans OUTPUT SCHEMA pour cette clé. Aucun texte, aucune autre clé.`;
+}
+
+interface TaskEvalResult {
+  taskNumber: TaskNumber;
+  aiResult: AiResult;
+  data: CombinationTaskEval;
+}
+
+async function evaluateTask(
+  taskNumber: TaskNumber,
+  systemPrompt: string,
+  combination: Combination,
+  sub: CombinationSubmission
+): Promise<TaskEvalResult> {
+  const userPrompt = buildTaskUserPrompt(taskNumber, combination, sub);
+  const aiResult = await callAI(systemPrompt, userPrompt);
+
+  const jsonMatch = aiResult.text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error(`task_${taskNumber}_parse_failed`);
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch {
+    throw new Error(`task_${taskNumber}_parse_failed`);
+  }
+
+  const parsedObj = parsed as Record<string, unknown>;
+  const jsonKey = TASK_META[taskNumber].jsonKey;
+  // Accept either {"task_N_evaluation": {...}} (requested shape) or a flat object (model variance).
+  const inner = jsonKey in parsedObj ? parsedObj[jsonKey] : parsed;
+
+  const validated = CombinationTaskEvalSchema.safeParse(inner);
+  if (!validated.success) {
+    console.error(`[evaluate] task ${taskNumber} schema mismatch:`, validated.error.issues, {
+      provider: aiResult.provider,
+      model: aiResult.model,
+      responseKeys: Object.keys(parsedObj),
+      responseLength: aiResult.text.length,
+    });
+    throw new Error(`task_${taskNumber}_schema_mismatch`);
+  }
+
+  return { taskNumber, aiResult, data: validated.data };
+}
+
+function parseTaskScore(scoreStr: string): number {
+  const n = parseFloat(scoreStr.replace(/\/\d+/, "").trim());
+  return isNaN(n) ? 0 : n;
+}
+
+function resolveCefr(score: number): { cefrLevel: string; appreciation: string } {
+  if (score >= 18.0) return { cefrLevel: "C2", appreciation: "Atteint" };
+  if (score >= 16.0) return { cefrLevel: "C1+", appreciation: "Atteint" };
+  if (score >= 14.0) return { cefrLevel: "C1", appreciation: "Atteint" };
+  if (score >= 12.0) return { cefrLevel: "B2+", appreciation: "Non Atteint" };
+  if (score >= 10.0) return { cefrLevel: "B2", appreciation: "Non Atteint" };
+  if (score >= 7.0) return { cefrLevel: "B1+", appreciation: "Non Atteint" };
+  if (score >= 6.0) return { cefrLevel: "B1", appreciation: "Non Atteint" };
+  return { cefrLevel: "A2", appreciation: "Non Atteint" };
 }
 
 export async function POST(
@@ -101,7 +167,8 @@ export async function POST(
 
   const combination = rawCombination as Combination;
 
-  // Fetch prompt from DB, fall back to hardcoded default
+  // Fetch prompt from DB (admin-editable, single shared prompt), fall back to hardcoded default.
+  // Shared across all 3 per-task calls below — the user prompt tells the model which task to focus on.
   const adminClient = createSupabaseAdminClient();
   const { data: promptRow } = await adminClient
     .from("ai_prompts")
@@ -110,88 +177,74 @@ export async function POST(
     .maybeSingle();
   const systemPrompt = promptRow?.prompt_text ?? COMBINATION_EVALUATION_DEFAULT;
 
-  const userPrompt = buildUserPrompt(combination, sub);
+  const settled = await Promise.allSettled([
+    evaluateTask(1, systemPrompt, combination, sub),
+    evaluateTask(2, systemPrompt, combination, sub),
+    evaluateTask(3, systemPrompt, combination, sub),
+  ]);
 
-  let aiResult: import("@/lib/ai/providers").AiResult;
-  try {
-    aiResult = await callAI(systemPrompt, userPrompt);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "unknown";
-    console.error("[evaluate] AI call failed:", msg, {
-      provider: process.env.ACTIVE_AI_PROVIDER ?? "auto",
-      submissionId,
-    });
-    void Promise.resolve(
-      createSupabaseAdminClient()
-        .from("ai_api_calls")
-        .insert({ submission_type: "combination", provider: "unknown", model: "unknown", success: false })
-    ).catch(console.error);
-    if (msg === "no_ai_provider_configured") {
+  // Log one ai_api_calls row per task-level AI call (there are now 3 real provider calls per submission).
+  for (const result of settled) {
+    if (result.status === "fulfilled") {
+      void Promise.resolve(
+        createSupabaseAdminClient()
+          .from("ai_api_calls")
+          .insert({
+            submission_type: "combination",
+            provider: result.value.aiResult.provider,
+            model: result.value.aiResult.model,
+            success: true,
+            duration_ms: result.value.aiResult.durationMs,
+          })
+      ).catch(console.error);
+    } else {
+      void Promise.resolve(
+        createSupabaseAdminClient()
+          .from("ai_api_calls")
+          .insert({
+            submission_type: "combination",
+            provider: "unknown",
+            model: "unknown",
+            success: false,
+          })
+      ).catch(console.error);
+    }
+  }
+
+  const failed = settled.filter(
+    (r): r is PromiseRejectedResult => r.status === "rejected"
+  );
+
+  if (failed.length > 0) {
+    const messages = failed.map((f) =>
+      f.reason instanceof Error ? f.reason.message : String(f.reason)
+    );
+    console.error("[evaluate] one or more task evaluations failed:", messages, { submissionId });
+    const notConfigured = messages.some((m) => m === "no_ai_provider_configured");
+    if (notConfigured) {
       return NextResponse.json({ error: "ai_not_configured" }, { status: 503 });
     }
-    return NextResponse.json({ error: "ai_request_failed", detail: msg }, { status: 502 });
+    const anySchemaOrParse = messages.some(
+      (m) => m.includes("_schema_mismatch") || m.includes("_parse_failed")
+    );
+    return NextResponse.json(
+      { error: anySchemaOrParse ? "ai_schema_mismatch" : "ai_request_failed", detail: messages },
+      { status: 502 }
+    );
   }
 
-  const jsonMatch = aiResult.text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    return NextResponse.json({ error: "ai_parse_failed" }, { status: 502 });
-  }
+  const fulfilled = settled as PromiseFulfilledResult<TaskEvalResult>[];
+  const byTask = new Map(fulfilled.map((f) => [f.value.taskNumber, f.value.data]));
+  const task1 = byTask.get(1) as CombinationTaskEval;
+  const task2 = byTask.get(2) as CombinationTaskEval;
+  const task3 = byTask.get(3) as CombinationTaskEval;
 
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(jsonMatch[0]);
-  } catch {
-    return NextResponse.json({ error: "ai_parse_failed" }, { status: 502 });
-  }
+  const scoreNum =
+    Math.round(
+      (parseTaskScore(task1.score) + parseTaskScore(task2.score) + parseTaskScore(task3.score)) * 10
+    ) / 10;
 
-  const validated = CombinationEvaluationSchema.safeParse(parsed);
-  if (!validated.success) {
-    const parsedObj = parsed as Record<string, unknown>;
-    console.error("[evaluate] schema mismatch:", validated.error.issues, {
-      provider: aiResult.provider,
-      model: aiResult.model,
-      responseKeys: Object.keys(parsedObj),
-      responseLength: aiResult.text.length,
-    });
-    return NextResponse.json({ error: "ai_schema_mismatch" }, { status: 502 });
-  }
-
-  const report = validated.data;
-
-  // Recompute score from individual task scores (Bug 2: don't trust AI's score_final)
-  function parseTaskScore(scoreStr: string): number {
-    const n = parseFloat(scoreStr.replace(/\/\d+/, "").trim());
-    return isNaN(n) ? 0 : n;
-  }
-  const t1Score = parseTaskScore(report.task_1_evaluation.score);
-  const t2Score = parseTaskScore(report.task_2_evaluation.score);
-  const t3Score = parseTaskScore(report.task_3_evaluation.score);
-  const scoreNum = Math.round((t1Score + t2Score + t3Score) * 10) / 10;
-
-  // Derive CEFR level and appreciation deterministically (Bug 1: don't trust AI's values)
-  function resolveCefr(score: number): { cefrLevel: string; appreciation: string } {
-    if (score >= 18.0) return { cefrLevel: "C2",  appreciation: "Atteint" };
-    if (score >= 16.0) return { cefrLevel: "C1+", appreciation: "Atteint" };
-    if (score >= 14.0) return { cefrLevel: "C1",  appreciation: "Atteint" };
-    if (score >= 12.0) return { cefrLevel: "B2+", appreciation: "Non Atteint" };
-    if (score >= 10.0) return { cefrLevel: "B2",  appreciation: "Non Atteint" };
-    if (score >= 7.0)  return { cefrLevel: "B1+", appreciation: "Non Atteint" };
-    if (score >= 6.0)  return { cefrLevel: "B1",  appreciation: "Non Atteint" };
-    return             { cefrLevel: "A2",  appreciation: "Non Atteint" };
-  }
   const { cefrLevel, appreciation } = resolveCefr(scoreNum);
-
-  void Promise.resolve(
-    createSupabaseAdminClient()
-      .from("ai_api_calls")
-      .insert({
-        submission_type: "combination",
-        provider: aiResult.provider,
-        model: aiResult.model,
-        success: true,
-        duration_ms: aiResult.durationMs,
-      })
-  ).catch(console.error);
 
   const { data: evaluation, error: evalError } = await createSupabaseAdminClient()
     .from("combination_evaluations")
@@ -200,9 +253,9 @@ export async function POST(
       global_score: scoreNum,
       cefr_level: cefrLevel,
       appreciation: appreciation,
-      task_1_evaluation: report.task_1_evaluation,
-      task_2_evaluation: report.task_2_evaluation,
-      task_3_evaluation: report.task_3_evaluation,
+      task_1_evaluation: task1,
+      task_2_evaluation: task2,
+      task_3_evaluation: task3,
     })
     .select()
     .single();

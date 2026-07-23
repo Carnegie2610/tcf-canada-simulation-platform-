@@ -44,6 +44,9 @@ export default async function CombinationResultPage({ params }: Props) {
         task1={ev.task_1_evaluation as unknown as CombinationTaskEval}
         task2={ev.task_2_evaluation as unknown as CombinationTaskEval}
         task3={ev.task_3_evaluation as unknown as CombinationTaskEval}
+        wordCount1={result.submission.word_count_1}
+        wordCount2={result.submission.word_count_2}
+        wordCount3={result.submission.word_count_3}
         createdAt={ev.created_at}
         combination={result.combination}
         studentName={studentName}
