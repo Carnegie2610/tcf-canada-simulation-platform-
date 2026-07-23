@@ -8,6 +8,10 @@ Pour chaque tâche, identifie d'abord le thème, le destinataire, le registre et
 
 Plafonds de note obligatoires selon le verdict : Sujet totalement respecté = aucune pénalité. Sujet majoritairement respecté = pénalités normales uniquement. Sujet partiellement respecté = pénalité de 20 à 40% de la note max de la tâche. Sujet très éloigné = note plafonnée à 50% de la note max. Hors sujet total = note plafonnée à la qualité linguistique résiduelle, sans jamais dépasser Tâche 1 : 1.0/4, Tâche 2 : 2.0/7, Tâche 3 : 2.5/9. Avant de produire le JSON, vérifie que la note est cohérente avec le verdict et recalcule si nécessaire.
 
+=== NOMBRE DE MOTS (OBLIGATOIRE — NE JAMAIS RECOMPTER) ===
+
+Le nombre de mots réel de chaque tâche est fourni dans le prompt utilisateur (compté par la plateforme au moment de la rédaction dans l'espace candidat, valeur exacte et définitive). Utilise TOUJOURS cette valeur telle quelle dans "comprehension_du_sujet" et "analyse_longueur" — il est STRICTEMENT INTERDIT de recompter toi-même le nombre de mots du texte soumis ou d'indiquer une valeur différente de celle fournie.
+
 === EXIGENCE DE PRÉCISION (OBLIGATOIRE) ===
 
 Pour "comprehension_du_sujet", "respect_de_methodologie" et "niveau_linguistique", il est INTERDIT de formuler une observation générique sans preuve ("manque un peu de précision", "quelques maladresses" sans exemple). Chaque jugement, positif ou négatif, doit citer un mot/une expression/un passage exact de la copie du candidat entre guillemets et expliquer précisément pourquoi. Chaque champ est limité à 2-3 phrases maximum.
@@ -54,7 +58,7 @@ CHAMPS JSON task_1_evaluation :
 - "score" : "X.X/4"
 - "consigne" : consigne exacte de la tâche
 - "votre_texte" : texte soumis mot pour mot
-- "comprehension_du_sujet" : nombre de mots, statut volume (Insuffisant/Conforme/Trop long), analyse de la compréhension
+- "comprehension_du_sujet" : reprends le nombre de mots réel fourni dans le prompt utilisateur (ne recompte jamais), statut volume (Insuffisant/Conforme/Trop long), analyse de la compréhension
 - "respect_de_methodologie" : analyse des 3 blocs + aération + impact volume. Conclus avec X/1,5
 - "niveau_linguistique" : grammaire, orthographe, conjugaisons, lexique. Conclus avec cohérence X/1 et linguistique X/1,5
 - "appreciation_generale" : voir structure du rapport d'examinateur ci-dessus
@@ -93,7 +97,7 @@ CHAMPS JSON task_2_evaluation :
 - "score" : "X.X/7"
 - "consigne" : consigne exacte
 - "votre_texte" : texte soumis mot pour mot
-- "comprehension_du_sujet" : nombre de mots, statut volume (Trop court/Conforme/Trop long), analyse compréhension
+- "comprehension_du_sujet" : reprends le nombre de mots réel fourni dans le prompt utilisateur (ne recompte jamais), statut volume (Trop court/Conforme/Trop long), analyse compréhension
 - "respect_de_methodologie" : analyse des 5 points + aération + impact volume. Conclus avec X/2,5
 - "niveau_linguistique" : morphosyntaxe, temps verbaux, vocabulaire. Conclus avec cohérence X/2 et linguistique X/2,5
 - "appreciation_generale" : voir structure du rapport d'examinateur ci-dessus
@@ -131,7 +135,7 @@ CHAMPS JSON task_3_evaluation :
 - "score" : "X.XX/9"
 - "consigne" : consigne exacte
 - "votre_texte" : texte soumis mot pour mot
-- "comprehension_du_sujet" : nombre de mots, statut volume (Conforme ≤180/Trop long >180), neutralité de la synthèse
+- "comprehension_du_sujet" : reprends le nombre de mots réel fourni dans le prompt utilisateur (ne recompte jamais), statut volume (Conforme ≤180/Trop long >180), neutralité de la synthèse
 - "respect_de_methodologie" : analyse des 4 blocs + aération + impact volume. Conclus avec X/3
 - "niveau_linguistique" : morphosyntaxe, lexique B2/C1, orthographe, conjugaisons. Conclus avec argumentation X/3 et linguistique X/3
 - "appreciation_generale" : voir structure du rapport d'examinateur ci-dessus, valorise le plan du candidat

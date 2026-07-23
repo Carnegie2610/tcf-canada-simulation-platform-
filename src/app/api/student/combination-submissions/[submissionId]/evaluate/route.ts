@@ -25,6 +25,12 @@ function draftForTask(sub: CombinationSubmission, taskNumber: TaskNumber): strin
   return sub.draft_task_3;
 }
 
+function wordCountForTask(sub: CombinationSubmission, taskNumber: TaskNumber): number {
+  if (taskNumber === 1) return sub.word_count_1;
+  if (taskNumber === 2) return sub.word_count_2;
+  return sub.word_count_3;
+}
+
 function buildTaskUserPrompt(
   taskNumber: TaskNumber,
   combination: Combination,
@@ -33,12 +39,16 @@ function buildTaskUserPrompt(
   const meta = TASK_META[taskNumber];
   const task = combination.tasks[meta.key];
   const draft = draftForTask(sub, taskNumber);
+  const wordCount = wordCountForTask(sub, taskNumber);
 
   return `Évalue UNIQUEMENT la Tâche ${taskNumber} — ${meta.label} du candidat, pour l'examen : ${combination.title} (${combination.exam_type} Canada).
 
 - Contraintes : ${task.minWords} mots minimum / ${task.maxWords} mots maximum
+- Nombre de mots réel (compté par la plateforme au moment de la rédaction, valeur exacte à utiliser telle quelle) : ${wordCount} mots
 - Consigne : "${task.question}"
 - Texte soumis : "${draft}"
+
+IMPORTANT : le nombre de mots ci-dessus est la valeur officielle et définitive. Ne recompte JAMAIS toi-même le nombre de mots du texte soumis et n'indique jamais un nombre différent dans "comprehension_du_sujet" ou "analyse_longueur" — reprends exactement ${wordCount} mots.
 
 IMPORTANT : ignore les 2 autres tâches et les métriques globales (global_metrics) décrites dans le prompt système — elles ne s'appliquent pas à cet appel. Retourne uniquement du JSON minifié valide de la forme {"${meta.jsonKey}": { ... }}, avec exactement les champs définis dans OUTPUT SCHEMA pour cette clé. Aucun texte, aucune autre clé.`;
 }

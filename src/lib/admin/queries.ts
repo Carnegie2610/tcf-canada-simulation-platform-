@@ -17,8 +17,12 @@ import type {
   CreateUserInput,
   DashboardFilter,
   DashboardStats,
+  ErrorType,
+  Evaluation,
   Exam,
   ExamSearchParams,
+  ExamType,
+  FeedbackCorrection,
   StudentAuditData,
   SubmissionsByDay,
   SubmissionWithEvaluation,
@@ -27,7 +31,116 @@ import type {
   UpdateUserInput,
   UserSearchParams,
 } from "./types";
+import type { CombinationTaskEval } from "@/lib/schemas";
 import type { ActivityDay } from "@/components/organisms/student/ConsistencyTracker";
+
+const ERROR_TYPES: ReadonlySet<string> = new Set([
+  "Grammaire",
+  "Orthographe",
+  "Syntaxe",
+  "Vocabulaire",
+  "Ponctuation",
+]);
+
+function toErrorType(type: string): ErrorType {
+  return (ERROR_TYPES.has(type) ? type : "Orthographe") as ErrorType;
+}
+
+const CEFR_LEVELS: ReadonlySet<string> = new Set(["A1", "A2", "B1", "B2", "C1", "C2"]);
+
+// Combination evaluations use an extended CECRL scale with "+" tiers (e.g. "C1+", "B2+")
+// that the legacy audit UI doesn't know about — fold them onto their base level.
+function toBaseCefrLevel(level: string): CefrLevel {
+  const base = level.replace("+", "");
+  return (CEFR_LEVELS.has(base) ? base : "B1") as CefrLevel;
+}
+
+function parseTaskEvalScore(scoreStr: string): number {
+  const n = parseFloat(scoreStr.replace(/\/\d+/, "").trim());
+  return isNaN(n) ? 0 : n;
+}
+
+// Combination task scores are marked out of different maxima (4 / 7 / 9) while the audit
+// UI's ScorePill always renders grammar/lexical/coherence out of 20 — rescale onto /20.
+function taskScoreOn20(scoreStr: string, maxScore: number): number {
+  const raw = parseTaskEvalScore(scoreStr);
+  return Math.round((raw / maxScore) * 20 * 10) / 10;
+}
+
+function mapCombinationSubmission(row: Record<string, unknown>): SubmissionWithEvaluation {
+  const rawCombination = row.combination as
+    | { id: string; title: string; exam_type: ExamType }
+    | { id: string; title: string; exam_type: ExamType }[]
+    | null;
+  const combination = Array.isArray(rawCombination) ? rawCombination[0] : rawCombination;
+
+  const rawEvaluation = row.evaluation as Record<string, unknown> | Record<string, unknown>[] | null;
+  const evalRow = Array.isArray(rawEvaluation) ? (rawEvaluation[0] ?? null) : rawEvaluation;
+
+  const draftParts = [
+    { label: "Tâche 1", text: (row.draft_task_1 as string) ?? "" },
+    { label: "Tâche 2", text: (row.draft_task_2 as string) ?? "" },
+    { label: "Tâche 3", text: (row.draft_task_3 as string) ?? "" },
+  ];
+  const user_draft = draftParts
+    .filter((p) => p.text.trim().length > 0)
+    .map((p) => `— ${p.label} —\n${p.text}`)
+    .join("\n\n");
+
+  const word_count =
+    ((row.word_count_1 as number) ?? 0) +
+    ((row.word_count_2 as number) ?? 0) +
+    ((row.word_count_3 as number) ?? 0);
+
+  let evaluation: Evaluation | null = null;
+  if (evalRow) {
+    const task1 = evalRow.task_1_evaluation as CombinationTaskEval;
+    const task2 = evalRow.task_2_evaluation as CombinationTaskEval;
+    const task3 = evalRow.task_3_evaluation as CombinationTaskEval;
+
+    const corrections: FeedbackCorrection[] = [task1, task2, task3].flatMap((task) =>
+      (task.correction_orthographique ?? []).map((c) => ({
+        originalSegment: c.erreur,
+        correctedSegment: c.correction,
+        errorType: toErrorType(c.type),
+        explanationFr: c.explication,
+      }))
+    );
+
+    evaluation = {
+      id: evalRow.id as string,
+      submission_id: evalRow.submission_id as string,
+      cefr_level: toBaseCefrLevel(evalRow.cefr_level as string),
+      global_score: (evalRow.global_score as number) * 5, // 0-20 combination scale -> 0-100
+      grammar_score: taskScoreOn20(task1.score, 4),
+      lexical_score: taskScoreOn20(task2.score, 7),
+      coherence_score: taskScoreOn20(task3.score, 9),
+      json_feedback: { corrections },
+      model_answer_c2: [task1, task2, task3]
+        .map((t, i) => `— Tâche ${i + 1} —\n${t.version_corrigee_et_amelioree}`)
+        .join("\n\n"),
+      created_at: evalRow.created_at as string,
+    };
+  }
+
+  return {
+    id: row.id as string,
+    user_id: row.user_id as string,
+    exam_id: combination?.id ?? (row.combination_id as string),
+    user_draft,
+    word_count,
+    is_completed: row.is_completed as boolean,
+    completed_at: row.completed_at as string | null,
+    created_at: row.created_at as string,
+    exam: {
+      id: combination?.id ?? (row.combination_id as string),
+      title: combination?.title ?? "Combinaison inconnue",
+      section: "COMBINE",
+      exam_type: combination?.exam_type ?? "TCF",
+    },
+    evaluation,
+  };
+}
 
 export async function getStudentAuditData(
   supabase: SupabaseClient,
@@ -74,6 +187,30 @@ export async function getStudentAuditData(
     })
   );
 
+  const { data: rawCombinationSubmissions } = await supabase
+    .from("combination_submissions")
+    .select(
+      `
+      id, user_id, combination_id, draft_task_1, draft_task_2, draft_task_3,
+      word_count_1, word_count_2, word_count_3, is_completed, completed_at, created_at,
+      combination:combinations ( id, title, exam_type ),
+      evaluation:combination_evaluations (
+        id, submission_id, global_score, cefr_level, appreciation,
+        task_1_evaluation, task_2_evaluation, task_3_evaluation, created_at
+      )
+    `
+    )
+    .eq("user_id", studentId)
+    .order("created_at", { ascending: false });
+
+  const combinationSubmissions: SubmissionWithEvaluation[] = (
+    rawCombinationSubmissions ?? []
+  ).map(mapCombinationSubmission);
+
+  const allSubmissions = [...submissions, ...combinationSubmissions].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
   let cohortScores: number[] = [];
   if (profile.cohort_tag) {
     const { data: cohortData } = await supabase
@@ -102,9 +239,9 @@ export async function getStudentAuditData(
     }
   }
 
-  const analytics = computeStudentAnalytics(submissions, cohortScores);
+  const analytics = computeStudentAnalytics(allSubmissions, cohortScores);
 
-  return { profile: profile as AdminProfile, submissions, analytics };
+  return { profile: profile as AdminProfile, submissions: allSubmissions, analytics };
 }
 
 export async function listUsers(

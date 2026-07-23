@@ -49,7 +49,7 @@ export interface Submission {
   is_completed: boolean;
   completed_at: string | null;
   created_at: string;
-  exam: Pick<Exam, "id" | "title" | "section" | "exam_type">;
+  exam: Pick<Exam, "id" | "title" | "exam_type"> & { section: ExamSection | "COMBINE" };
 }
 
 export interface FeedbackCorrection {
