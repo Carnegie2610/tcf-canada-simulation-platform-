@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { CombinationTaskEvalSchema, type CombinationTaskEval } from "@/lib/schemas";
+import {
+  CombinationTaskEvalSchema,
+  buildCombinationTaskJsonSchema,
+  type CombinationTaskEval,
+} from "@/lib/schemas";
 import { callAI, type AiResult } from "@/lib/ai/providers";
 import { COMBINATION_EVALUATION_DEFAULT } from "@/lib/ai/prompts";
 import type { Combination, CombinationSubmission } from "@/lib/admin/types";
@@ -66,7 +70,8 @@ async function evaluateTask(
   sub: CombinationSubmission
 ): Promise<TaskEvalResult> {
   const userPrompt = buildTaskUserPrompt(taskNumber, combination, sub);
-  const aiResult = await callAI(systemPrompt, userPrompt);
+  const jsonKey = TASK_META[taskNumber].jsonKey;
+  const aiResult = await callAI(systemPrompt, userPrompt, buildCombinationTaskJsonSchema(jsonKey));
 
   const jsonMatch = aiResult.text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
@@ -81,7 +86,6 @@ async function evaluateTask(
   }
 
   const parsedObj = parsed as Record<string, unknown>;
-  const jsonKey = TASK_META[taskNumber].jsonKey;
   // Accept either {"task_N_evaluation": {...}} (requested shape) or a flat object (model variance).
   const inner = jsonKey in parsedObj ? parsedObj[jsonKey] : parsed;
 

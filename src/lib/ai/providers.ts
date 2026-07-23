@@ -17,6 +17,11 @@ type AnthropicResponse = {
   content: Array<{ type: string; text: string }>;
 };
 
+export interface StructuredOutput {
+  name: string;
+  schema: Record<string, unknown>;
+}
+
 async function callGemini(systemPrompt: string, userPrompt: string, apiKey: string): Promise<AiResult> {
   const start = Date.now();
   const res = await fetch(
@@ -68,8 +73,27 @@ async function callGroq(systemPrompt: string, userPrompt: string, apiKey: string
   return { text, provider: "groq", model, durationMs: Date.now() - start };
 }
 
-async function callOpenAI(systemPrompt: string, userPrompt: string, apiKey: string): Promise<AiResult> {
+async function callOpenAI(
+  systemPrompt: string,
+  userPrompt: string,
+  apiKey: string,
+  structuredOutput?: StructuredOutput
+): Promise<AiResult> {
   const start = Date.now();
+  // Structured Outputs strict mode (when a schema is supplied) mechanically guarantees every
+  // field declared in the schema is present in the response — plain json_object mode only
+  // guarantees syntactically valid JSON, which let the model silently omit fields under load.
+  const response_format = structuredOutput
+    ? {
+        type: "json_schema" as const,
+        json_schema: {
+          name: structuredOutput.name,
+          strict: true,
+          schema: structuredOutput.schema,
+        },
+      }
+    : { type: "json_object" as const };
+
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
@@ -79,11 +103,15 @@ async function callOpenAI(systemPrompt: string, userPrompt: string, apiKey: stri
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      response_format: { type: "json_object" },
+      response_format,
       max_tokens: 16384,
     }),
   });
-  if (!res.ok) throw new Error("openai_request_failed");
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => "");
+    console.error(`[callOpenAI] HTTP ${res.status}:`, errBody);
+    throw new Error(`openai_request_failed:${res.status}`);
+  }
   const data = (await res.json()) as OpenAiCompatibleResponse;
   const text = data.choices?.[0]?.message?.content;
   if (!text) throw new Error("openai_empty_response");
@@ -113,7 +141,11 @@ async function callAnthropic(systemPrompt: string, userPrompt: string, apiKey: s
   return { text, provider: "anthropic", model: "claude-sonnet-4-6", durationMs: Date.now() - start };
 }
 
-export async function callAI(systemPrompt: string, userPrompt: string): Promise<AiResult> {
+export async function callAI(
+  systemPrompt: string,
+  userPrompt: string,
+  structuredOutput?: StructuredOutput
+): Promise<AiResult> {
   const active = process.env.ACTIVE_AI_PROVIDER;
   const geminiKey = process.env.GEMINI_API_KEY;
   const groqKey = process.env.GROQ_API_KEY;
@@ -126,13 +158,13 @@ export async function callAI(systemPrompt: string, userPrompt: string): Promise<
   // Preferred provider goes first
   if (active === "gemini" && geminiKey)            ordered.push(() => callGemini(systemPrompt, userPrompt, geminiKey));
   else if (active === "groq" && groqKey)           ordered.push(() => callGroq(systemPrompt, userPrompt, groqKey));
-  else if (active === "openai" && openaiKey)       ordered.push(() => callOpenAI(systemPrompt, userPrompt, openaiKey));
+  else if (active === "openai" && openaiKey)       ordered.push(() => callOpenAI(systemPrompt, userPrompt, openaiKey, structuredOutput));
   else if (active === "anthropic" && anthropicKey) ordered.push(() => callAnthropic(systemPrompt, userPrompt, anthropicKey));
 
   // Remaining providers queued as automatic fallbacks (skipped if already queued as active)
   if (active !== "gemini" && geminiKey)            ordered.push(() => callGemini(systemPrompt, userPrompt, geminiKey));
   if (active !== "groq" && groqKey)                ordered.push(() => callGroq(systemPrompt, userPrompt, groqKey));
-  if (active !== "openai" && openaiKey)            ordered.push(() => callOpenAI(systemPrompt, userPrompt, openaiKey));
+  if (active !== "openai" && openaiKey)            ordered.push(() => callOpenAI(systemPrompt, userPrompt, openaiKey, structuredOutput));
   if (active !== "anthropic" && anthropicKey)      ordered.push(() => callAnthropic(systemPrompt, userPrompt, anthropicKey));
 
   if (ordered.length === 0) throw new Error("no_ai_provider_configured");

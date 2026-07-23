@@ -88,21 +88,161 @@ export const CombinationTaskEvalSchema = z.object({
   niveau_linguistique: z.string(),
   appreciation_generale: z.string(),
   correction_orthographique: z.array(CombinationOrthoItemSchema),
-  pertinence_verdict: z.string().optional().default(""),
-  points_forts: z.array(z.string()).optional().default([]),
-  priorites_a_travailler: z.array(z.string()).optional().default([]),
-  erreurs_recurrentes: z.array(CombinationErreurRecurrenteSchema).optional().default([]),
-  analyse_longueur: z.string().optional().default(""),
-  registre_et_tonalite: z.string().optional().default(""),
-  enrichissement_lexical: z.array(CombinationEnrichissementLexicalItemSchema).optional().default([]),
-  connecteurs_logiques: CombinationConnecteursLogiquesSchema.optional().default({
-    utilises: [],
-    manquants: [],
-  }),
-  exercice_recommande: z.string().optional().default(""),
-  comparaison_niveau_vise: z.string().optional().default(""),
+  // Nullable (not optional) + transform-to-default: OpenAI structured-outputs strict mode
+  // requires every key to be present in "required", so the model must emit `null` rather
+  // than omit the key. Plain z.string()/z.array().optional() keys are indistinguishable
+  // from "may be omitted" in that mode, which is how version_corrigee_et_amelioree used to
+  // go missing. See buildCombinationTaskJsonSchema below, which mirrors this shape.
+  pertinence_verdict: z.string().nullable().transform((v) => v ?? ""),
+  points_forts: z.array(z.string()).nullable().transform((v) => v ?? []),
+  priorites_a_travailler: z.array(z.string()).nullable().transform((v) => v ?? []),
+  erreurs_recurrentes: z
+    .array(CombinationErreurRecurrenteSchema)
+    .nullable()
+    .transform((v) => v ?? []),
+  analyse_longueur: z.string().nullable().transform((v) => v ?? ""),
+  registre_et_tonalite: z.string().nullable().transform((v) => v ?? ""),
+  enrichissement_lexical: z
+    .array(CombinationEnrichissementLexicalItemSchema)
+    .nullable()
+    .transform((v) => v ?? []),
+  connecteurs_logiques: CombinationConnecteursLogiquesSchema.nullable().transform(
+    (v) => v ?? { utilises: [], manquants: [] }
+  ),
+  exercice_recommande: z.string().nullable().transform((v) => v ?? ""),
+  comparaison_niveau_vise: z.string().nullable().transform((v) => v ?? ""),
   version_corrigee_et_amelioree: z.string(),
 });
+
+/**
+ * Field keys of CombinationTaskEvalSchema, kept next to buildCombinationTaskJsonSchema so a
+ * unit test can assert the hand-authored JSON Schema below never drifts from the Zod schema.
+ */
+export const COMBINATION_TASK_EVAL_KEYS = [
+  "score",
+  "consigne",
+  "votre_texte",
+  "comprehension_du_sujet",
+  "respect_de_methodologie",
+  "niveau_linguistique",
+  "appreciation_generale",
+  "correction_orthographique",
+  "pertinence_verdict",
+  "points_forts",
+  "priorites_a_travailler",
+  "erreurs_recurrentes",
+  "analyse_longueur",
+  "registre_et_tonalite",
+  "enrichissement_lexical",
+  "connecteurs_logiques",
+  "exercice_recommande",
+  "comparaison_niveau_vise",
+  "version_corrigee_et_amelioree",
+] as const;
+
+const NULLABLE_STRING = { type: ["string", "null"] } as const;
+const NULLABLE_STRING_ARRAY = { type: ["array", "null"], items: { type: "string" } } as const;
+
+/**
+ * JSON Schema for CombinationTaskEvalSchema, for OpenAI's Structured Outputs strict mode
+ * (response_format: { type: "json_schema", json_schema: { strict: true, ... } }).
+ * Strict mode requires every property to be listed in `required` and every object to set
+ * `additionalProperties: false` — optionality is expressed via nullable types instead of
+ * omitting keys, which is what guarantees version_corrigee_et_amelioree (and every other
+ * field) is always present in the model's response.
+ */
+function combinationTaskEvalJsonSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: COMBINATION_TASK_EVAL_KEYS,
+    properties: {
+      score: { type: "string" },
+      consigne: { type: "string" },
+      votre_texte: { type: "string" },
+      comprehension_du_sujet: { type: "string" },
+      respect_de_methodologie: { type: "string" },
+      niveau_linguistique: { type: "string" },
+      appreciation_generale: { type: "string" },
+      correction_orthographique: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["erreur", "correction", "type", "explication"],
+          properties: {
+            erreur: { type: "string" },
+            correction: { type: "string" },
+            type: { type: "string" },
+            explication: { type: "string" },
+          },
+        },
+      },
+      pertinence_verdict: NULLABLE_STRING,
+      points_forts: NULLABLE_STRING_ARRAY,
+      priorites_a_travailler: NULLABLE_STRING_ARRAY,
+      erreurs_recurrentes: {
+        type: ["array", "null"],
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["pattern", "occurrences", "exemples"],
+          properties: {
+            pattern: { type: "string" },
+            occurrences: { type: "number" },
+            exemples: { type: "array", items: { type: "string" } },
+          },
+        },
+      },
+      analyse_longueur: NULLABLE_STRING,
+      registre_et_tonalite: NULLABLE_STRING,
+      enrichissement_lexical: {
+        type: ["array", "null"],
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["mot_utilise", "suggestion", "explication"],
+          properties: {
+            mot_utilise: { type: "string" },
+            suggestion: { type: "string" },
+            explication: { type: "string" },
+          },
+        },
+      },
+      connecteurs_logiques: {
+        type: ["object", "null"],
+        additionalProperties: false,
+        required: ["utilises", "manquants"],
+        properties: {
+          utilises: { type: "array", items: { type: "string" } },
+          manquants: { type: "array", items: { type: "string" } },
+        },
+      },
+      exercice_recommande: NULLABLE_STRING,
+      comparaison_niveau_vise: NULLABLE_STRING,
+      version_corrigee_et_amelioree: { type: "string" },
+    },
+  } as const;
+}
+
+/**
+ * Wraps CombinationTaskEvalSchema's JSON Schema under `{"<jsonKey>": {...}}`, matching the
+ * `{"task_N_evaluation": {...}}` shape the evaluate route's prompt asks the model for. Pass
+ * this to callAI's `structuredOutput` option to make OpenAI's strict mode guarantee it.
+ */
+export function buildCombinationTaskJsonSchema(jsonKey: string) {
+  return {
+    name: "task_evaluation",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      required: [jsonKey],
+      properties: {
+        [jsonKey]: combinationTaskEvalJsonSchema(),
+      },
+    },
+  };
+}
 
 export const CombinationEvaluationSchema = z.object({
   global_metrics: z.object({

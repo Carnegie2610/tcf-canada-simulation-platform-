@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaderboard Sidepanel — Dashboard Preview</title>
+<style>
+  :root {
+    --ink: #1b2130;
+    --ink-soft: #565f75;
+    --paper: #f7f8fa;
+    --surface: #ffffff;
+    --line: #e2e5eb;
+    --line-soft: #edeff3;
+    --accent: #3454d1;
+    --accent-soft: #e8ebfc;
+    --accent-ink: #24399a;
+    --bronze: #a97142;
+    --silver: #8b93a3;
+    --gold: #b8860b;
+    --good: #1f8a5f;
+    --good-soft: #e4f5ee;
+    --bad: #c14343;
+    --bad-soft: #fbe9e9;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(27, 33, 48, 0.04), 0 8px 24px -12px rgba(27, 33, 48, 0.12);
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #eef0f5;
+    --ink-soft: #a7aec2;
+    --paper: #14161d;
+    --surface: #1b1e28;
+    --line: #2b2f3c;
+    --line-soft: #262a35;
+    --accent: #7b93f5;
+    --accent-soft: #232a4a;
+    --accent-ink: #c2cdfb;
+    --bronze: #c98b58;
+    --silver: #a3abbe;
+    --gold: #d6a531;
+    --good: #4bbf8f;
+    --good-soft: #163329;
+    --bad: #e26666;
+    --bad-soft: #3a2020;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #eef0f5;
+      --ink-soft: #a7aec2;
+      --paper: #14161d;
+      --surface: #1b1e28;
+      --line: #2b2f3c;
+      --line-soft: #262a35;
+      --accent: #7b93f5;
+      --accent-soft: #232a4a;
+      --accent-ink: #c2cdfb;
+      --bronze: #c98b58;
+      --silver: #a3abbe;
+      --gold: #d6a531;
+      --good: #4bbf8f;
+      --good-soft: #163329;
+      --bad: #e26666;
+      --bad-soft: #3a2020;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 40px 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .intro {
+    max-width: 1180px;
+    margin: 0 auto 28px;
+  }
+  .intro .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 6px;
+  }
+  .intro h1 {
+    font-size: 22px;
+    margin: 0 0 6px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .intro p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 14px;
+    max-width: 60ch;
+    line-height: 1.5;
+  }
+
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Left: simulated dashboard main area (context only) ---------- */
+  .main-mock {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    min-height: 560px;
+  }
+  .main-mock h2 {
+    font-size: 15px;
+    margin: 0 0 4px;
+    font-weight: 700;
+  }
+  .main-mock .sub {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+  }
+  .mock-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .mock-card {
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 14px;
+    background: var(--paper);
+  }
+  .mock-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .mock-card .value {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .mock-placeholder-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mock-placeholder-lines .row {
+    height: 46px;
+    border-radius: 8px;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    opacity: 0.6;
+  }
+
+  /* ---------- Right: the actual leaderboard panel ---------- */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-head {
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .panel-head .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .panel-head h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .panel-head h3 svg { flex: none; }
+
+  .info-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: none;
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+  }
+
+  .segmented {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    padding: 7px 0;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .segmented button.active {
+    background: var(--surface);
+    color: var(--accent-ink);
+    box-shadow: 0 1px 2px rgba(27, 33, 48, 0.08);
+  }
+
+  .period-caption {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin: 10px 2px 0;
+    display: flex;
+    justify-content: space-between;
+  }
+  .period-caption .live-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .period-caption .live-dot::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--good);
+  }
+
+  /* Your rank pinned card */
+  .your-rank {
+    margin: 14px 18px 0;
+    background: linear-gradient(180deg, var(--accent-soft), transparent 140%);
+    border: 1px solid var(--accent);
+    border-radius: 9px;
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+  }
+  .your-rank .rank-num {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent-ink);
+    font-variant-numeric: tabular-nums;
+    min-width: 28px;
+  }
+  .your-rank .who {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .your-rank .who .name {
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .your-rank .who .meta {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  .your-rank .score {
+    text-align: right;
+  }
+  .your-rank .score .pts {
+    font-size: 16px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .your-rank .score .delta {
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    justify-content: flex-end;
+  }
+  .delta.up { color: var(--good); }
+  .delta.down { color: var(--bad); }
+  .delta.flat { color: var(--ink-soft); }
+
+  /* List */
+  .list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0 10px 10px;
+    overflow-y: auto;
+    max-height: 486px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 30px 30px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 8px;
+    border-radius: 8px;
+  }
+  .row + .row { margin-top: 1px; }
+  .row.me {
+    background: var(--accent-soft);
+  }
+  .row:hover:not(.me) {
+    background: var(--line-soft);
+  }
+
+  .rank-badge {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+  .rank-badge.top1 { color: var(--gold); font-size: 15px; }
+  .rank-badge.top2 { color: var(--silver); font-size: 14px; }
+  .rank-badge.top3 { color: var(--bronze); font-size: 14px; }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .who-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .who-cell .name {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .who-cell .streak {
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .score-cell {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+  }
+  .score-cell .pts {
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .score-cell .delta {
+    font-size: 10.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 1px;
+  }
+
+  .panel-foot {
+    border-top: 1px solid var(--line-soft);
+    padding: 12px 18px;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .panel-foot b { color: var(--ink); font-weight: 600; }
+
+  .annotations {
+    max-width: 1180px;
+    margin: 28px auto 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 860px) {
+    .annotations { grid-template-columns: 1fr; }
+  }
+  .note {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .note .k {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 5px;
+  }
+  .note p {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <p class="eyebrow">Dashboard component preview</p>
+  <h1>Performance Leaderboard — sidepanel concept</h1>
+  <p>How a ranking panel would sit alongside a student's simulation dashboard. Ranking metric shown here is a points system (practice volume + score quality), not raw average score — see notes below.</p>
+</div>
+
+<div class="shell">
+  <!-- Simulated dashboard main content, for context only -->
+  <div class="main-mock">
+    <h2>My Simulations</h2>
+    <p class="sub">Continue where you left off, or start a new practice session.</p>
+    <div class="mock-grid">
+      <div class="mock-card">
+        <div class="label">Expression Écrite</div>
+        <div class="value">14 / 20</div>
+      </div>
+      <div class="mock-card">
+        <div class="label">Compréhension Orale</div>
+        <div class="value">318 pts</div>
+      </div>
+      <div class="mock-card">
+        <div class="label">Streak</div>
+        <div class="value">6 days</div>
+      </div>
+    </div>
+    <div class="mock-placeholder-lines">
+      <div class="row"></div>
+      <div class="row"></div>
+      <div class="row"></div>
+    </div>
+  </div>
+
+  <!-- Leaderboard sidepanel -->
+  <aside class="panel">
+    <div class="panel-head">
+      <div class="title-row">
+        <h3>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M8 21h8M12 17v4M17 3H7v6a5 5 0 0 0 10 0V3Z"/><path d="M17 5h3a2 2 0 0 1 2 2 4 4 0 0 1-4 4M7 5H4a2 2 0 0 0-2 2 4 4 0 0 0 4 4"/></svg>
+          Leaderboard
+        </h3>
+        <button class="info-btn" title="How ranking is calculated">i</button>
+      </div>
+      <div class="segmented">
+        <button>Daily</button>
+        <button class="active">Weekly</button>
+        <button>Monthly</button>
+      </div>
+      <div class="period-caption">
+        <span>Jul 7 – Jul 13</span>
+        <span class="live-dot">updates hourly</span>
+      </div>
+    </div>
+
+    <div class="your-rank">
+      <div class="rank-num">12</div>
+      <div class="who">
+        <div class="name">You — Amina K.</div>
+        <div class="meta">4 simulations this week</div>
+      </div>
+      <div class="score">
+        <div class="pts">742 pts</div>
+        <div class="delta up">▲ 3 vs last week</div>
+      </div>
+    </div>
+
+    <ul class="list">
+      <li class="row">
+        <span class="rank-badge top1">1</span>
+        <span class="avatar" style="background:#b8860b">SL</span>
+        <span class="who-cell">
+          <span class="name">Sofia L.</span>
+          <span class="streak">🔥 12-day streak</span>
+        </span>
+        <span class="score-cell">
+          <span class="pts">1,340</span>
+          <span class="delta up" style="color:var(--good)">▲ 0</span>
+        </span>
+      </li>
+      <li class="row">
+        <span class="rank-badge top2">2</span>
+        <span class="avatar" style="background:#8b93a3">DM</span>
+        <span class="who-cell">
+          <span class="name">David M.</span>
+          <span class="streak">🔥 9-day streak</span>
+        </span>
+        <span class="score-cell">
+          <span class="pts">1,265</span>
+          <span class="delta up" style="color:var(--good)">▲ 1</span>
+        </span>
+      </li>
+      <li class="row">
+        <span class="rank-badge top3">3</span>
+        <span class="avatar" style="background:#a97142">RN</span>
+        <span class="who-cell">
+          <span class="name">Ravi N.</span>
+          <span class="streak">7 simulations</span>
+        </span>
+        <span class="score-cell">
+          <span class="pts">1,190</span>
+          <span class="delta down" style="color:var(--bad)">▼ 1</span>
+        </span>
+      </li>
+      <li class="row">
+        <span class="rank-badge">4</span>
+        <span class="avatar" style="background:#3454d1">CB</span>
+        <span class="who-cell">
+          <span class="name">Chloé B.</span>
+          <span class="streak">5 simulations</span>
+        </span>
+        <span class="score-cell">
+          <span class="pts">1,088</span>
+          <span class="delta flat" style="color:var(--ink-soft)">— 0</span>
+        </span>
+      </li>
+      <li class="row">
+        <span class="rank-badge">5</span>
+        <span class="avatar" style="background:#6a5acd">TP</span>
+        <span class="who-cell">
+          <span class="name">Thanh P.</span>
+          <span class="streak">6 simulations</span>
+        </span>
+        <span class="score-cell">
+          <span class="pts">1,021</span>
+          <span class="delta up" style="color:var(--good)">▲ 2</span>
+        </span>
+      </li>
+      <li class="row">
+        <span class="rank-badge">6</span>
+        <span class="avatar" style="background:#c14343">ME</span>
+        <span class="who-cell">
+          <span class="name">Marie É.</span>
+          <span class="streak">4 simulations</span>
+        </span>
+        <span class="score-cell">
+          <span class="pts">964</span>
+          <span class="delta down" style="color:var(--bad)">▼ 2</span>
+        </span>
+      </li>
+      <li class="row">
+        <span class="rank-badge">7</span>
+        <span class="avatar" style="background:#1f8a5f">JK</span>
+        <span class="who-cell">
+          <span class="name">Jin K.</span>
+          <span class="streak">5 simulations</span>
+        </span>
+        <span class="score-cell">
+          <span class="pts">899</span>
+          <span class="delta flat" style="color:var(--ink-soft)">— 0</span>
+        </span>
+      </li>
+      <li class="row">
+        <span class="rank-badge">8</span>
+        <span class="avatar" style="background:#b8860b">OA</span>
+        <span class="who-cell">
+          <span class="name">Omar A.</span>
+          <span class="streak">3 simulations</span>
+        </span>
+        <span class="score-cell">
+          <span class="pts">861</span>
+          <span class="delta up" style="color:var(--good)">▲ 4</span>
+        </span>
+      </li>
+      <li class="row" style="opacity:0.45">
+        <span class="rank-badge">···</span>
+        <span></span>
+        <span class="who-cell">
+          <span class="name" style="font-weight:400;color:var(--ink-soft)">3 more students</span>
+        </span>
+        <span></span>
+      </li>
+      <li class="row me">
+        <span class="rank-badge">12</span>
+        <span class="avatar" style="background:var(--accent)">AK</span>
+        <span class="who-cell">
+          <span class="name">You — Amina K.</span>
+          <span class="streak">6-day streak</span>
+        </span>
+        <span class="score-cell">
+          <span class="pts">742</span>
+          <span class="delta up" style="color:var(--good)">▲ 3</span>
+        </span>
+      </li>
+      <li class="row">
+        <span class="rank-badge">13</span>
+        <span class="avatar" style="background:#565f75">LF</span>
+        <span class="who-cell">
+          <span class="name">Léa F.</span>
+          <span class="streak">3 simulations</span>
+        </span>
+        <span class="score-cell">
+          <span class="pts">701</span>
+          <span class="delta down" style="color:var(--bad)">▼ 1</span>
+        </span>
+      </li>
+    </ul>
+
+    <div class="panel-foot">
+      Points combine <b>simulations completed</b> and <b>score improvement</b> — not raw averages, so consistent practice counts as much as high scores.
+    </div>
+  </aside>
+</div>
+
+<div class="annotations">
+  <div class="note">
+    <div class="k">Why this shows rank ± 5, not top 10</div>
+    <p>Students outside the top ranks still see themselves in context, next to peers close to their level, rather than a wall of unreachable names. This is the detail most likely to affect whether lower-ranked students keep engaging.</p>
+  </div>
+  <div class="note">
+    <div class="k">Why streak/volume shows next to score</div>
+    <p>Surfacing "simulations completed" alongside points reinforces that the score rewards practice frequency, not just talent — so the mechanic is visible, not just the outcome.</p>
+  </div>
+  <div class="note">
+    <div class="k">What the segmented control does</div>
+    <p>Daily resets create urgency; weekly (shown, default) is the primary engagement driver; monthly rewards sustained study over exam-prep season.</p>
+  </div>
+</div>
+
+</body>
+</html>
