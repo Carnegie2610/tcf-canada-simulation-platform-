@@ -137,7 +137,7 @@ export function StudentTopHeader({
       {/* Left: Brand + Nav (desktop) */}
       <div className="flex items-center gap-6">
         <Link href="/dashboard" className="flex items-center gap-1.5 shrink-0">
-          <img src="/4c2-logo.svg" alt="Objectif 4C2 Academy Logo" className="h-8 w-8 object-contain" />
+          <img src="/favicon-rounded.svg" alt="Objectif 4C2 Academy Logo" className="h-10 w-10 object-contain" />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">

@@ -31,7 +31,7 @@ export function AdminShell({ children, currentUserName, currentUserRole }: Admin
       <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-[var(--slate-800)] bg-[var(--slate-900)]">
         {/* Brand */}
         <div className="flex items-center gap-2 border-b border-[var(--slate-800)] px-5 py-4">
-          <img src="/4c2-logo.svg" alt="Objectif 4C2 Academy Logo" className="h-8 w-8 object-contain" />
+          <img src="/favicon-rounded.svg" alt="Objectif 4C2 Academy Logo" className="h-10 w-10 object-contain" />
           <span className="text-xs font-medium text-[var(--slate-400)] uppercase tracking-widest">
             Admin
           </span>

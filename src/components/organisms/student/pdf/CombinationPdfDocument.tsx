@@ -72,8 +72,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   logoIconBox: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
   },
   logoImg: {
     width: "100%",
@@ -602,7 +602,7 @@ function CoverPage({
       <View style={styles.logoRow}>
         <View style={styles.logoLeft}>
           <View style={styles.logoIconBox}>
-            <Image src="/4c2-logo.svg" style={styles.logoImg} />
+            <Image src="/icon-rounded.png" style={styles.logoImg} />
           </View>
           <View style={styles.logoTextBlock}>
             <Text style={styles.logoMainText}>OBJECTIF</Text>
