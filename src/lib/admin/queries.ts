@@ -677,12 +677,12 @@ export async function getDashboardChartData(
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const { data: evalData } = await supabase
-    .from("evaluations")
+    .from("combination_evaluations")
     .select("cefr_level");
 
   const levelMap = new Map<string, number>();
   for (const row of evalData ?? []) {
-    const lvl = row.cefr_level as string;
+    const lvl = toBaseCefrLevel(row.cefr_level as string);
     levelMap.set(lvl, (levelMap.get(lvl) ?? 0) + 1);
   }
   const cefrOrder: CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
