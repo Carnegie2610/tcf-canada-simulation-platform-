@@ -104,4 +104,174 @@ group flex flex-col gap-4 rounded-2xl border border-[--slate-800] bg-[--slate-90
 - Hover each card and confirm the new glow/shadow effect displays smoothly without any leftover border flash.
 - Check the grid at `sm:` (2-column) and `lg:` (4-column) breakpoints to ensure the effect looks consistent across card sizes.
 
-## Item 5: _(to be added)_
+## Item 5: Add pricing cards for the 2000 and 3000 forfaits
+
+**Status:** Pending approval
+
+**Context:** The pricing section currently shows 3 hardcoded tiers (Découverte 5 000 FCFA, Standard 10 000 FCFA, Excellence 30 000 FCFA). Two additional plans — `PLAN_2000` ("Forfait Essentiel", 2 000 FCFA) and `PLAN_3000` ("Forfait Intermédiaire", 3 000 FCFA) — already exist in the backend config (`src/lib/plans.ts` `ADMIN_ONLY_PLAN_CONFIG`, lines 15-18) and are already allowed by the Supabase `assigned_plan` CHECK constraint and the `schemas-admin.ts` Zod enum, but are currently only used through the admin plan-assignment interface, not shown publicly.
+
+**Files involved:**
+- `src/components/organisms/PricingSection.tsx` (lines 3-56 — the hardcoded `tiers` array; lines 72-76 — the render map)
+- `src/components/molecules/PricingCard.tsx` (lines 5-16 for the `PricingCardProps` shape, lines 70-131 for card rendering — no changes needed, just reused)
+- `src/lib/plans.ts` (lines 15-18 — source of truth for price/quota/duration for these two plans, to keep numbers in sync with the backend)
+
+**Existing data to reuse (from `src/lib/plans.ts`):**
+| Plan | Label | Price | Quota | Duration |
+|---|---|---|---|---|
+| PLAN_2000 | Forfait Essentiel | 2 000 FCFA | 10 simulations | 30 jours |
+| PLAN_3000 | Forfait Intermédiaire | 3 000 FCFA | 20 simulations | 30 jours |
+
+**Proposed fix:**
+1. Add two new tier objects to the `tiers` array in `PricingSection.tsx`, matching the existing `PricingCardProps` shape (`name`, `price`, `currency`, `description`, `features`, `buttonLabel`, `duration`, and optionally `isHighlighted`/`isSecondary`/`badge`).
+2. Use price/quota/duration values sourced from `src/lib/plans.ts` `ADMIN_ONLY_PLAN_CONFIG` (2 000 FCFA / 10 simulations / 30 jours, and 3 000 FCFA / 20 simulations / 30 jours) so the public page stays consistent with the backend config.
+3. Write `features` copy consistent with the existing cards' tone (star-prefixed key features get bold/white styling per `PricingCard.tsx`).
+4. Decide ordering: likely insert "Forfait Essentiel" (2 000) before "Forfait Découverte" (5 000) as an entry-level option, and "Forfait Intermédiaire" (3 000) between Essentiel and Découverte — confirm final order/positions before implementing since it affects the visual hierarchy of the pricing grid (currently 3 columns, would become 5).
+5. Check the pricing grid's layout classes to ensure 5 cards still lay out cleanly (may need to adjust the grid's column breakpoints, e.g. from a 3-column grid to a responsive wrap that handles 5 cards without looking unbalanced).
+6. No new button/checkout logic needed — reuse the existing `handlePlanSelection` WhatsApp-prefill flow already used by the other 3 cards, just with the new plan name/price in the prefilled message.
+
+**Open question to confirm before implementing:** should these two plans keep the "admin-only" framing (i.e., DB constraint comment says "admin-only plans (creation interface only)"), or is the intent to now make them fully public/self-serve like the other 3? Since all cards route through a WhatsApp CTA rather than a real checkout, adding them publicly is low-risk and consistent with the existing pattern — but worth a quick confirmation since a prior migration deliberately kept them out of the public config.
+
+**Verification:**
+- Run `npm run dev`, scroll to the pricing section, confirm 5 cards render with correct price/quota/duration copy.
+- Click each new card's button and confirm the WhatsApp prefill message reflects the correct plan name and price.
+- Check responsive layout at mobile, tablet, and desktop widths with 5 cards instead of 3.
+
+## Item 6: Restructure hero section into two columns — text left, image right
+
+**Status:** Pending approval
+
+**Problem:** The hero section currently renders as a single centered text column with no image. The requested layout is a two-column hero: text content (label, heading, paragraph, CTA buttons) on the left, and the image `public/heroimage-1.png` on the right.
+
+**Files involved:**
+- `src/components/organisms/HeroSection.tsx` (entire file, lines 1-33 — currently a single `max-w-3xl text-center` centered column)
+- `public/heroimage-1.png` (already exists, confirmed present — 2.3MB PNG, should be optimized/served via `next/image` rather than a raw `<img>` for performance)
+
+**Current structure:**
+```tsx
+<section className="hero-glow relative w-full overflow-hidden px-4 py-28 sm:py-36">
+  <div className="relative z-10 mx-auto max-w-3xl text-center">
+    <SectionLabel>...</SectionLabel>
+    <h1>...</h1>
+    <p>...</p>
+    <div>...CTA buttons...</div>
+  </div>
+</section>
+```
+
+**Proposed fix:**
+1. Change the inner wrapper from a single centered `max-w-3xl` column to a two-column responsive grid/flex layout, e.g. `mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-2`.
+2. Left column: keep the existing `SectionLabel`, `h1`, `p`, and CTA button group, but left-align the text instead of center-align (remove `text-center`, adjust `mx-auto max-w-xl` on the paragraph since it no longer needs to be centered under a heading).
+3. Right column: render `heroimage-1.png` using Next.js `<Image>` (from `next/image`) for automatic optimization/responsive sizing, with appropriate `width`/`height` (or `fill` with a sized wrapper) and a descriptive `alt` attribute.
+4. On mobile (`< lg`), stack the columns — text first, image below (or confirm with stakeholder if image should be hidden on small screens to save space/load time).
+5. Keep the existing `.hero-glow` background effect; verify it doesn't visually clash with or get hidden behind the added image (may need to constrain the glow to the left/text side, or center it differently now that content isn't centered).
+6. Confirm image file size (2.3MB currently) — recommend compressing/converting to WebP for faster load, since `next/image` will optimize on serve but a smaller source is still better practice.
+
+**Verification:**
+- Run `npm run dev`, confirm the hero section shows text on the left and `heroimage-1.png` on the right at desktop widths (`lg:` and above).
+- Confirm the layout stacks cleanly on mobile without overflow or the image crowding out the CTA buttons.
+- Check Lighthouse/Network tab to confirm the image loads as an optimized `next/image` output, not the raw 2.3MB file.
+
+## Item 7: New "Pack Objectif4C2" section after the Hero Section
+
+**Status:** Pending approval
+
+**Context:** This is entirely new content — confirmed via codebase search that no existing component, page, or spec contains this text. A new organism component must be built from scratch and wired into the home page, positioned right after `HeroSection` and before `SkillGrid`.
+
+**Files involved:**
+- New file: `src/components/organisms/PackSection.tsx` (name TBD — proposed `PackSection.tsx` or `ReferenceCollectionSection.tsx`)
+- `src/app/page.tsx` (lines 9-11 — insert the new section between `<HeroSection />` and `<SkillGrid />`)
+- Reference pattern: `src/components/organisms/PricingSection.tsx` + `src/components/molecules/PricingCard.tsx` — closest existing analog (title + subtitle + card grid of feature-list cards), can inform the structure of a new `PackCard` molecule if needed, or a simpler 4-card grid similar to `SkillCard.tsx`/`SkillGrid.tsx`.
+
+**Content (as provided, with the rename applied):**
+
+- **Section title:** "La Collection de Référence pour le TCF Canada"
+- **Section subtitle:** "**Pack Objectif4C2** rassemble la collection la plus complète d'exercices TCF Canada, enrichie par une intelligence artificielle de pointe pour une préparation optimale."
+- **Card 1 — Pack Objectif4C2** *(renamed from "Pack Ayoub")*: "Exercices officiels des examens 2019-2026, soigneusement sélectionnés pour maximiser vos chances de réussite"
+- **Card 2 — Correction IA Avancée**: "Intelligence artificielle calibrée sur les critères officiels TCF pour une évaluation précise et instantanée"
+- **Card 3 — Simulation Réaliste**: "Entraînement avec des entretiens oraux reproduisant fidèlement les conditions d'examen officiel"
+- **Card 4 — Préparation Intensive**: "Programme complet adapté aux exigences de l'immigration canadienne avec suivi personnalisé"
+
+**Proposed fix:**
+1. Create a new organism component (e.g. `PackSection.tsx`) with a section title/subtitle block (similar structure to `SkillGrid.tsx`'s intro) followed by a 4-card grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`, consistent with `SkillGrid`'s layout).
+2. Every occurrence of "Pack Ayoub" in the provided content is replaced with "Pack Objectif4C2" per this request — including the subtitle sentence and the first card's title.
+3. Style cards consistently with the rest of the redesigned page — reuse the same card treatment established in Item 4 (soft shadow/glow instead of flat grey border) rather than introducing a third distinct card style.
+4. Insert `<PackSection />` in `src/app/page.tsx` between `<HeroSection />` and `<SkillGrid />`.
+5. Decide on icons/visuals per card (none were specified in the provided copy) — default to simple icon glyphs consistent with `SkillCard`'s `Icon` atom (emoji-based) unless a different treatment is requested.
+
+**Open question to confirm before implementing:** no icons or images were specified for the 4 cards — confirm whether to use simple emoji/icon glyphs (matching the existing `SkillCard` pattern) or plain text-only cards.
+
+**Verification:**
+- Run `npm run dev`, confirm the new section renders directly below the Hero Section and above the Compétences (skills) section.
+- Confirm "Pack Objectif4C2" appears correctly in both the subtitle sentence and the first card title, with no remaining "Ayoub" references.
+- Check responsive layout at mobile/tablet/desktop widths for the 4-card grid.
+
+## Item 8: New "Pack Objectif4C2 en Chiffres" stats section (after Item 7's section)
+
+**Status:** Pending approval
+
+**Context:** Another new section, to be placed directly after the "Pack Objectif4C2" section from Item 7. Same rename rule applies: every "Pack Ayoub" reference in the provided copy becomes "Pack Objectif4C2". This content does not exist anywhere in the codebase either (same pattern as Item 7 — new build).
+
+**Files involved:**
+- New file: `src/components/organisms/StatsSection.tsx` (name TBD)
+- `src/app/page.tsx` — insert between the Item 7 section and `<SkillGrid />`
+- Reference pattern: a 4-stat grid, similar in spirit to the 4-card grids already used (`SkillGrid`/`PackSection`), but simpler — big number + label + sublabel per stat, no icons/borders needed necessarily.
+
+**Content (as provided, with the rename applied):**
+
+- **Section title:** "Pack Objectif4C2 en Chiffres"
+- **Section subtitle:** "Des résultats qui parlent d'eux-mêmes"
+
+| Stat | Label | Sublabel |
+|---|---|---|
+| 98% | Taux de réussite | TCF Canada |
+| +5 000 | Étudiants formés | Depuis 2020 |
+| +5 000 | Exercices disponibles | **Pack Objectif4C2** *(renamed from "Pack Ayoub")* |
+| 4.9/5 | Satisfaction | Note moyenne |
+
+**Proposed fix:**
+1. Create a new organism component (e.g. `StatsSection.tsx`) with the section title/subtitle, followed by a 4-column stat grid (`grid-cols-2 lg:grid-cols-4`), each cell showing a large bold number, a label line, and a smaller muted sublabel line.
+2. Apply the rename: the third stat's sublabel becomes "Pack Objectif4C2" instead of "Pack Ayoub".
+3. Style consistent with the page's dark theme — large numbers likely in the brand red/white gradient treatment already used for emphasis elsewhere (e.g. `HeroSection.tsx`'s gradient text), sublabels in muted slate tones (`--slate-400`).
+4. Insert `<StatsSection />` in `src/app/page.tsx` directly after the Item 7 "Pack Objectif4C2" section and before `<SkillGrid />` (confirm exact order once Item 7 is implemented).
+5. These are static numbers provided as copy — confirm whether they should ever be dynamic/pulled from real data (e.g. actual student count from Supabase) or are intentionally fixed marketing figures. Defaulting to static as given unless told otherwise.
+
+**Verification:**
+- Run `npm run dev`, confirm the new stats section renders directly after the Pack Objectif4C2 section (Item 7) and before Compétences.
+- Confirm all 4 stats display with correct numbers/labels, and "Pack Objectif4C2" appears (not "Pack Ayoub") in the third stat's sublabel.
+- Check responsive layout — likely 2 columns on mobile, 4 on desktop.
+
+## Item 9: New "Préparation TCF Canada" methodology section
+
+**Status:** Pending approval
+
+**Context:** Another new section, positioned after the skill presentation cards (Expression orale/écrite etc. — Item 4's `SkillGrid` section). New content, not currently present anywhere in the codebase (same pattern as Items 7 & 8 — new build). Same rename rule applies: "Pack Ayoub" → "Pack Objectif4C2" throughout.
+
+**Note:** the FAQ block originally provided alongside this content (which referenced the domain `packayoub.com` and Ayoub-branded search phrases) is **excluded from this round** per instruction — no FAQ for now. Only the methodology block below is in scope. If a FAQ section is wanted later, the confirmed domain is `https://www.objectif4c2.com`.
+
+**Files involved:**
+- New file: `src/components/organisms/MethodologySection.tsx`
+- `src/app/page.tsx` — insert after `<SkillGrid />`
+
+**Content (as provided, with the "Pack Ayoub" → "Pack Objectif4C2" rename applied):**
+
+- Title: "Préparation TCF Canada"
+- Subtitle: "Une méthode claire pour progresser dans les 4 épreuves"
+- Body paragraph 1: "**Pack Objectif4C2** aide les candidats à préparer le TCF Canada avec des exercices organisés par compétence, des simulations et une correction IA pour l'expression écrite et orale."
+- Body paragraph 2: "L'objectif est simple : comprendre le format, s'entraîner régulièrement, corriger ses erreurs et arriver plus confiant le jour de l'examen."
+- Bullet list:
+  - Parcours pour les 4 épreuves du TCF Canada.
+  - Correction rapide pour transformer les erreurs en progrès.
+  - Guides publics pour comprendre le format et les scores.
+  - Conseils pratiques pour travailler avec méthode.
+- Sub-heading: "Pourquoi choisir **Pack Objectif4C2** ?"
+
+**Proposed fix:**
+1. Build the methodology block as a text section (title, subtitle, 2 paragraphs, bullet list, sub-heading) — likely reusing left-column text styling patterns already established (e.g. from `HeroSection.tsx` post-Item-6, or `SkillGrid.tsx`'s intro block).
+2. Insert `<MethodologySection />` in `src/app/page.tsx` after `<SkillGrid />`.
+3. No FAQ, no accordion, no structured data needed for this round.
+
+**Verification:**
+- Run `npm run dev`, confirm the new section renders after the skills section, with all rename substitutions correctly applied and no leftover "Ayoub" references.
+- Check responsive layout at mobile/desktop widths.
+
+## Item 10: _(to be added)_

@@ -12,7 +12,7 @@ export function SkillCard({ icon, title, description, href }: SkillCardProps) {
   return (
     <Link
       href={href}
-      className="group flex flex-col gap-4 rounded-2xl border border-[--slate-800] bg-[--slate-900] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-[--slate-600]"
+      className="group flex flex-col gap-4 rounded-2xl bg-[--slate-900] p-6 shadow-md shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_24px_rgba(230,51,41,0.25)]"
     >
       <Icon emoji={icon} label={title} />
       <div className="space-y-2">

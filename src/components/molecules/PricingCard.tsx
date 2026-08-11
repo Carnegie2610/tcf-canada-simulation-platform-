@@ -13,6 +13,7 @@ export interface PricingCardProps {
   isHighlighted?: boolean;
   isSecondary?: boolean;
   badge?: string;
+  accent?: "purple" | "amber";
 }
 
 const CheckIcon = () => (
@@ -40,6 +41,7 @@ export function PricingCard({
   isHighlighted = false,
   isSecondary = false,
   badge,
+  accent,
 }: PricingCardProps) {
   function handlePlanSelection() {
     const phoneNumber = "237697443878";
@@ -53,23 +55,35 @@ export function PricingCard({
     ? "border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.2)] bg-[--slate-900]"
     : isSecondary
     ? "border-emerald-500/50 shadow-emerald-500/10 bg-[--slate-900]"
+    : accent === "purple"
+    ? "border-purple-500/50 shadow-purple-500/10 bg-[--slate-900]"
+    : accent === "amber"
+    ? "border-amber-500/50 shadow-amber-500/10 bg-[--slate-900]"
     : "border-[--slate-800] bg-[--slate-900]";
 
   const buttonClass = isHighlighted
     ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-900/30"
     : isSecondary
     ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+    : accent === "purple"
+    ? "bg-purple-600 hover:bg-purple-500 text-white"
+    : accent === "amber"
+    ? "bg-amber-600 hover:bg-amber-500 text-white"
     : "border border-[--slate-700] bg-[--slate-800] text-[--slate-200] hover:bg-[--slate-700]";
 
   const durationPillClass = isHighlighted
     ? "bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/30"
     : isSecondary
     ? "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30"
+    : accent === "purple"
+    ? "bg-purple-500/10 text-purple-400 ring-1 ring-purple-500/30"
+    : accent === "amber"
+    ? "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30"
     : "bg-[--slate-800] text-[--slate-400] ring-1 ring-[--slate-700]";
 
   return (
     <div
-      className={`relative flex flex-col rounded-2xl border p-8 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)] ${cardClass}`}
+      className={`relative flex h-full flex-col rounded-2xl border p-8 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(59,130,246,0.12)] ${cardClass}`}
     >
       {/* Badge rendered inside card so the border doesn't overlap it */}
       {isHighlighted && (

@@ -11,7 +11,7 @@ const navItems = [
 export function GlobalNav() {
   return (
     <header
-      className="sticky top-0 z-50 w-full border-b border-[--slate-800] bg-[--slate-950]/80 backdrop-blur-md"
+      className="sticky top-0 z-50 w-full bg-[--slate-950]/80 backdrop-blur-md"
       role="banner"
     >
       <nav role="navigation" aria-label="Navigation principale">

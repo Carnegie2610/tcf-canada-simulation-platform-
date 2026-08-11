@@ -41,7 +41,7 @@ export function NavBar({ navItems }: NavBarProps) {
         </span>
       </Link>
 
-      <ul className="hidden items-center gap-6 md:flex" role="list">
+      <ul className="hidden items-center gap-7 md:flex" role="list">
         {navItems.map((item) => (
           <li key={item.href}>
             <NavLink href={item.href} label={item.label} />
@@ -50,8 +50,11 @@ export function NavBar({ navItems }: NavBarProps) {
       </ul>
 
       <div className="flex items-center gap-2">
-        <Button variant="primary" size="sm" href="/login">
+        <Button variant="secondary" size="sm" href="/login">
           Connexion
+        </Button>
+        <Button variant="primary" size="sm" href="/#tarifs" className="btn-glow">
+          S&apos;inscrire
         </Button>
 
         <div className="relative md:hidden" ref={mobileMenuRef}>

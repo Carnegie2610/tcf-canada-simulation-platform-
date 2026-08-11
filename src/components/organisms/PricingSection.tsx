@@ -2,6 +2,41 @@ import { PricingCard } from "@/components/molecules/PricingCard";
 
 const tiers = [
   {
+    name: "Forfait Essentiel",
+    price: "2 000",
+    currency: "FCFA",
+    duration: "30 Jours",
+    description: "Le premier pas pour découvrir la méthode en douceur.",
+    features: [
+      "★ 10 simulations d'expression écrite",
+      "Corrections IA avec scores CECRL",
+      "Réponses modèles niveau C2",
+      "Matériaux de préparation (PDFs)",
+    ],
+    buttonLabel: "Choisir Essentiel",
+    isHighlighted: false,
+    isSecondary: false,
+    accent: "purple" as const,
+  },
+  {
+    name: "Forfait Intermédiaire",
+    price: "3 000",
+    currency: "FCFA",
+    duration: "30 Jours",
+    description: "Plus de pratique pour progresser à votre rythme.",
+    features: [
+      "★ 20 simulations d'expression écrite",
+      "Corrections IA avec scores CECRL",
+      "Réponses modèles niveau C2",
+      "Matériaux de préparation (PDFs)",
+      "Compréhension orale & écrite",
+    ],
+    buttonLabel: "Choisir Intermédiaire",
+    isHighlighted: false,
+    isSecondary: false,
+    accent: "amber" as const,
+  },
+  {
     name: "Forfait Découverte",
     price: "5 000",
     currency: "FCFA",
@@ -69,7 +104,7 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="mx-auto grid max-w-5xl grid-cols-1 items-start gap-6 md:grid-cols-3">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-5">
           {tiers.map((tier) => (
             <PricingCard key={tier.name} {...tier} />
           ))}
