@@ -5,6 +5,8 @@ import { PromptEditor } from "@/components/organisms/admin/PromptEditor";
 import {
   COMBINATION_EVALUATION_DEFAULT,
   COMBINATION_EVALUATION_PRESETS,
+  ORAL_EVALUATION_DEFAULT,
+  ORAL_EVALUATION_PRESETS,
   SINGLE_EVALUATION_DEFAULT,
   SINGLE_EVALUATION_PRESETS,
   type PromptPreset,
@@ -26,6 +28,10 @@ const PROMPT_DEFAULTS: Record<string, { default: string; presets: PromptPreset[]
   single_evaluation: {
     default: SINGLE_EVALUATION_DEFAULT,
     presets: SINGLE_EVALUATION_PRESETS,
+  },
+  oral_evaluation: {
+    default: ORAL_EVALUATION_DEFAULT,
+    presets: ORAL_EVALUATION_PRESETS,
   },
 };
 

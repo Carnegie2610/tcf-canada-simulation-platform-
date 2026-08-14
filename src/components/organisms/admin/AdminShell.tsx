@@ -12,7 +12,10 @@ const navItems = [
   { label: "Tableau de bord", href: "/admin", icon: "⊞", superAdminOnly: false },
   { label: "Auditor", href: "/admin/audit", icon: "◎", superAdminOnly: false },
   { label: "Utilisateurs", href: "/admin/users", icon: "◻", superAdminOnly: false },
-  { label: "Questions", href: "/admin/exams", icon: "✎", superAdminOnly: false },
+  { label: "Question EE", href: "/admin/exams", icon: "✎", superAdminOnly: false },
+  { label: "Question CO", href: "/admin/oral-comprehension", icon: "🎧", superAdminOnly: false },
+  { label: "Question EO", href: "/admin/oral", icon: "🎙️", superAdminOnly: false },
+  { label: "Question CE", href: "/admin/reading-comprehension", icon: "📖", superAdminOnly: false },
   { label: "Clés API", href: "/admin/api-keys", icon: "🔑", superAdminOnly: false },
   { label: "Prompts IA", href: "/admin/prompts", icon: "⌘", superAdminOnly: true },
   { label: "Mes Commissions", href: "/admin/commissions", icon: "💸", superAdminOnly: true },
@@ -31,7 +34,7 @@ export function AdminShell({ children, currentUserName, currentUserRole }: Admin
       <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-[var(--slate-800)] bg-[var(--slate-900)]">
         {/* Brand */}
         <div className="flex items-center gap-2 border-b border-[var(--slate-800)] px-5 py-4">
-          <img src="/favicon-rounded.svg" alt="Objectif 4C2 Academy Logo" className="h-10 w-10 object-contain" />
+          <img src="/favicon-rounded.svg" alt="Objectif 4C2 Academy Logo" width={40} height={40} className="h-10 w-10 object-contain" />
           <span className="text-xs font-medium text-[var(--slate-400)] uppercase tracking-widest">
             Admin
           </span>

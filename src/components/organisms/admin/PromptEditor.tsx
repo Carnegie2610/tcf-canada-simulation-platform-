@@ -12,6 +12,10 @@ const PROMPT_META: Record<string, { label: string; description: string }> = {
     label: "Évaluation Examen Simple",
     description: "Prompt système pour l'évaluation des examens à tâche unique.",
   },
+  oral_evaluation: {
+    label: "Évaluation Expression Orale (3 Tâches)",
+    description: "Prompt système pour l'évaluation des 3 tâches orales (transcription + notation). Critères de correction distincts de l'écrit — compréhension, méthodologie, niveau linguistique, fluidité, prononciation/intonation.",
+  },
 };
 
 interface AiPromptRow {
@@ -186,7 +190,7 @@ function PromptPanel({ promptKey, existing, defaultConfig }: PromptPanelProps) {
 }
 
 export function PromptEditor({ prompts, promptDefaults }: PromptEditorProps) {
-  const PROMPT_KEYS = ["combination_evaluation", "single_evaluation"];
+  const PROMPT_KEYS = ["combination_evaluation", "single_evaluation", "oral_evaluation"];
 
   return (
     <div className="space-y-6">

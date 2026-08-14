@@ -94,13 +94,13 @@ export function DashboardQuadrantGrid({
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <QuadrantCard
-          href="/dashboard/combinations"
-          icon="✍️"
+          href="/dashboard/simulation"
+          icon="🎯"
           title="Espace de simulation"
           bullets={[
-            "Accéder aux combinaisons d'épreuves",
+            "Choisir une compétence : écrite, orale, CO ou CE",
             `${simulationsTotal} sujets disponibles dans votre plan`,
-            "Lancer un test blanc de 60 min",
+            "Lancer une simulation en conditions réelles d'examen",
           ]}
           badge={`${simulationsUsed} / ${simulationsTotal}`}
         />

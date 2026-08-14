@@ -228,6 +228,48 @@ export interface UpdateCombinationInput {
   tasks?: CombinationTasks;
 }
 
+export interface OralTask {
+  question: string;
+  prepTimeSeconds: number;
+  speakingTimeSeconds: number;
+}
+
+export interface OralTasks {
+  tache_1: OralTask;
+  tache_2: OralTask;
+  tache_3: OralTask;
+}
+
+export interface OralCombination {
+  id: string;
+  title: string;
+  exam_type: ExamType;
+  global_duration: number;
+  tasks: OralTasks;
+  created_at: string;
+}
+
+export interface AdminOralCombinationListResponse {
+  oralCombinations: OralCombination[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateOralCombinationInput {
+  title: string;
+  exam_type: ExamType;
+  global_duration: number;
+  tasks: OralTasks;
+}
+
+export interface UpdateOralCombinationInput {
+  title?: string;
+  exam_type?: ExamType;
+  global_duration?: number;
+  tasks?: OralTasks;
+}
+
 export interface CombinationSubmission {
   id: string;
   user_id: string;

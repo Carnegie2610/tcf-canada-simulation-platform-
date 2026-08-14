@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 interface AiLoadingHubProps {
   submissionId: string;
   onError: () => void;
+  evaluateEndpoint?: string;
+  redirectTo?: string;
 }
 
 const STATUS_MESSAGES = [
@@ -19,7 +21,7 @@ const STATUS_MESSAGES = [
 
 const PARTICLES = Array.from({ length: 12 }, (_, i) => i);
 
-export function AiLoadingHub({ submissionId, onError }: AiLoadingHubProps) {
+export function AiLoadingHub({ submissionId, onError, evaluateEndpoint, redirectTo }: AiLoadingHubProps) {
   const router = useRouter();
   const [statusIndex, setStatusIndex] = useState(0);
   const [fadeText, setFadeText] = useState(true);
@@ -44,7 +46,10 @@ export function AiLoadingHub({ submissionId, onError }: AiLoadingHubProps) {
     if (apiCalledRef.current) return;
     apiCalledRef.current = true;
 
-    fetch(`/api/student/combination-submissions/${submissionId}/evaluate`, {
+    const endpoint = evaluateEndpoint ?? `/api/student/combination-submissions/${submissionId}/evaluate`;
+    const target = redirectTo ?? `/dashboard/history/combination/${submissionId}`;
+
+    fetch(endpoint, {
       method: "POST",
     })
       .then(async (res) => {
@@ -58,12 +63,12 @@ export function AiLoadingHub({ submissionId, onError }: AiLoadingHubProps) {
         setTimeout(() => {
           setFading(true);
           setTimeout(() => {
-            router.push(`/dashboard/history/combination/${submissionId}`);
+            router.push(target);
           }, 400);
         }, 600);
       })
       .catch(() => onError());
-  }, [submissionId, onError, router]);
+  }, [submissionId, onError, router, evaluateEndpoint, redirectTo]);
 
   return (
     <div

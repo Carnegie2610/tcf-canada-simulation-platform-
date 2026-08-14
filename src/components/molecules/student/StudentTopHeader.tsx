@@ -54,6 +54,7 @@ export function StudentTopHeader({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const [signOutLoading, setSignOutLoading] = useState(false);
 
   // Recalculate days once per minute
   useEffect(() => {
@@ -108,6 +109,7 @@ export function StudentTopHeader({
   }, []);
 
   async function handleSignOut() {
+    setSignOutLoading(true);
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
     router.push("/login");
@@ -137,7 +139,7 @@ export function StudentTopHeader({
       {/* Left: Brand + Nav (desktop) */}
       <div className="flex items-center gap-6">
         <Link href="/dashboard" className="flex items-center gap-1.5 shrink-0">
-          <img src="/favicon-rounded.svg" alt="Objectif 4C2 Academy Logo" className="h-10 w-10 object-contain" />
+          <img src="/favicon-rounded.svg" alt="Objectif 4C2 Academy Logo" width={40} height={40} className="h-10 w-10 object-contain" />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
@@ -189,9 +191,16 @@ export function StudentTopHeader({
               </div>
               <button
                 onClick={handleSignOut}
-                className="w-full px-3 py-2 text-left text-xs text-[var(--slate-500)] hover:bg-[var(--slate-800)] hover:text-[var(--slate-300)] transition-colors"
+                disabled={signOutLoading}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-[var(--slate-500)] hover:bg-[var(--slate-800)] hover:text-[var(--slate-300)] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Se déconnecter
+                {signOutLoading && (
+                  <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                )}
+                {signOutLoading ? "Déconnexion..." : "Se déconnecter"}
               </button>
             </div>
           )}

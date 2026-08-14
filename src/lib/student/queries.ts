@@ -5,6 +5,7 @@ import type {
   Combination,
   CombinationSubmission,
   Exam,
+  OralCombination,
   StudentAuditData,
   SubmissionWithEvaluation,
 } from "@/lib/admin/types";
@@ -182,6 +183,51 @@ export async function listCombinationsWithStatus(
   }));
 }
 
+export interface OralSubmission {
+  id: string;
+  user_id: string;
+  oral_combination_id: string;
+  audio_path_task_1: string | null;
+  audio_path_task_2: string | null;
+  audio_path_task_3: string | null;
+  pipeline_status: "pending" | "processing" | "failed" | "completed";
+  is_completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+}
+
+export interface OralCombinationWithSubmission {
+  combination: OralCombination;
+  submission: OralSubmission | null;
+}
+
+export async function listOralCombinationsWithStatus(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<OralCombinationWithSubmission[]> {
+  const [{ data: combinations }, { data: rawSubs }] = await Promise.all([
+    supabase
+      .from("oral_combinations")
+      .select("*")
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("oral_submissions")
+      .select("*")
+      .eq("user_id", userId),
+  ]);
+
+  const subMap = new Map<string, OralSubmission>();
+  for (const s of rawSubs ?? []) {
+    const row = s as Record<string, unknown>;
+    subMap.set(row.oral_combination_id as string, row as unknown as OralSubmission);
+  }
+
+  return (combinations ?? []).map((c) => ({
+    combination: c as OralCombination,
+    submission: subMap.get(c.id) ?? null,
+  }));
+}
+
 export interface CompletedCombinationWithEvaluation {
   combination: Combination;
   submission: CombinationSubmission;
@@ -241,6 +287,55 @@ export async function listCompletedCombinationsWithEvaluation(
       submission: s,
       evaluation: evalMap.get(s.id) ?? null,
     }));
+}
+
+export interface OralResultDetail {
+  submission: OralSubmission;
+  combination: OralCombination;
+  evaluation: {
+    id: string;
+    global_score: number;
+    cefr_level: string;
+    appreciation: string;
+    task_1_evaluation: Record<string, unknown>;
+    task_2_evaluation: Record<string, unknown>;
+    task_3_evaluation: Record<string, unknown>;
+    created_at: string;
+  } | null;
+}
+
+export async function getOralResultDetail(
+  supabase: SupabaseClient,
+  submissionId: string,
+  userId: string
+): Promise<OralResultDetail | null> {
+  const { data: rawSub } = await supabase
+    .from("oral_submissions")
+    .select("*")
+    .eq("id", submissionId)
+    .eq("user_id", userId)
+    .single();
+
+  if (!rawSub) return null;
+
+  const sub = rawSub as OralSubmission;
+
+  const [{ data: rawCombination }, { data: rawEval }] = await Promise.all([
+    supabase.from("oral_combinations").select("*").eq("id", sub.oral_combination_id).single(),
+    supabase
+      .from("oral_evaluations")
+      .select("*")
+      .eq("submission_id", submissionId)
+      .maybeSingle(),
+  ]);
+
+  if (!rawCombination) return null;
+
+  return {
+    submission: sub,
+    combination: rawCombination as OralCombination,
+    evaluation: (rawEval as OralResultDetail["evaluation"]) ?? null,
+  };
 }
 
 export interface CombinationResultDetail {

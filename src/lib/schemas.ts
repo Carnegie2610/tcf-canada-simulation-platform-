@@ -257,3 +257,134 @@ export const CombinationEvaluationSchema = z.object({
 
 export type CombinationEvaluation = z.infer<typeof CombinationEvaluationSchema>;
 export type CombinationTaskEval = z.infer<typeof CombinationTaskEvalSchema>;
+
+// ── Oral (Expression Orale) AI Evaluation ──────────────────────────────────
+
+export const OralTaskEvalSchema = z.object({
+  score: z.preprocess((val) => coerceScoreString(val), z.string()),
+  consigne: z.string(),
+  transcript: z.string(),
+  comprehension_du_sujet: z.string(),
+  respect_de_methodologie: z.string(),
+  niveau_linguistique: z.string(),
+  fluidite: z.string(),
+  prononciation_et_intonation: z.string(),
+  appreciation_generale: z.string(),
+  pertinence_verdict: z.string().nullable().transform((v) => v ?? ""),
+  points_forts: z.array(z.string()).nullable().transform((v) => v ?? []),
+  priorites_a_travailler: z.array(z.string()).nullable().transform((v) => v ?? []),
+  erreurs_recurrentes: z
+    .array(CombinationErreurRecurrenteSchema)
+    .nullable()
+    .transform((v) => v ?? []),
+  registre_et_tonalite: z.string().nullable().transform((v) => v ?? ""),
+  connecteurs_logiques: CombinationConnecteursLogiquesSchema.nullable().transform(
+    (v) => v ?? { utilises: [], manquants: [] }
+  ),
+  exercice_recommande: z.string().nullable().transform((v) => v ?? ""),
+  comparaison_niveau_vise: z.string().nullable().transform((v) => v ?? ""),
+});
+
+/**
+ * Field keys of OralTaskEvalSchema, kept next to buildOralTaskJsonSchema so a unit test can
+ * assert the hand-authored JSON Schema below never drifts from the Zod schema (same rationale
+ * as COMBINATION_TASK_EVAL_KEYS above).
+ */
+export const ORAL_TASK_EVAL_KEYS = [
+  "score",
+  "consigne",
+  "transcript",
+  "comprehension_du_sujet",
+  "respect_de_methodologie",
+  "niveau_linguistique",
+  "fluidite",
+  "prononciation_et_intonation",
+  "appreciation_generale",
+  "pertinence_verdict",
+  "points_forts",
+  "priorites_a_travailler",
+  "erreurs_recurrentes",
+  "registre_et_tonalite",
+  "connecteurs_logiques",
+  "exercice_recommande",
+  "comparaison_niveau_vise",
+] as const;
+
+function oralTaskEvalJsonSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ORAL_TASK_EVAL_KEYS,
+    properties: {
+      score: { type: "string" },
+      consigne: { type: "string" },
+      transcript: { type: "string" },
+      comprehension_du_sujet: { type: "string" },
+      respect_de_methodologie: { type: "string" },
+      niveau_linguistique: { type: "string" },
+      fluidite: { type: "string" },
+      prononciation_et_intonation: { type: "string" },
+      appreciation_generale: { type: "string" },
+      pertinence_verdict: NULLABLE_STRING,
+      points_forts: NULLABLE_STRING_ARRAY,
+      priorites_a_travailler: NULLABLE_STRING_ARRAY,
+      erreurs_recurrentes: {
+        type: ["array", "null"],
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["pattern", "occurrences", "exemples"],
+          properties: {
+            pattern: { type: "string" },
+            occurrences: { type: "number" },
+            exemples: { type: "array", items: { type: "string" } },
+          },
+        },
+      },
+      registre_et_tonalite: NULLABLE_STRING,
+      connecteurs_logiques: {
+        type: ["object", "null"],
+        additionalProperties: false,
+        required: ["utilises", "manquants"],
+        properties: {
+          utilises: { type: "array", items: { type: "string" } },
+          manquants: { type: "array", items: { type: "string" } },
+        },
+      },
+      exercice_recommande: NULLABLE_STRING,
+      comparaison_niveau_vise: NULLABLE_STRING,
+    },
+  } as const;
+}
+
+/**
+ * Wraps OralTaskEvalSchema's JSON Schema under `{"<jsonKey>": {...}}`, matching the
+ * `{"task_N_evaluation": {...}}` shape the oral evaluate route's prompt asks the model for.
+ */
+export function buildOralTaskJsonSchema(jsonKey: string) {
+  return {
+    name: "oral_task_evaluation",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      required: [jsonKey],
+      properties: {
+        [jsonKey]: oralTaskEvalJsonSchema(),
+      },
+    },
+  };
+}
+
+export const OralDiagnosticReportSchema = z.object({
+  global_metrics: z.object({
+    score_final: z.preprocess((val) => coerceScoreString(val, "/20"), z.string()),
+    niveau_cecr: z.string(),
+    appreciation: z.string(),
+  }),
+  task_1_evaluation: OralTaskEvalSchema,
+  task_2_evaluation: OralTaskEvalSchema,
+  task_3_evaluation: OralTaskEvalSchema,
+});
+
+export type OralDiagnosticReport = z.infer<typeof OralDiagnosticReportSchema>;
+export type OralTaskEval = z.infer<typeof OralTaskEvalSchema>;

@@ -141,6 +141,57 @@ async function callAnthropic(systemPrompt: string, userPrompt: string, apiKey: s
   return { text, provider: "anthropic", model: "claude-sonnet-4-6", durationMs: Date.now() - start };
 }
 
+export interface TranscriptionResult {
+  text: string;
+  provider: string;
+  model: string;
+  durationMs: number;
+}
+
+type OpenAiTranscriptionResponse = {
+  text: string;
+};
+
+/**
+ * Speech-to-text via OpenAI's gpt-4o-mini-transcribe model. Unlike callAI's text-only
+ * providers above, transcription is OpenAI-only (no multi-provider fallback chain exists
+ * for STT in this codebase yet) — callers should treat "openai_key_not_configured" as a
+ * hard failure, not something to retry against another provider.
+ */
+export async function callTranscription(
+  audioBlob: Blob,
+  filename: string
+): Promise<TranscriptionResult> {
+  const start = Date.now();
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("openai_key_not_configured");
+
+  const model = "gpt-4o-mini-transcribe";
+  const form = new FormData();
+  form.append("file", audioBlob, filename);
+  form.append("model", model);
+  form.append("response_format", "json");
+  form.append("language", "fr");
+
+  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
+    headers: { authorization: `Bearer ${apiKey}` },
+    body: form,
+  });
+
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => "");
+    console.error(`[callTranscription] HTTP ${res.status}:`, errBody);
+    throw new Error(`transcription_request_failed:${res.status}`);
+  }
+
+  const data = (await res.json()) as OpenAiTranscriptionResponse;
+  const text = data.text;
+  if (typeof text !== "string") throw new Error("transcription_empty_response");
+
+  return { text, provider: "openai", model, durationMs: Date.now() - start };
+}
+
 export async function callAI(
   systemPrompt: string,
   userPrompt: string,

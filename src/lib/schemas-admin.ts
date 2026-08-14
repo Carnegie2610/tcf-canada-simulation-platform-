@@ -94,3 +94,33 @@ export const UpdateCombinationSchema = CreateCombinationSchema.partial();
 export type CreateCombinationInput = z.infer<typeof CreateCombinationSchema>;
 export type UpdateCombinationInput = z.infer<typeof UpdateCombinationSchema>;
 export type CombinationSearchParams = z.infer<typeof CombinationSearchParamsSchema>;
+
+const OralTaskSchema = z.object({
+  question: z.string().min(10),
+  prepTimeSeconds: z.number().int().min(0).max(120),
+  speakingTimeSeconds: z.number().int().min(30).max(300),
+});
+
+export const CreateOralCombinationSchema = z.object({
+  title: z.string().min(3).max(255),
+  exam_type: z.enum(["TEF", "TCF"]),
+  global_duration: z.number().int().min(1).max(60),
+  tasks: z.object({
+    tache_1: OralTaskSchema,
+    tache_2: OralTaskSchema,
+    tache_3: OralTaskSchema,
+  }),
+});
+
+export const OralCombinationSearchParamsSchema = z.object({
+  search: z.string().max(100).optional(),
+  exam_type: z.enum(["TEF", "TCF"]).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export const UpdateOralCombinationSchema = CreateOralCombinationSchema.partial();
+
+export type CreateOralCombinationInput = z.infer<typeof CreateOralCombinationSchema>;
+export type UpdateOralCombinationInput = z.infer<typeof UpdateOralCombinationSchema>;
+export type OralCombinationSearchParams = z.infer<typeof OralCombinationSearchParamsSchema>;

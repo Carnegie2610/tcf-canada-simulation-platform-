@@ -5,6 +5,7 @@ import type {
   ActivityFeedRow,
   AdminCombinationListResponse,
   AdminExamListResponse,
+  AdminOralCombinationListResponse,
   AdminProfile,
   AdminUserListResponse,
   CefrDistributionItem,
@@ -14,6 +15,7 @@ import type {
   CombinationTasks,
   CreateCombinationInput,
   CreateExamInput,
+  CreateOralCombinationInput,
   CreateUserInput,
   DashboardFilter,
   DashboardStats,
@@ -23,11 +25,14 @@ import type {
   ExamSearchParams,
   ExamType,
   FeedbackCorrection,
+  OralCombination,
+  OralTasks,
   StudentAuditData,
   SubmissionsByDay,
   SubmissionWithEvaluation,
   UpdateCombinationInput,
   UpdateExamInput,
+  UpdateOralCombinationInput,
   UpdateUserInput,
   UserSearchParams,
 } from "./types";
@@ -485,6 +490,79 @@ export async function deleteCombination(
 ): Promise<void> {
   const { error } = await supabase
     .from("combinations")
+    .delete()
+    .eq("id", combinationId);
+  if (error) throw new Error(error.message);
+}
+
+export async function listOralCombinations(
+  supabase: SupabaseClient,
+  params: { search?: string; exam_type?: string; page: number; pageSize: number }
+): Promise<AdminOralCombinationListResponse> {
+  const { page, pageSize, search, exam_type } = params;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
+    .from("oral_combinations")
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (search) query = query.ilike("title", `%${search}%`);
+  if (exam_type) query = query.eq("exam_type", exam_type);
+
+  const { data, count } = await query;
+
+  return {
+    oralCombinations: (data ?? []) as OralCombination[],
+    total: count ?? 0,
+    page,
+    pageSize,
+  };
+}
+
+export async function createOralCombination(
+  supabase: SupabaseClient,
+  data: CreateOralCombinationInput
+): Promise<OralCombination> {
+  const { data: combo, error } = await supabase
+    .from("oral_combinations")
+    .insert({
+      title: data.title,
+      exam_type: data.exam_type,
+      global_duration: data.global_duration,
+      tasks: data.tasks as unknown as OralTasks,
+    })
+    .select()
+    .single();
+
+  if (error || !combo) throw new Error(error?.message ?? "Failed to create oral combination");
+  return combo as OralCombination;
+}
+
+export async function updateOralCombination(
+  supabase: SupabaseClient,
+  combinationId: string,
+  data: UpdateOralCombinationInput
+): Promise<OralCombination> {
+  const { data: combo, error } = await supabase
+    .from("oral_combinations")
+    .update(data as unknown as OralTasks)
+    .eq("id", combinationId)
+    .select()
+    .single();
+
+  if (error || !combo) throw new Error(error?.message ?? "Failed to update oral combination");
+  return combo as OralCombination;
+}
+
+export async function deleteOralCombination(
+  supabase: SupabaseClient,
+  combinationId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("oral_combinations")
     .delete()
     .eq("id", combinationId);
   if (error) throw new Error(error.message);
