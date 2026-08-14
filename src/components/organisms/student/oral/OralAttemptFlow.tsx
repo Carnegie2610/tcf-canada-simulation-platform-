@@ -179,6 +179,7 @@ export function OralAttemptFlow({
           onRecordingComplete={(blob, mimeType) =>
             handleRecordingComplete(currentTaskMeta.number, blob, mimeType)
           }
+          initialRecording={recordings[currentTaskMeta.number] ?? null}
         />
       )}
 

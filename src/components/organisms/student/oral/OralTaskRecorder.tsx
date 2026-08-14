@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useExamTimer } from "@/hooks/useExamTimer";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 
@@ -16,6 +16,10 @@ interface OralTaskRecorderProps {
    * latest call always wins). The parent is the source of truth for "what will
    * actually be submitted". */
   onRecordingComplete: (blob: Blob, mimeType: string) => void;
+  /** A previously-recorded take for this task, restored after a remount (e.g. the
+   * student switched to another task and came back). When set, the component opens
+   * straight into the review/playback screen instead of idle. */
+  initialRecording?: { blob: Blob; mimeType: string } | null;
   disabled?: boolean;
 }
 
@@ -66,21 +70,35 @@ function RecordingCountdown({
   return <p className="font-mono text-4xl font-bold text-red-400">{timeLeft}</p>;
 }
 
-export function OralTaskRecorder({ task, onRecordingComplete, disabled }: OralTaskRecorderProps) {
+export function OralTaskRecorder({
+  task,
+  onRecordingComplete,
+  initialRecording,
+  disabled,
+}: OralTaskRecorderProps) {
   const recorder = useAudioRecorder();
   const phaseRef = useRef<Phase>("idle");
   const hasStartedRecordingRef = useRef(false);
+
+  // The blob actually shown for playback: either a take just finished this mount
+  // (via the "recorder stopped" effect below) or one restored from a prior mount
+  // through initialRecording. Kept separate from recorder.audioBlob because the
+  // hook has no concept of "restore" — its own state always starts at "idle".
+  const [activeBlob, setActiveBlob] = useState<Blob | null>(initialRecording?.blob ?? null);
 
   // Derive phase from recorder status rather than tracking it separately, except for
   // the "idle" (not yet started) state which recorder.status alone can't express
   // after a reset — recorder.status is "idle" both before the first take and right
   // after a reset-for-re-record, which is exactly the distinction we want here.
+  // A restored activeBlob (no fresh take this mount) also opens straight to review.
   const phase: Phase =
     recorder.status === "recording"
       ? "recording"
       : recorder.status === "stopped"
         ? "review"
-        : phaseRef.current;
+        : activeBlob
+          ? "review"
+          : phaseRef.current;
   phaseRef.current = phase;
 
   function handleStart() {
@@ -103,6 +121,8 @@ export function OralTaskRecorder({ task, onRecordingComplete, disabled }: OralTa
   function handleReRecord() {
     recorder.reset();
     hasStartedRecordingRef.current = false;
+    hasHandledCompleteRef.current = null;
+    setActiveBlob(null);
     phaseRef.current = "idle";
   }
 
@@ -111,15 +131,16 @@ export function OralTaskRecorder({ task, onRecordingComplete, disabled }: OralTa
     if (recorder.status === "stopped" && recorder.audioBlob && recorder.mimeType) {
       if (hasHandledCompleteRef.current === recorder.audioBlob) return;
       hasHandledCompleteRef.current = recorder.audioBlob;
+      setActiveBlob(recorder.audioBlob);
       onRecordingComplete(recorder.audioBlob, recorder.mimeType);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recorder.status, recorder.audioBlob, recorder.mimeType]);
 
   const audioUrl = useMemo(() => {
-    if (!recorder.audioBlob) return null;
-    return URL.createObjectURL(recorder.audioBlob);
-  }, [recorder.audioBlob]);
+    if (!activeBlob) return null;
+    return URL.createObjectURL(activeBlob);
+  }, [activeBlob]);
 
   useEffect(() => {
     return () => {
