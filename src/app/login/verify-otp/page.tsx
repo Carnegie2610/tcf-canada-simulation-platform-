@@ -167,8 +167,9 @@ function VerifyOtpForm() {
       <div>
         <h2 className="text-base font-semibold text-[--slate-100]">Vérification en deux étapes</h2>
         <p className="mt-1 text-sm text-[--slate-400]">
-          Un code à 6 chiffres a été envoyé à <span className="text-[--slate-200]">{email}</span>.
-          Entrez-le ci-dessous pour continuer.
+          Un code à {CODE_LENGTH} chiffres a été envoyé à{" "}
+          <span className="text-[--slate-200]">{email}</span>. Entrez-le ci-dessous pour
+          continuer.
         </p>
       </div>
 
@@ -216,6 +217,14 @@ function VerifyOtpForm() {
               : "Vous n'avez rien reçu ? Renvoyer le code"}
         </button>
       </div>
+
+      <button
+        type="button"
+        onClick={() => router.push("/login")}
+        className="text-xs text-[--slate-500] hover:text-[--slate-300] transition-colors"
+      >
+        ← Retour à la connexion
+      </button>
     </div>
   );
 }

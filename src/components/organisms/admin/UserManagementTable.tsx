@@ -61,6 +61,7 @@ export function UserManagementTable({
   const [editing, setEditing] = useState<AdminProfile | null>(null);
   const [deleting, setDeleting] = useState<AdminProfile | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const isSuperAdmin = currentUserRole === "super_admin";
 
@@ -92,12 +93,16 @@ export function UserManagementTable({
   async function handleDelete() {
     if (!deleting) return;
     setDeleteLoading(true);
+    setDeleteError(null);
     try {
       const res = await fetch(`/api/admin/users/${deleting.id}`, { method: "DELETE" });
-      if (res.ok) {
-        setLocalUsers((prev) => prev.filter((u) => u.id !== deleting.id));
-        onDeleted?.();
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        setDeleteError(json.error ?? "La suppression a échoué. Réessayez.");
+        return;
       }
+      setLocalUsers((prev) => prev.filter((u) => u.id !== deleting.id));
+      onDeleted?.();
       setDeleting(null);
       router.refresh();
     } finally {
@@ -222,8 +227,9 @@ export function UserManagementTable({
         title="Supprimer l'utilisateur"
         description={`Supprimer définitivement « ${deleting?.full_name} » ? Cette action est irréversible.`}
         onConfirm={handleDelete}
-        onCancel={() => setDeleting(null)}
+        onCancel={() => { setDeleting(null); setDeleteError(null); }}
         loading={deleteLoading}
+        error={deleteError}
       />
     </>
   );

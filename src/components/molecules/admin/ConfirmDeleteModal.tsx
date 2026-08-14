@@ -7,6 +7,7 @@ interface ConfirmDeleteModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   loading?: boolean;
+  error?: string | null;
 }
 
 export function ConfirmDeleteModal({
@@ -16,6 +17,7 @@ export function ConfirmDeleteModal({
   onConfirm,
   onCancel,
   loading = false,
+  error = null,
 }: ConfirmDeleteModalProps) {
   if (!isOpen) return null;
 
@@ -24,6 +26,11 @@ export function ConfirmDeleteModal({
       <div className="w-full max-w-md rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-6 shadow-2xl">
         <h2 className="text-lg font-semibold text-[var(--brand-white)]">{title}</h2>
         <p className="mt-2 text-sm text-[var(--slate-400)]">{description}</p>
+        {error && (
+          <p className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+            {error}
+          </p>
+        )}
         <div className="mt-6 flex justify-end gap-3">
           <button
             type="button"
