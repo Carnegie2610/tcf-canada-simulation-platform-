@@ -228,10 +228,15 @@ enable_confirmations = false
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
 max_frequency = "1s"
-# Number of characters used in the email OTP.
-otp_length = 6
-# Number of seconds before the email OTP expires (defaults to 1 hour).
-otp_expiry = 3600
+# Number of characters used in the email OTP. NOTE: the live/hosted project this
+# app targets has this set to 8 (confirmed from real received codes) — this local
+# value only affects `supabase start` for local dev and does not sync to the hosted
+# project. The verify-otp page's CODE_LENGTH constant must match whichever value is
+# actually configured on the project you're testing against.
+otp_length = 8
+# Number of seconds before the email OTP expires (defaults to 1 hour; tightened for
+# the super_admin login 2FA code, which should not stay valid for a full hour).
+otp_expiry = 600
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]

@@ -49,7 +49,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const adminSupabase = createSupabaseAdminClient();
-    const profile = await createUser(adminSupabase, parsed.data);
+    const profile = await createUser(adminSupabase, {
+      ...parsed.data,
+      assigned_plan: parsed.data.assigned_plan ?? null,
+      simulations_quota: parsed.data.simulations_quota ?? null,
+      expires_at: parsed.data.expires_at ?? null,
+    });
     return NextResponse.json({ data: profile }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Internal server error";

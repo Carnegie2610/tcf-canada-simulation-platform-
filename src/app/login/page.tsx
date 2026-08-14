@@ -23,24 +23,30 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const supabase = createSupabaseBrowserClient();
-
     try {
-      const { data: authData, error: authError } =
-        await supabase.auth.signInWithPassword({ email, password });
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const json = (await res.json()) as {
+        requiresOtp?: boolean;
+        email?: string;
+        role?: string;
+        error?: string;
+      };
 
-      if (authError || !authData.user) {
-        setError("Identifiants incorrects ou compte suspendu.");
+      if (!res.ok) {
+        setError(json.error ?? "Identifiants incorrects ou compte suspendu.");
         return;
       }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", authData.user.id)
-        .single();
+      if (json.requiresOtp) {
+        router.push(`/login/verify-otp?email=${encodeURIComponent(json.email ?? email)}`);
+        return;
+      }
 
-      if (profile?.role === "admin" || profile?.role === "super_admin") {
+      if (json.role === "admin" || json.role === "super_admin") {
         router.push("/admin");
       } else {
         router.push("/dashboard");

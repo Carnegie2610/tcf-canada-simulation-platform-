@@ -4,7 +4,6 @@ Test OpenAI transcription API consumption/cost against a sample audio file.
 
 Setup:
     pip install openai --break-system-packages
-    export OPENAI_API_KEY="sk-..."
 
 Usage:
     python test_transcription_cost.py path/to/task1_sample.mp3

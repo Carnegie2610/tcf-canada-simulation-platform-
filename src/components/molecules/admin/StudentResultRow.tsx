@@ -30,13 +30,17 @@ export function StudentResultRow({ profile }: StudentResultRowProps) {
       <AdminTableCell>{profile.email}</AdminTableCell>
       <AdminTableCell>
         <span className="rounded bg-[var(--slate-700)] px-2 py-0.5 text-xs font-medium">
-          {planLabel[profile.assigned_plan] ?? profile.assigned_plan}
+          {profile.assigned_plan ? (planLabel[profile.assigned_plan] ?? profile.assigned_plan) : "—"}
         </span>
       </AdminTableCell>
       <AdminTableCell>
-        <span className={profile.simulations_remaining === 0 ? "text-red-400" : ""}>
-          {profile.simulations_remaining}/{profile.simulations_quota}
-        </span>
+        {profile.simulations_quota == null ? (
+          "—"
+        ) : (
+          <span className={profile.simulations_remaining === 0 ? "text-red-400" : ""}>
+            {profile.simulations_remaining}/{profile.simulations_quota}
+          </span>
+        )}
       </AdminTableCell>
       <AdminTableCell>
         {profile.cohort_tag ? (

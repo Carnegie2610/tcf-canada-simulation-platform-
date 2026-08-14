@@ -149,23 +149,31 @@ export function UserManagementTable({
                     </span>
                   </AdminTableCell>
                   <AdminTableCell>
-                    {planLabel[u.assigned_plan] ?? u.assigned_plan}
+                    {u.assigned_plan ? (planLabel[u.assigned_plan] ?? u.assigned_plan) : "—"}
                   </AdminTableCell>
                   <AdminTableCell>
-                    <span className={u.simulations_remaining === 0 ? "text-red-400" : ""}>
-                      {u.simulations_remaining}/{u.simulations_quota}
-                    </span>
+                    {u.simulations_quota == null ? (
+                      "—"
+                    ) : (
+                      <span className={u.simulations_remaining === 0 ? "text-red-400" : ""}>
+                        {u.simulations_remaining}/{u.simulations_quota}
+                      </span>
+                    )}
                   </AdminTableCell>
                   <AdminTableCell>
-                    <span
-                      className={`text-xs ${
-                        new Date(u.expires_at) < new Date()
-                          ? "text-red-400"
-                          : "text-[var(--slate-400)]"
-                      }`}
-                    >
-                      {new Date(u.expires_at).toLocaleDateString("fr-CA")}
-                    </span>
+                    {u.expires_at == null ? (
+                      <span className="text-xs text-[var(--slate-400)]">—</span>
+                    ) : (
+                      <span
+                        className={`text-xs ${
+                          new Date(u.expires_at) < new Date()
+                            ? "text-red-400"
+                            : "text-[var(--slate-400)]"
+                        }`}
+                      >
+                        {new Date(u.expires_at).toLocaleDateString("fr-CA")}
+                      </span>
+                    )}
                   </AdminTableCell>
                   <AdminTableCell align="right">
                     <div className="flex justify-end gap-2">

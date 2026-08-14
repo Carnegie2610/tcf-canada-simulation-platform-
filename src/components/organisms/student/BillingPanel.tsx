@@ -13,19 +13,24 @@ const planLabel: Record<string, string> = {
 };
 
 export function BillingPanel({ profile }: BillingPanelProps) {
-  const used = profile.simulations_quota - profile.simulations_remaining;
-  const pct =
-    profile.simulations_quota > 0
-      ? Math.min(100, (used / profile.simulations_quota) * 100)
-      : 0;
-  const isExpired = new Date(profile.expires_at) < new Date();
+  // This panel is only ever rendered for the logged-in student's own profile, which
+  // always has a plan — the DB enforces this (chk_students_require_plan). The
+  // fallbacks below only exist to satisfy AdminProfile's shared nullable typing
+  // (staff accounts have no plan) and are never hit in practice here.
+  const quota = profile.simulations_quota ?? 0;
+  const remaining = profile.simulations_remaining ?? 0;
+  const used = quota - remaining;
+  const pct = quota > 0 ? Math.min(100, (used / quota) * 100) : 0;
+  const isExpired = profile.expires_at ? new Date(profile.expires_at) < new Date() : false;
 
-  const expiryDate = new Date(profile.expires_at).toLocaleDateString("fr-CA", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const expiryDate = profile.expires_at
+    ? new Date(profile.expires_at).toLocaleDateString("fr-CA", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "—";
 
   return (
     <div className="space-y-8">
@@ -38,7 +43,7 @@ export function BillingPanel({ profile }: BillingPanelProps) {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-lg font-bold text-[var(--brand-white)]">
-                {planLabel[profile.assigned_plan] ?? profile.assigned_plan}
+                {profile.assigned_plan ? (planLabel[profile.assigned_plan] ?? profile.assigned_plan) : "—"}
               </p>
               <p className="text-sm text-[var(--slate-400)] mt-0.5">
                 Expire le {expiryDate}
@@ -60,7 +65,7 @@ export function BillingPanel({ profile }: BillingPanelProps) {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-[var(--slate-400)]">Simulations utilisées</span>
               <span className="text-sm font-semibold text-[var(--brand-white)]">
-                {used} / {profile.simulations_quota}
+                {used} / {quota}
               </span>
             </div>
             <div className="h-2 w-full rounded-full bg-[var(--slate-800)]">
@@ -70,7 +75,7 @@ export function BillingPanel({ profile }: BillingPanelProps) {
               />
             </div>
             <p className="mt-1 text-xs text-[var(--slate-600)]">
-              {profile.simulations_remaining} simulation{profile.simulations_remaining !== 1 ? "s" : ""} restante{profile.simulations_remaining !== 1 ? "s" : ""}
+              {remaining} simulation{remaining !== 1 ? "s" : ""} restante{remaining !== 1 ? "s" : ""}
             </p>
           </div>
 

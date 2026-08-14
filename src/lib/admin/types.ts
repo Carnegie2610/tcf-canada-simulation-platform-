@@ -20,11 +20,12 @@ export interface AdminProfile {
   email: string;
   full_name: string;
   role: UserRole;
-  assigned_plan: AssignedPlan;
-  simulations_quota: number;
-  simulations_remaining: number;
+  // null for staff (admin/super_admin) accounts, which have no subscription plan.
+  assigned_plan: AssignedPlan | null;
+  simulations_quota: number | null;
+  simulations_remaining: number | null;
   ai_corrections_enabled: boolean;
-  expires_at: string;
+  expires_at: string | null;
   cohort_tag: string | null;
   created_at: string;
 }
@@ -148,10 +149,11 @@ export interface CreateUserInput {
   full_name: string;
   password: string;
   role: UserRole;
-  assigned_plan: AssignedPlan;
-  simulations_quota: number;
+  // null for staff (admin/super_admin) accounts, which have no subscription plan.
+  assigned_plan: AssignedPlan | null;
+  simulations_quota: number | null;
   ai_corrections_enabled: boolean;
-  expires_at: string;
+  expires_at: string | null;
   cohort_tag: string | null;
 }
 
@@ -159,11 +161,11 @@ export interface UpdateUserInput {
   email?: string;
   full_name?: string;
   role?: UserRole;
-  assigned_plan?: AssignedPlan;
-  simulations_quota?: number;
-  simulations_remaining?: number;
+  assigned_plan?: AssignedPlan | null;
+  simulations_quota?: number | null;
+  simulations_remaining?: number | null;
   ai_corrections_enabled?: boolean;
-  expires_at?: string;
+  expires_at?: string | null;
   cohort_tag?: string | null;
 }
 

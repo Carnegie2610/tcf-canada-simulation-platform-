@@ -314,7 +314,8 @@ export async function createUser(
   }
 
   if (data.role === "student") {
-    const meta = getPlanMeta(data.assigned_plan);
+    // CreateUserSchema's refine() guarantees assigned_plan is non-null for students.
+    const meta = getPlanMeta(data.assigned_plan as string);
     await adminSupabase.from("payments").insert({
       user_id: authData.user.id,
       student_name: data.full_name,

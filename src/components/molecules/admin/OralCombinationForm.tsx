@@ -12,10 +12,12 @@ interface TaskState {
   speakingTimeSeconds: number;
 }
 
+// Fixed to match the real TEF/TCF Expression Orale exam timing — not editable in the
+// form (see the disabled prep/speaking inputs below). Only "question" varies per exercise.
 const TASK_DEFAULTS: Record<TaskKey, TaskState> = {
-  tache_1: { question: "", prepTimeSeconds: 0, speakingTimeSeconds: 60 },
-  tache_2: { question: "", prepTimeSeconds: 30, speakingTimeSeconds: 90 },
-  tache_3: { question: "", prepTimeSeconds: 60, speakingTimeSeconds: 180 },
+  tache_1: { question: "", prepTimeSeconds: 0, speakingTimeSeconds: 120 },
+  tache_2: { question: "", prepTimeSeconds: 60, speakingTimeSeconds: 210 },
+  tache_3: { question: "", prepTimeSeconds: 0, speakingTimeSeconds: 270 },
 };
 
 const TASK_LABELS: Record<TaskKey, string> = {
@@ -42,9 +44,9 @@ export function OralCombinationForm({ mode, initial, onSuccess, onCancel }: Oral
   const [tasks, setTasks] = useState<Record<TaskKey, TaskState>>(
     initial
       ? {
-          tache_1: { ...initial.tasks.tache_1 },
-          tache_2: { ...initial.tasks.tache_2 },
-          tache_3: { ...initial.tasks.tache_3 },
+          tache_1: { ...TASK_DEFAULTS.tache_1, question: initial.tasks.tache_1.question },
+          tache_2: { ...TASK_DEFAULTS.tache_2, question: initial.tasks.tache_2.question },
+          tache_3: { ...TASK_DEFAULTS.tache_3, question: initial.tasks.tache_3.question },
         }
       : structuredClone(TASK_DEFAULTS)
   );
@@ -158,26 +160,30 @@ export function OralCombinationForm({ mode, initial, onSuccess, onCancel }: Oral
           </Field>
 
           <div className="grid grid-cols-3 gap-4">
-            <Field label="Préparation (sec)">
+            <Field label="Préparation (sec) — fixe">
               <input
                 type="number"
                 min={0}
                 max={120}
                 required
+                disabled
+                readOnly
+                title="Temps fixé selon le barème officiel de l'épreuve, non modifiable."
                 value={t.prepTimeSeconds}
-                onChange={(e) => setTaskField("prepTimeSeconds", Number(e.target.value))}
-                className={inputCls}
+                className={`${inputCls} cursor-not-allowed opacity-60`}
               />
             </Field>
-            <Field label="Temps de parole (sec)">
+            <Field label="Temps de parole (sec) — fixe">
               <input
                 type="number"
                 min={30}
                 max={300}
                 required
+                disabled
+                readOnly
+                title="Temps fixé selon le barème officiel de l'épreuve, non modifiable."
                 value={t.speakingTimeSeconds}
-                onChange={(e) => setTaskField("speakingTimeSeconds", Number(e.target.value))}
-                className={inputCls}
+                className={`${inputCls} cursor-not-allowed opacity-60`}
               />
             </Field>
             <Field label="Durée globale (min)">

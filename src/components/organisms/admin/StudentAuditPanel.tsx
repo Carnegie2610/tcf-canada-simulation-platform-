@@ -67,7 +67,7 @@ export function StudentAuditPanel({
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="rounded bg-[var(--slate-700)] px-3 py-1 text-sm font-medium text-[var(--slate-300)]">
-              {planLabel[profile.assigned_plan] ?? profile.assigned_plan}
+              {profile.assigned_plan ? (planLabel[profile.assigned_plan] ?? profile.assigned_plan) : "—"}
             </span>
             {profile.cohort_tag && (
               <span className="rounded bg-[var(--blue-600)]/20 px-3 py-1 text-sm font-medium text-[var(--blue-500)]">
@@ -105,9 +105,9 @@ export function StudentAuditPanel({
         <div className="mt-5 border-t border-[var(--slate-700)] pt-4">
           <LiveQuotaBar
             userId={profile.id}
-            initialQuota={profile.simulations_quota}
-            initialRemaining={profile.simulations_remaining}
-            expiresAt={profile.expires_at}
+            initialQuota={profile.simulations_quota ?? 0}
+            initialRemaining={profile.simulations_remaining ?? 0}
+            expiresAt={profile.expires_at ?? ""}
           />
         </div>
       </section>

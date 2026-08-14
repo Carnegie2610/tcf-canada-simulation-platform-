@@ -9,27 +9,46 @@ export const UserSearchParamsSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 });
 
-export const CreateUserSchema = z.object({
-  email: z.string().email(),
-  full_name: z.string().min(2).max(255),
-  password: z.string().min(8),
-  role: z.enum(["student", "admin", "super_admin"]).default("student"),
-  assigned_plan: z.enum(["PLAN_2000", "PLAN_3000", "PLAN_5000", "PLAN_10000", "PLAN_30000"]),
-  simulations_quota: z.number().int().min(1).max(500),
-  ai_corrections_enabled: z.boolean().default(false),
-  expires_at: z.string().datetime(),
-  cohort_tag: z.string().max(100).nullable().default(null),
-});
+// assigned_plan/simulations_quota/expires_at are nullable because staff accounts
+// (admin/super_admin) have no subscription plan; the .refine() below keeps them
+// required for students, matching the DB-level chk_students_require_plan constraint.
+export const CreateUserSchema = z
+  .object({
+    email: z.string().email(),
+    full_name: z.string().min(2).max(255),
+    password: z.string().min(8),
+    role: z.enum(["student", "admin", "super_admin"]).default("student"),
+    assigned_plan: z
+      .enum(["PLAN_2000", "PLAN_3000", "PLAN_5000", "PLAN_10000", "PLAN_30000"])
+      .nullable()
+      .optional(),
+    simulations_quota: z.number().int().min(1).max(500).nullable().optional(),
+    ai_corrections_enabled: z.boolean().default(false),
+    expires_at: z.string().datetime().nullable().optional(),
+    cohort_tag: z.string().max(100).nullable().default(null),
+  })
+  .refine(
+    (data) =>
+      data.role !== "student" ||
+      (data.assigned_plan != null && data.simulations_quota != null && data.expires_at != null),
+    {
+      message: "Un compte étudiant doit avoir un plan, un quota et une date d'expiration.",
+      path: ["assigned_plan"],
+    }
+  );
 
 export const UpdateUserSchema = z.object({
   email: z.string().email().optional(),
   full_name: z.string().min(2).max(255).optional(),
   role: z.enum(["student", "admin", "super_admin"]).optional(),
-  assigned_plan: z.enum(["PLAN_2000", "PLAN_3000", "PLAN_5000", "PLAN_10000", "PLAN_30000"]).optional(),
-  simulations_quota: z.number().int().min(1).max(500).optional(),
-  simulations_remaining: z.number().int().min(0).optional(),
+  assigned_plan: z
+    .enum(["PLAN_2000", "PLAN_3000", "PLAN_5000", "PLAN_10000", "PLAN_30000"])
+    .nullable()
+    .optional(),
+  simulations_quota: z.number().int().min(1).max(500).nullable().optional(),
+  simulations_remaining: z.number().int().min(0).nullable().optional(),
   ai_corrections_enabled: z.boolean().optional(),
-  expires_at: z.string().datetime().optional(),
+  expires_at: z.string().datetime().nullable().optional(),
   cohort_tag: z.string().max(100).nullable().optional(),
 });
 

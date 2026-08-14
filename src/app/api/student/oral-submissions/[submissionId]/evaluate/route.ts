@@ -35,6 +35,30 @@ function audioPathForTask(sub: OralSubmission, taskNumber: TaskNumber): string |
   return sub.audio_path_task_3;
 }
 
+// Official Objectif 4C2 structure checklist per task, used to ground the
+// "respect_de_methodologie" scoring criterion — without this, the model has no
+// concrete definition of "correct structure" for each task type and falls back
+// to a vague, generic impression instead of checking specific required elements.
+const TASK_METHODOLOGY_CHECKLIST: Record<TaskNumber, string> = {
+  1: `- Identité : nom, prénom, âge, situation matrimoniale et famille, nationalité, région d'origine
+- Langues parlées
+- Adresse : ville de résidence et quartier
+- Parcours académique et professionnel
+- Traits de personnalité
+- Loisirs
+- Projets (y compris, le cas échéant, le lien avec l'immigration/retour au pays d'origine)
+- Formule de clôture (ex : "Merci")`,
+  2: `- Salutation adaptée au registre demandé par le sujet (formel ou informel selon l'interlocuteur précisé)
+- Introduction adéquate en lien avec le sujet
+- Environ 12 questions pertinentes, couvrant les éléments mis en exergue entre parenthèses dans le sujet
+- Remerciement courtois pour les informations obtenues
+- Formule de politesse pour conclure (ex : "Au plaisir de vous revoir")`,
+  3: `- Introduction structurée selon la méthodologie classique de l'argumentation
+- Prise de position claire sur le sujet
+- Au moins 2 arguments développés, chacun illustré par un exemple concret
+- Conclusion : synthèse de la position, et si possible ouverture du débat`,
+};
+
 function buildTaskUserPrompt(
   taskNumber: TaskNumber,
   combination: OralCombination,
@@ -49,6 +73,9 @@ function buildTaskUserPrompt(
 - Temps de préparation accordé : ${task.prepTimeSeconds} secondes
 - Temps de parole accordé : ${task.speakingTimeSeconds} secondes
 - Transcription de la réponse orale du candidat (obtenue par reconnaissance vocale automatique, à prendre telle quelle) : "${transcript}"
+
+GRILLE DE STRUCTURE ATTENDUE pour la Tâche ${taskNumber} (sers-t'en pour renseigner "respect_de_methodologie" — vérifie chaque élément un par un) :
+${TASK_METHODOLOGY_CHECKLIST[taskNumber]}
 
 IMPORTANT : reprends la transcription ci-dessus mot pour mot dans le champ "transcript" — ne la reformule jamais et ne la corrige jamais.
 

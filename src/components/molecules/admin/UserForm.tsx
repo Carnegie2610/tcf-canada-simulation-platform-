@@ -58,34 +58,73 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
 
   const defaultPlan = initial?.assigned_plan ?? "PLAN_5000";
   const defaultCfg = PLAN_CONFIG[defaultPlan];
+  // Staff (admin/super_admin) accounts have no subscription plan — the plan/quota/
+  // expiry fields are hidden and kept null for them, matching the DB constraint
+  // that only students are required to have a plan.
+  const initialIsStaff = (initial?.role ?? "student") !== "student";
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    email: string;
+    full_name: string;
+    password: string;
+    role: UserRole;
+    assigned_plan: string | null;
+    simulations_quota: number | null;
+    ai_corrections_enabled: boolean;
+    expires_at: string | null;
+    cohort_tag: string;
+  }>({
     email: initial?.email ?? "",
     full_name: initial?.full_name ?? "",
     password: "",
     role: initial?.role ?? "student",
-    assigned_plan: defaultPlan,
-    simulations_quota: initial?.simulations_quota ?? defaultCfg.quota,
+    assigned_plan: initialIsStaff ? null : defaultPlan,
+    simulations_quota: initialIsStaff ? null : (initial?.simulations_quota ?? defaultCfg.quota),
     ai_corrections_enabled: initial?.ai_corrections_enabled ?? true,
-    expires_at: initial?.expires_at
-      ? initial.expires_at.substring(0, 10)
-      : addDays(defaultCfg.days),
+    expires_at: initialIsStaff
+      ? null
+      : initial?.expires_at
+        ? initial.expires_at.substring(0, 10)
+        : addDays(defaultCfg.days),
     cohort_tag: initial?.cohort_tag ?? "",
   });
+
+  const isStaffRole = form.role !== "student";
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function handleRoleChange(role: string) {
+    const nextRole = role as UserRole;
+    if (nextRole === "student") {
+      setForm((prev) => ({
+        ...prev,
+        role: nextRole,
+        assigned_plan: prev.assigned_plan ?? defaultPlan,
+        simulations_quota: prev.simulations_quota ?? defaultCfg.quota,
+        expires_at: prev.expires_at ?? addDays(defaultCfg.days),
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        role: nextRole,
+        assigned_plan: null,
+        simulations_quota: null,
+        expires_at: null,
+      }));
+    }
+  }
+
   function handlePlanChange(plan: string) {
     if (mode !== "create") {
-      set("assigned_plan", plan as typeof form.assigned_plan);
+      set("assigned_plan", plan);
       return;
     }
     const cfg = PLAN_CONFIG[plan] ?? ADMIN_ONLY_PLANS[plan];
     setForm((prev) => ({
       ...prev,
-      assigned_plan: plan as typeof form.assigned_plan,
+      assigned_plan: plan,
       simulations_quota: cfg.quota,
       expires_at: addDays(cfg.days),
     }));
@@ -97,7 +136,7 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
 
     const payload = {
       ...form,
-      expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : "",
+      expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
       cohort_tag: form.cohort_tag || null,
     };
 
@@ -187,71 +226,79 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
             </Field>
           )}
 
-          {/* Plan de tarification */}
-          <Field label="Plan de tarification">
+          <Field label="Rôle">
             <select
-              value={form.assigned_plan}
-              onChange={(e) => handlePlanChange(e.target.value)}
+              value={form.role}
+              onChange={(e) => handleRoleChange(e.target.value)}
               className={inputCls}
             >
-              {mode === "create" && (
-                <optgroup label="Plans spéciaux">
-                  {Object.entries(ADMIN_ONLY_PLANS).map(([key, cfg]) => (
-                    <option key={key} value={key}>{cfg.label}</option>
-                  ))}
-                </optgroup>
-              )}
-              <optgroup label="Plans standards">
-                {Object.entries(PLAN_CONFIG).map(([key, cfg]) => (
-                  <option key={key} value={key}>{cfg.label}</option>
-                ))}
-              </optgroup>
+              <option value="student">Étudiant</option>
+              <option value="admin">Admin</option>
+              <option value="super_admin">Super Admin</option>
             </select>
           </Field>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Rôle">
-              <select
-                value={form.role}
-                onChange={(e) => set("role", e.target.value as typeof form.role)}
-                className={inputCls}
-              >
-                <option value="student">Étudiant</option>
-                <option value="admin">Admin</option>
-                <option value="super_admin">Super Admin</option>
-              </select>
-            </Field>
-            <Field label="Quota simulations">
-              <input
-                type="number"
-                min={1}
-                max={500}
-                required
-                value={form.simulations_quota}
-                onChange={(e) => set("simulations_quota", Number(e.target.value))}
-                className={inputCls}
-              />
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Expiration">
-              <input
-                type="date"
-                required={mode === "create"}
-                value={form.expires_at}
-                onChange={(e) => set("expires_at", e.target.value)}
-                className={inputCls}
-              />
-            </Field>
-            <Field label="Cohorte (optionnel)">
-              <input
-                value={form.cohort_tag}
-                onChange={(e) => set("cohort_tag", e.target.value)}
-                className={inputCls}
-                placeholder="ex: Janvier2025"
-              />
-            </Field>
-          </div>
+          {isStaffRole ? (
+            <p className="rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)]/40 px-4 py-3 text-xs text-[var(--slate-500)]">
+              Les comptes Admin et Super Admin n&apos;ont pas de plan d&apos;abonnement — ce compte
+              n&apos;est concerné ni par un quota de simulations ni par une date d&apos;expiration.
+            </p>
+          ) : (
+            <>
+              <Field label="Plan de tarification">
+                <select
+                  value={form.assigned_plan ?? ""}
+                  onChange={(e) => handlePlanChange(e.target.value)}
+                  className={inputCls}
+                >
+                  {mode === "create" && (
+                    <optgroup label="Plans spéciaux">
+                      {Object.entries(ADMIN_ONLY_PLANS).map(([key, cfg]) => (
+                        <option key={key} value={key}>{cfg.label}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <optgroup label="Plans standards">
+                    {Object.entries(PLAN_CONFIG).map(([key, cfg]) => (
+                      <option key={key} value={key}>{cfg.label}</option>
+                    ))}
+                  </optgroup>
+                </select>
+              </Field>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Quota simulations">
+                  <input
+                    type="number"
+                    min={1}
+                    max={500}
+                    required
+                    value={form.simulations_quota ?? ""}
+                    onChange={(e) => set("simulations_quota", Number(e.target.value))}
+                    className={inputCls}
+                  />
+                </Field>
+                <Field label="Expiration">
+                  <input
+                    type="date"
+                    required={mode === "create"}
+                    value={form.expires_at ?? ""}
+                    onChange={(e) => set("expires_at", e.target.value)}
+                    className={inputCls}
+                  />
+                </Field>
+              </div>
+            </>
+          )}
+
+          <Field label="Cohorte (optionnel)">
+            <input
+              value={form.cohort_tag}
+              onChange={(e) => set("cohort_tag", e.target.value)}
+              className={inputCls}
+              placeholder="ex: Janvier2025"
+            />
+          </Field>
 
           {/* Options d'accès */}
           <div className="space-y-2 rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)]/40 px-4 py-3">

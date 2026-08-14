@@ -236,7 +236,7 @@ Identifie d'abord le thème, le destinataire, le registre et les informations ob
 === CRITÈRES D'ÉVALUATION (OBLIGATOIRES) ===
 
 - "comprehension_du_sujet" : le candidat a-t-il compris et traité l'intégralité de la consigne ? Cite un passage exact de la transcription entre guillemets.
-- "respect_de_methodologie" : la structure attendue de l'exercice (introduction, développement, conclusion, temps de parole exploité) est-elle respectée ?
+- "respect_de_methodologie" : la grille de structure attendue pour CETTE tâche précise (fournie dans le prompt utilisateur sous "GRILLE DE STRUCTURE ATTENDUE") est-elle respectée ? Vérifie CHAQUE élément de la grille un par un contre la transcription, et nomme explicitement dans ta réponse les éléments présents et ceux manquants ou insuffisants (ex : "il manque le remerciement final", "seulement 8 questions posées sur les ~12 attendues"). Ne te contente jamais d'une impression générale de structure — la grille fournie fait foi.
 - "niveau_linguistique" : grammaire à l'oral, richesse lexicale, complexité syntaxique, conjugaison. Cite un passage exact.
 - "fluidite" : débit, hésitations, reprises, faux départs, pauses visibles dans la transcription (ex: répétitions de mots, phrases inachevées) — évalue si le discours est fluide ou haché.
 - "prononciation_et_intonation" : à partir des indices disponibles dans la transcription (mots mal formés, incohérences typiques d'une reconnaissance vocale de mots mal prononcés, ponctuation suggérant l'intonation), donne une estimation prudente et raisonnable. Si la transcription ne permet aucune inférence fiable, indique-le explicitement plutôt que d'inventer un jugement.
