@@ -22,6 +22,7 @@ export async function proxy(request: NextRequest) {
     }
   );
 
+  
   // getUser() re-validates the token with the Supabase Auth server on every
   // request — unlike getSession() which trusts the client cookie unverified.
   const {
