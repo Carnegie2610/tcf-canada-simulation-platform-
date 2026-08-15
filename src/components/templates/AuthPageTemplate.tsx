@@ -29,7 +29,7 @@ export function AuthPageTemplate({
         {backHref && (
           <Link
             href={backHref}
-            className="mb-4 inline-flex items-center gap-1.5 rounded-lg border border-[--slate-700] bg-[--slate-800] px-3 py-1.5 text-sm font-medium text-[--slate-300] transition-colors hover:bg-[--slate-700] hover:text-white"
+            className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[--blue-400] transition-colors hover:text-[--blue-300]"
           >
             {backLabel}
           </Link>

@@ -66,7 +66,9 @@ function OtpBoxes({
             onChange={(e) => setDigit(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
             onPaste={handlePaste}
-            className="h-9 w-9 shrink-0 rounded-lg border border-[--blue-800] bg-[--slate-950] text-center text-base font-semibold text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[--blue-500] disabled:opacity-50 sm:h-14 sm:w-14 sm:text-2xl"
+            className={`h-9 w-9 shrink-0 rounded-lg border border-gray-300 text-center text-base font-semibold text-slate-950 transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[--blue-500] disabled:opacity-50 sm:h-14 sm:w-14 sm:text-2xl ${
+              digit ? "bg-gray-300" : "bg-white"
+            }`}
           />
         ))}
       </div>
@@ -166,13 +168,29 @@ function VerifyOtpForm() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-center text-xl font-semibold tracking-wide text-[--slate-100] sm:text-2xl">
+      <div className="text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[--blue-800] bg-[--slate-950]">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.75}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-6 w-6 text-[--blue-400]"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="M9.5 12l1.8 1.8L15 10" />
+          </svg>
+        </div>
+        <h2 className="mt-4 font-serif text-2xl font-bold tracking-wide text-[--blue-300] sm:text-3xl">
           VERIFICATION OTP
         </h2>
-        <p className="mt-8 w-full text-left text-base text-[--slate-400]">
-          Un code à {CODE_LENGTH} chiffres a été envoyé à{" "}
-          <span className="text-[--slate-200]">{email}</span>.
+        <p className="mt-8 text-base text-[--slate-400]">
+          Un code à {CODE_LENGTH} chiffres a été envoyé à
+          <br />
+          <span className="font-semibold text-[--slate-200]">{email}</span>.
           <br />
           Entrez-le ci-dessous pour continuer.
         </p>
@@ -203,9 +221,9 @@ function VerifyOtpForm() {
           size="lg"
           loading={loading}
           disabled={loading || code.length !== CODE_LENGTH}
-          className="w-full justify-center bg-[--blue-600] hover:bg-[--blue-500] shadow-blue-900/30"
+          className="w-full justify-center gap-2 bg-[--blue-600] hover:bg-[--blue-500] shadow-blue-900/30"
         >
-          Vérifier
+          Vérifier <span aria-hidden="true">→</span>
         </Button>
       </form>
 
