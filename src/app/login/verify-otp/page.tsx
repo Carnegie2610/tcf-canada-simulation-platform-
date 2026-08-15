@@ -49,29 +49,27 @@ function OtpBoxes({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex flex-nowrap justify-center gap-1.5 sm:gap-3">
-        {digits.map((digit, i) => (
-          <input
-            key={i}
-            ref={(el) => {
-              inputRefs.current[i] = el;
-            }}
-            type="text"
-            inputMode="numeric"
-            autoComplete={i === 0 ? "one-time-code" : "off"}
-            maxLength={1}
-            value={digit}
-            disabled={disabled}
-            onChange={(e) => setDigit(i, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(i, e)}
-            onPaste={handlePaste}
-            className={`h-9 w-9 shrink-0 rounded-lg border border-gray-300 text-center text-base font-semibold text-slate-950 transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[--blue-500] disabled:opacity-50 sm:h-14 sm:w-14 sm:text-2xl ${
-              digit ? "bg-gray-300" : "bg-white"
-            }`}
-          />
-        ))}
-      </div>
+    <div className="flex gap-1.5 sm:gap-3">
+      {digits.map((digit, i) => (
+        <input
+          key={i}
+          ref={(el) => {
+            inputRefs.current[i] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          autoComplete={i === 0 ? "one-time-code" : "off"}
+          maxLength={1}
+          value={digit}
+          disabled={disabled}
+          onChange={(e) => setDigit(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)}
+          onPaste={handlePaste}
+          className={`aspect-square w-full min-w-0 flex-1 rounded-lg border border-gray-300 text-center text-lg font-semibold text-slate-950 transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[--blue-500] disabled:opacity-50 sm:text-2xl ${
+            digit ? "bg-gray-300" : "bg-white"
+          }`}
+        />
+      ))}
     </div>
   );
 }
