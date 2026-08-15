@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/atoms/Button";
 
 interface AuthFormProps {
-  onSubmit: (email: string, password: string) => Promise<void>;
+  onSubmit: (email: string, password: string, rememberMe: boolean) => Promise<void>;
   loading: boolean;
   error: string | null;
   onForgotPassword?: (email: string) => Promise<string | null>;
@@ -29,6 +29,7 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
@@ -38,7 +39,7 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await onSubmit(email, password);
+    await onSubmit(email, password, rememberMe);
   }
 
   async function handleForgotSubmit(e: React.FormEvent) {
@@ -107,57 +108,69 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="space-y-1.5">
-        <label htmlFor="email" className="block text-sm font-medium text-[--slate-200]">
-          Adresse e-mail
-        </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 text-sm text-white placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
-          placeholder="votre@email.com"
-        />
+      <div className="space-y-8">
+        <div className="space-y-1.5">
+          <label htmlFor="email" className="block text-sm font-medium text-[--slate-200]">
+            Adresse e-mail
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 text-sm text-white placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
+            placeholder="votre@email.com"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label htmlFor="password" className="block text-sm font-medium text-[--slate-200]">
+            Mot de passe
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPw ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 pr-10 text-sm text-white placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              className="absolute inset-y-0 right-3 flex items-center text-[--slate-500] hover:text-[--slate-300] transition-colors"
+              tabIndex={-1}
+              aria-label={showPw ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            >
+              <EyeIcon open={showPw} />
+            </button>
+          </div>
+          {onForgotPassword && (
+            <button
+              type="button"
+              onClick={() => { setForgotMode(true); setForgotEmail(email); }}
+              className="mt-1 text-xs text-[--slate-500] hover:text-[--blue-400] transition-colors"
+            >
+              Mot de passe oublié ?
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-1.5">
-        <label htmlFor="password" className="block text-sm font-medium text-[--slate-200]">
-          Mot de passe
-        </label>
-        <div className="relative">
-          <input
-            id="password"
-            type={showPw ? "text" : "password"}
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 pr-10 text-sm text-white placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
-            placeholder="••••••••"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPw((v) => !v)}
-            className="absolute inset-y-0 right-3 flex items-center text-[--slate-500] hover:text-[--slate-300] transition-colors"
-            tabIndex={-1}
-            aria-label={showPw ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-          >
-            <EyeIcon open={showPw} />
-          </button>
-        </div>
-        {onForgotPassword && (
-          <button
-            type="button"
-            onClick={() => { setForgotMode(true); setForgotEmail(email); }}
-            className="mt-1 text-xs text-[--slate-500] hover:text-[--blue-400] transition-colors"
-          >
-            Mot de passe oublié ?
-          </button>
-        )}
-      </div>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={rememberMe}
+          onChange={(e) => setRememberMe(e.target.checked)}
+          className="rounded border-[--slate-600] bg-[--slate-800]"
+        />
+        <span className="text-sm text-[--slate-300]">Se souvenir de moi</span>
+      </label>
 
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">

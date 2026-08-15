@@ -78,6 +78,7 @@ function VerifyOtpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
+  const rememberMe = searchParams.get("remember") === "1";
 
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(""));
   const [loading, setLoading] = useState(false);
@@ -107,7 +108,7 @@ function VerifyOtpForm() {
     setError(null);
 
     try {
-      const supabase = createSupabaseBrowserClient();
+      const supabase = createSupabaseBrowserClient({ persistSession: rememberMe });
       const { error: verifyError } = await supabase.auth.verifyOtp({
         email: email!,
         token: code,

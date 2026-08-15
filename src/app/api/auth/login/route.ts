@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 const LoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  rememberMe: z.boolean().optional(),
 });
 
 // Centralizes login so a super_admin's session can be torn down again in this same
@@ -17,9 +18,9 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
-  const { email, password } = parsed.data;
+  const { email, password, rememberMe } = parsed.data;
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient({ persistSession: rememberMe ?? false });
 
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
     email,

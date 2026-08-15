@@ -19,7 +19,7 @@ export default function LoginPage() {
     return error ? "Aucun compte trouvé pour cette adresse ou erreur réseau." : null;
   }
 
-  async function handleSignIn(email: string, password: string) {
+  async function handleSignIn(email: string, password: string, rememberMe: boolean) {
     setLoading(true);
     setError(null);
 
@@ -27,7 +27,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe }),
       });
       const json = (await res.json()) as {
         requiresOtp?: boolean;
@@ -42,7 +42,9 @@ export default function LoginPage() {
       }
 
       if (json.requiresOtp) {
-        router.push(`/login/verify-otp?email=${encodeURIComponent(json.email ?? email)}`);
+        router.push(
+          `/login/verify-otp?email=${encodeURIComponent(json.email ?? email)}&remember=${rememberMe ? "1" : "0"}`
+        );
         return;
       }
 
