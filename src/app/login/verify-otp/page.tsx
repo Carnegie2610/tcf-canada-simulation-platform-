@@ -49,25 +49,27 @@ function OtpBoxes({
   }
 
   return (
-    <div className="flex flex-wrap justify-center gap-1.5">
-      {digits.map((digit, i) => (
-        <input
-          key={i}
-          ref={(el) => {
-            inputRefs.current[i] = el;
-          }}
-          type="text"
-          inputMode="numeric"
-          autoComplete={i === 0 ? "one-time-code" : "off"}
-          maxLength={1}
-          value={digit}
-          disabled={disabled}
-          onChange={(e) => setDigit(i, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(i, e)}
-          onPaste={handlePaste}
-          className="h-12 w-9 rounded-lg border border-[--slate-700] bg-[--slate-950] text-center text-lg font-semibold text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[--blue-500] disabled:opacity-50"
-        />
-      ))}
+    <div className="overflow-x-auto">
+      <div className="flex flex-nowrap justify-center gap-1.5 sm:gap-3">
+        {digits.map((digit, i) => (
+          <input
+            key={i}
+            ref={(el) => {
+              inputRefs.current[i] = el;
+            }}
+            type="text"
+            inputMode="numeric"
+            autoComplete={i === 0 ? "one-time-code" : "off"}
+            maxLength={1}
+            value={digit}
+            disabled={disabled}
+            onChange={(e) => setDigit(i, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(i, e)}
+            onPaste={handlePaste}
+            className="h-9 w-9 shrink-0 rounded-lg border border-[--blue-800] bg-[--slate-950] text-center text-base font-semibold text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[--blue-500] disabled:opacity-50 sm:h-14 sm:w-14 sm:text-2xl"
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -163,19 +165,22 @@ function VerifyOtpForm() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-base font-semibold text-[--slate-100]">Vérification en deux étapes</h2>
-        <p className="mt-1 text-sm text-[--slate-400]">
+        <h2 className="text-center text-xl font-semibold tracking-wide text-[--slate-100] sm:text-2xl">
+          VERIFICATION OTP
+        </h2>
+        <p className="mt-8 w-full text-left text-base text-[--slate-400]">
           Un code à {CODE_LENGTH} chiffres a été envoyé à{" "}
-          <span className="text-[--slate-200]">{email}</span>. Entrez-le ci-dessous pour
-          continuer.
+          <span className="text-[--slate-200]">{email}</span>.
+          <br />
+          Entrez-le ci-dessous pour continuer.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1.5">
-          <label className="block text-center text-sm font-medium text-[--slate-200]">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <label className="block text-center text-base font-medium text-[--slate-200]">
             Code de vérification
           </label>
           <OtpBoxes digits={digits} onChange={setDigits} disabled={loading} />
@@ -195,6 +200,7 @@ function VerifyOtpForm() {
 
         <Button
           type="submit"
+          size="lg"
           loading={loading}
           disabled={loading || code.length !== CODE_LENGTH}
           className="w-full justify-center bg-[--blue-600] hover:bg-[--blue-500] shadow-blue-900/30"
@@ -203,35 +209,34 @@ function VerifyOtpForm() {
         </Button>
       </form>
 
-      <div className="text-center">
+      <div className="text-center text-lg">
         <button
           type="button"
           onClick={handleResend}
           disabled={resendCooldown > 0 || resendLoading}
-          className="text-sm font-medium text-[--blue-400] underline underline-offset-2 hover:text-[--blue-300] transition-colors disabled:cursor-not-allowed disabled:text-[--slate-500] disabled:no-underline"
+          className="font-medium disabled:cursor-not-allowed"
         >
-          {resendLoading
-            ? "Envoi en cours..."
-            : resendCooldown > 0
-              ? `Renvoyer le code (${resendCooldown}s)`
-              : "Vous n'avez rien reçu ? Renvoyer le code"}
+          {resendLoading ? (
+            <span className="text-[--slate-500]">Envoi en cours...</span>
+          ) : resendCooldown > 0 ? (
+            <span className="text-[--slate-500]">{`Renvoyer le code (${resendCooldown}s)`}</span>
+          ) : (
+            <>
+              <span className="block text-[--slate-400]">Vous n&apos;avez rien reçu ?</span>
+              <span className="mt-1 block text-[--blue-400] underline underline-offset-2 hover:text-[--blue-300] transition-colors">
+                Renvoyer le code
+              </span>
+            </>
+          )}
         </button>
       </div>
-
-      <button
-        type="button"
-        onClick={() => router.push("/login")}
-        className="text-xs text-[--slate-500] hover:text-[--slate-300] transition-colors"
-      >
-        ← Retour à la connexion
-      </button>
     </div>
   );
 }
 
 export default function VerifyOtpPage() {
   return (
-    <AuthPageTemplate>
+    <AuthPageTemplate wide showHeading={false} backHref="/login">
       <Suspense fallback={null}>
         <VerifyOtpForm />
       </Suspense>
