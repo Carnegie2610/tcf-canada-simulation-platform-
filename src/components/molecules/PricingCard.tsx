@@ -72,13 +72,13 @@ export function PricingCard({
     : "border border-[--slate-700] bg-[--slate-800] text-[--slate-200] hover:bg-[--slate-700]";
 
   const durationPillClass = isHighlighted
-    ? "bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/30"
+    ? "bg-blue-500/10 text-[--accent-blue-text] ring-1 ring-blue-500/30"
     : isSecondary
-    ? "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30"
+    ? "bg-emerald-500/10 text-[--accent-emerald-text] ring-1 ring-emerald-500/30"
     : accent === "purple"
-    ? "bg-purple-500/10 text-purple-400 ring-1 ring-purple-500/30"
+    ? "bg-purple-500/10 text-[--accent-purple-text] ring-1 ring-purple-500/30"
     : accent === "amber"
-    ? "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30"
+    ? "bg-amber-500/10 text-[--accent-amber-text] ring-1 ring-amber-500/30"
     : "bg-[--slate-800] text-[--slate-400] ring-1 ring-[--slate-700]";
 
   return (
@@ -100,13 +100,13 @@ export function PricingCard({
         </div>
       )}
 
-      <h3 className="font-(family-name:--font-sora) text-lg font-bold text-white">
+      <h3 className="font-(family-name:--font-sora) text-lg font-bold text-[--slate-200]">
         {name}
       </h3>
 
       <div className="secure-canvas-wrapper mt-5">
         <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
-          <p className="whitespace-nowrap text-3xl font-black text-white xl:text-4xl">
+          <p className="whitespace-nowrap text-3xl font-black text-[--slate-200] xl:text-4xl">
             {price}{" "}
             <span className="text-sm font-normal text-[--slate-400]">{currency}</span>
           </p>
@@ -124,7 +124,7 @@ export function PricingCard({
           return (
             <li
               key={feature}
-              className={`flex items-start gap-2 text-sm ${isStarred ? "font-semibold text-white" : "text-[--slate-400]"}`}
+              className={`flex items-start gap-2 text-sm ${isStarred ? "font-semibold text-[--slate-200]" : "text-[--slate-400]"}`}
             >
               <CheckIcon />
               {label}

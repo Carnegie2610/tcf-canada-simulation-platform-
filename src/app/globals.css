@@ -18,6 +18,50 @@
   --blue-400: #60A5FA;
   --blue-300: #93C5FD;
   --highlight-gold: #F59E0B;
+  --accent-blue-text: #60A5FA;
+  --accent-emerald-text: #34D399;
+  --accent-purple-text: #C084FC;
+  --accent-amber-text: #FBBF24;
+  --accent-red-text: #F87171;
+  --accent-orange-text: #FB923C;
+}
+
+/* Light theme — applied when the OS prefers light and the user hasn't explicitly chosen dark */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --brand-white: #0F172A;
+    --slate-950: #F8FAFC;
+    --slate-900: #FFFFFF;
+    --slate-800: #E2E8F0;
+    --slate-700: #CBD5E1;
+    --slate-500: #55677D;
+    --slate-400: #334155;
+    --slate-200: #0B1120;
+    --accent-blue-text: #1D4ED8;
+    --accent-emerald-text: #047857;
+    --accent-purple-text: #7E22CE;
+    --accent-amber-text: #B45309;
+    --accent-red-text: #B91C1C;
+    --accent-orange-text: #C2410C;
+  }
+}
+
+/* Light theme — explicit user choice, wins regardless of OS preference */
+:root[data-theme="light"] {
+  --brand-white: #0F172A;
+  --slate-950: #F8FAFC;
+  --slate-900: #FFFFFF;
+  --slate-800: #E2E8F0;
+  --slate-700: #CBD5E1;
+  --slate-500: #55677D;
+  --slate-400: #334155;
+  --slate-200: #0B1120;
+  --accent-blue-text: #1D4ED8;
+  --accent-emerald-text: #047857;
+  --accent-purple-text: #7E22CE;
+  --accent-amber-text: #B45309;
+  --accent-red-text: #B91C1C;
+  --accent-orange-text: #C2410C;
 }
 
 @theme inline {
@@ -31,6 +75,7 @@ body {
   background: var(--slate-950);
   color: var(--slate-200);
   font-family: var(--font-jakarta), system-ui, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Atmospheric glow behind hero headline */

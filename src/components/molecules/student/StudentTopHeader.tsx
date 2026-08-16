@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { ThemeToggle } from "@/components/atoms/ThemeToggle";
 
 interface StudentTopHeaderProps {
   userId: string;
@@ -173,6 +174,8 @@ export function StudentTopHeader({
           {used}&thinsp;/&thinsp;{total}
           <span className="hidden sm:inline"> simulations</span>
         </span>
+
+        <ThemeToggle />
 
         {/* User dropdown */}
         <div className="relative" ref={dropdownRef}>

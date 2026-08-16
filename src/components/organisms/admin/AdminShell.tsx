@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignOutButton } from "@/components/molecules/student/SignOutButton";
+import { ThemeToggle } from "@/components/atoms/ThemeToggle";
 import type { UserRole } from "@/lib/admin/types";
 
 interface AdminShellProps {
@@ -63,13 +64,16 @@ export function AdminShell({ children, currentUserName, currentUserRole }: Admin
 
         {/* User info + logout */}
         <div className="border-t border-[var(--slate-800)] px-5 py-4 space-y-3">
-          <div>
-            <p className="truncate text-sm font-medium text-[var(--brand-white)]">
-              {currentUserName}
-            </p>
-            <span className="mt-1 inline-flex rounded bg-[var(--blue-600)]/20 px-2 py-0.5 text-xs font-medium text-[var(--blue-500)]">
-              {roleLabel[currentUserRole]}
-            </span>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-[var(--brand-white)]">
+                {currentUserName}
+              </p>
+              <span className="mt-1 inline-flex rounded bg-[var(--blue-600)]/20 px-2 py-0.5 text-xs font-medium text-[var(--blue-500)]">
+                {roleLabel[currentUserRole]}
+              </span>
+            </div>
+            <ThemeToggle />
           </div>
           <SignOutButton />
         </div>

@@ -16,7 +16,7 @@ export function SkillCard({ icon, title, description, href }: SkillCardProps) {
     >
       <Icon emoji={icon} label={title} />
       <div className="space-y-2">
-        <h3 className="font-(family-name:--font-sora) text-lg font-bold text-white">
+        <h3 className="font-(family-name:--font-sora) text-lg font-bold text-[--slate-200]">
           {title}
         </h3>
         <p className="text-sm leading-relaxed text-[--slate-400]">{description}</p>

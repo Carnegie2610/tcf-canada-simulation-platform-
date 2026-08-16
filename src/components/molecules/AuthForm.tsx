@@ -80,7 +80,7 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
                 required
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
-                className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 text-sm text-white placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
+                className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 text-sm text-[--slate-200] placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
                 placeholder="votre@email.com"
               />
             </div>
@@ -120,7 +120,7 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 text-sm text-white placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
+            className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 text-sm text-[--slate-200] placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
             placeholder="votre@email.com"
           />
         </div>
@@ -137,7 +137,7 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 pr-10 text-sm text-white placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
+              className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 pr-10 text-sm text-[--slate-200] placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
               placeholder="••••••••"
             />
             <button

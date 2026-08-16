@@ -10,9 +10,9 @@ export function HeroSection() {
         <div className="text-center lg:text-left">
           <SectionLabel>Préparation TEF / TCF Canada</SectionLabel>
 
-          <h1 className="mt-6 font-(family-name:--font-sora) text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
+          <h1 className="mt-6 font-(family-name:--font-sora) text-4xl font-black tracking-tight text-[--slate-200] sm:text-5xl lg:text-6xl">
             Réussissez votre examen de français.{" "}
-            <span className="bg-gradient-to-r from-[--brand-red] to-orange-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[--brand-red] to-[--accent-orange-text] bg-clip-text text-transparent">
               Immigrez au Canada.
             </span>
           </h1>

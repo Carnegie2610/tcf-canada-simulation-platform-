@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { NavLink } from "@/components/atoms/NavLink";
 import { Button } from "@/components/atoms/Button";
+import { ThemeToggle } from "@/components/atoms/ThemeToggle";
 
 interface NavItem {
   href: string;
@@ -50,6 +51,7 @@ export function NavBar({ navItems }: NavBarProps) {
       </ul>
 
       <div className="flex items-center gap-2">
+        <ThemeToggle />
         <Button variant="secondary" size="sm" href="/login">
           Connexion
         </Button>
@@ -88,7 +90,7 @@ export function NavBar({ navItems }: NavBarProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="block px-4 py-2.5 text-sm text-[--slate-400] hover:bg-[--slate-800] hover:text-white transition-colors"
+                  className="block px-4 py-2.5 text-sm text-[--slate-400] hover:bg-[--slate-800] hover:text-[--slate-200] transition-colors"
                 >
                   {item.label}
                 </Link>

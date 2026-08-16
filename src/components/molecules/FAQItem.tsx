@@ -16,7 +16,7 @@ export function FAQItem({ question, answer }: FAQItemProps) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-4 text-left font-(family-name:--font-sora) text-lg font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[--slate-900] focus-visible:ring-[--brand-red]"
+        className="flex w-full items-center justify-between gap-4 text-left font-(family-name:--font-sora) text-lg font-bold text-[--slate-200] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[--slate-900] focus-visible:ring-[--brand-red]"
       >
         {question}
         <svg

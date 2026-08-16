@@ -45,7 +45,7 @@ export function AuthPageTemplate({
             </Link>
             {showHeading && (
               <>
-                <h1 className="mt-6 font-(family-name:--font-sora) text-2xl font-bold text-white">
+                <h1 className="mt-6 font-(family-name:--font-sora) text-2xl font-bold text-[--slate-200]">
                   Connexion à votre espace
                 </h1>
                 <p className="mt-2 text-sm text-[--slate-400]">

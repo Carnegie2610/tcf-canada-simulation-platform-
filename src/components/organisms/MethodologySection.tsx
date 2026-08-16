@@ -21,7 +21,7 @@ export function MethodologySection() {
     <section className="w-full px-4 py-20">
       <div className="mx-auto max-w-3xl space-y-8 text-center">
         <div className="space-y-3">
-          <h2 className="font-(family-name:--font-sora) text-3xl font-bold tracking-tight text-white">
+          <h2 className="font-(family-name:--font-sora) text-3xl font-bold tracking-tight text-[--slate-200]">
             Préparation TCF Canada
           </h2>
           <p className="text-lg font-semibold text-[--slate-200]">
@@ -31,7 +31,7 @@ export function MethodologySection() {
 
         <div className="space-y-4 text-left sm:text-center">
           <p className="text-base leading-relaxed text-[--slate-400]">
-            <span className="font-semibold text-white">Pack Objectif4C2</span> aide les candidats
+            <span className="font-semibold text-[--slate-200]">Pack Objectif4C2</span> aide les candidats
             à préparer le TCF Canada avec des exercices organisés par compétence, des simulations
             et une correction IA pour l&apos;expression écrite et orale.
           </p>
@@ -50,7 +50,7 @@ export function MethodologySection() {
           ))}
         </ul>
 
-        <h3 className="font-(family-name:--font-sora) text-xl font-bold text-white">
+        <h3 className="font-(family-name:--font-sora) text-xl font-bold text-[--slate-200]">
           Pourquoi choisir Pack Objectif4C2 ?
         </h3>
       </div>

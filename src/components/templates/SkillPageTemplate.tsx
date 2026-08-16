@@ -40,7 +40,7 @@ export function SkillPageTemplate({
     <div className="mx-auto max-w-3xl px-4 py-20">
       <SectionLabel>Épreuve TEF / TCF Canada</SectionLabel>
 
-      <h1 className="mt-6 font-(family-name:--font-sora) text-4xl font-black tracking-tight text-white sm:text-5xl">
+      <h1 className="mt-6 font-(family-name:--font-sora) text-4xl font-black tracking-tight text-[--slate-200] sm:text-5xl">
         {emoji} {title}
       </h1>
 
@@ -49,21 +49,21 @@ export function SkillPageTemplate({
       <div className="mt-8 grid grid-cols-2 gap-4 sm:max-w-sm">
         <div className="rounded-xl bg-[--slate-900] p-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-[--slate-500]">Durée</p>
-          <p className="mt-1 text-lg font-bold text-white">{durationLabel}</p>
+          <p className="mt-1 text-lg font-bold text-[--slate-200]">{durationLabel}</p>
         </div>
         <div className="rounded-xl bg-[--slate-900] p-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-[--slate-500]">Format</p>
-          <p className="mt-1 text-lg font-bold text-white">{taskCountLabel}</p>
+          <p className="mt-1 text-lg font-bold text-[--slate-200]">{taskCountLabel}</p>
         </div>
       </div>
 
-      <h2 className="mt-14 font-(family-name:--font-sora) text-2xl font-bold text-white">
+      <h2 className="mt-14 font-(family-name:--font-sora) text-2xl font-bold text-[--slate-200]">
         Structure de l&apos;épreuve
       </h2>
       <div className="mt-6 space-y-4">
         {format.map((item) => (
           <div key={item.title} className="rounded-2xl bg-[--slate-900] p-6">
-            <h3 className="font-(family-name:--font-sora) text-lg font-bold text-white">
+            <h3 className="font-(family-name:--font-sora) text-lg font-bold text-[--slate-200]">
               {item.title}
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-[--slate-400]">{item.description}</p>
@@ -71,7 +71,7 @@ export function SkillPageTemplate({
         ))}
       </div>
 
-      <h2 className="mt-14 font-(family-name:--font-sora) text-2xl font-bold text-white">
+      <h2 className="mt-14 font-(family-name:--font-sora) text-2xl font-bold text-[--slate-200]">
         Conseils pratiques
       </h2>
       <ul className="mt-6 space-y-3">
