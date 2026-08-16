@@ -13,7 +13,7 @@ interface FooterColumnProps {
 export function FooterColumn({ title, links }: FooterColumnProps) {
   return (
     <div className="space-y-4">
-      <h4 className="font-(family-name:--font-sora) text-sm font-bold uppercase tracking-widest text-[--slate-400]">
+      <h4 className="font-(family-name:--font-sora) text-sm font-bold uppercase tracking-widest text-[var(--slate-400)]">
         {title}
       </h4>
       <ul className="space-y-2.5">
@@ -21,7 +21,7 @@ export function FooterColumn({ title, links }: FooterColumnProps) {
           <li key={link.href}>
             <Link
               href={link.href}
-              className="text-sm text-[--slate-500] transition-colors hover:text-[--slate-200]"
+              className="text-sm text-[var(--slate-500)] transition-colors hover:text-[var(--slate-200)]"
             >
               {link.label}
             </Link>

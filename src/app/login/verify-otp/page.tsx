@@ -65,7 +65,7 @@ function OtpBoxes({
           onChange={(e) => setDigit(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
-          className={`aspect-square w-full min-w-0 flex-1 rounded-lg border border-gray-300 text-center text-lg font-semibold text-slate-950 transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[--blue-500] disabled:opacity-50 sm:text-2xl ${
+          className={`aspect-square w-full min-w-0 flex-1 rounded-lg border border-gray-300 text-center text-lg font-semibold text-slate-950 transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--blue-500)] disabled:opacity-50 sm:text-2xl ${
             digit ? "bg-gray-300" : "bg-white"
           }`}
         />
@@ -90,7 +90,7 @@ function VerifyOtpForm() {
   if (!email) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-[--slate-300]">
+        <p className="text-sm text-[var(--slate-300)]">
           Aucune adresse e-mail à vérifier. Veuillez recommencer la connexion.
         </p>
         <Button href="/login" className="w-full justify-center">
@@ -168,7 +168,7 @@ function VerifyOtpForm() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[--blue-800] bg-[--slate-950]">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-[var(--blue-800)] bg-[var(--slate-950)]">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -177,19 +177,19 @@ function VerifyOtpForm() {
             strokeWidth={1.75}
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-6 w-6 text-[--blue-400]"
+            className="h-6 w-6 text-[var(--blue-400)]"
           >
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             <path d="M9.5 12l1.8 1.8L15 10" />
           </svg>
         </div>
-        <h2 className="mt-4 font-serif text-2xl font-bold tracking-wide text-[--blue-300] sm:text-3xl">
+        <h2 className="mt-4 font-serif text-2xl font-bold tracking-wide text-[var(--blue-300)] sm:text-3xl">
           VERIFICATION OTP
         </h2>
-        <p className="mt-8 text-base text-[--slate-400]">
+        <p className="mt-8 text-base text-[var(--slate-400)]">
           Un code à {CODE_LENGTH} chiffres a été envoyé à
           <br />
-          <span className="font-semibold text-[--slate-200]">{email}</span>.
+          <span className="font-semibold text-[var(--slate-200)]">{email}</span>.
           <br />
           Entrez-le ci-dessous pour continuer.
         </p>
@@ -197,7 +197,7 @@ function VerifyOtpForm() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <label className="block text-center text-base font-medium text-[--slate-200]">
+          <label className="block text-center text-base font-medium text-[var(--slate-200)]">
             Code de vérification
           </label>
           <OtpBoxes digits={digits} onChange={setDigits} disabled={loading} />
@@ -220,7 +220,7 @@ function VerifyOtpForm() {
           size="lg"
           loading={loading}
           disabled={loading || code.length !== CODE_LENGTH}
-          className="w-full justify-center gap-2 bg-[--blue-600] hover:bg-[--blue-500] shadow-blue-900/30"
+          className="w-full justify-center gap-2 bg-[var(--blue-600)] hover:bg-[var(--blue-500)] shadow-blue-900/30"
         >
           Vérifier <span aria-hidden="true">→</span>
         </Button>
@@ -234,13 +234,13 @@ function VerifyOtpForm() {
           className="font-medium disabled:cursor-not-allowed"
         >
           {resendLoading ? (
-            <span className="text-[--slate-500]">Envoi en cours...</span>
+            <span className="text-[var(--slate-500)]">Envoi en cours...</span>
           ) : resendCooldown > 0 ? (
-            <span className="text-[--slate-500]">{`Renvoyer le code (${resendCooldown}s)`}</span>
+            <span className="text-[var(--slate-500)]">{`Renvoyer le code (${resendCooldown}s)`}</span>
           ) : (
             <>
-              <span className="block text-[--slate-400]">Vous n&apos;avez rien reçu ?</span>
-              <span className="mt-1 block text-[--blue-400] underline underline-offset-2 hover:text-[--blue-300] transition-colors">
+              <span className="block text-[var(--slate-400)]">Vous n&apos;avez rien reçu ?</span>
+              <span className="mt-1 block text-[var(--blue-400)] underline underline-offset-2 hover:text-[var(--blue-300)] transition-colors">
                 Renvoyer le code
               </span>
             </>

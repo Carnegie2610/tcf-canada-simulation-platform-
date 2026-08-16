@@ -31,7 +31,7 @@ export function ThemeToggle() {
             ? "Activer le mode clair"
             : "Activer le mode sombre"
       }
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[--slate-700] text-[--slate-300] transition-colors hover:bg-[--slate-800]"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[var(--slate-700)] text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)]"
     >
       {theme === "dark" && (
         <svg

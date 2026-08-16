@@ -8,7 +8,7 @@ interface PublicPageTemplateProps {
 
 export function PublicPageTemplate({ children }: PublicPageTemplateProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-[--slate-950]">
+    <div className="flex min-h-screen flex-col bg-[var(--slate-950)]">
       <GlobalNav />
       <main className="flex-1">{children}</main>
       <PageFooter />

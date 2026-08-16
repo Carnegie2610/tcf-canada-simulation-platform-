@@ -95,10 +95,10 @@ export function PricingSection() {
     <section id="tarifs" className="w-full px-4 py-20">
       <div className="mx-auto max-w-7xl space-y-12">
         <div className="text-center space-y-3">
-          <h2 className="font-(family-name:--font-sora) text-3xl font-bold tracking-tight text-[--slate-200]">
+          <h2 className="font-(family-name:--font-sora) text-3xl font-bold tracking-tight text-[var(--slate-200)]">
             Choisissez votre formule
           </h2>
-          <p className="mx-auto max-w-xl text-base text-[--slate-400]">
+          <p className="mx-auto max-w-xl text-base text-[var(--slate-400)]">
             Un accès complet aux simulations TEF/TCF Canada avec corrections personnalisées
             par intelligence artificielle.
           </p>
@@ -111,7 +111,7 @@ export function PricingSection() {
         </div>
 
         <div className="secure-canvas-wrapper text-center">
-          <p className="text-xs text-[--slate-500]">
+          <p className="text-xs text-[var(--slate-500)]">
             Les contenus pédagogiques et corrigés sont protégés. Toute reproduction est interdite.
           </p>
         </div>

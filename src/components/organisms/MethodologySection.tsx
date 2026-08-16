@@ -7,7 +7,7 @@ const bulletPoints = [
 
 const CheckIcon = () => (
   <svg
-    className="mt-0.5 h-4 w-4 shrink-0 text-[--brand-red]"
+    className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-red)]"
     viewBox="0 0 16 16"
     fill="currentColor"
     aria-hidden="true"
@@ -21,21 +21,21 @@ export function MethodologySection() {
     <section className="w-full px-4 py-20">
       <div className="mx-auto max-w-3xl space-y-8 text-center">
         <div className="space-y-3">
-          <h2 className="font-(family-name:--font-sora) text-3xl font-bold tracking-tight text-[--slate-200]">
+          <h2 className="font-(family-name:--font-sora) text-3xl font-bold tracking-tight text-[var(--slate-200)]">
             Préparation TCF Canada
           </h2>
-          <p className="text-lg font-semibold text-[--slate-200]">
+          <p className="text-lg font-semibold text-[var(--slate-200)]">
             Une méthode claire pour progresser dans les 4 épreuves
           </p>
         </div>
 
         <div className="space-y-4 text-left sm:text-center">
-          <p className="text-base leading-relaxed text-[--slate-400]">
-            <span className="font-semibold text-[--slate-200]">Pack Objectif4C2</span> aide les candidats
+          <p className="text-base leading-relaxed text-[var(--slate-400)]">
+            <span className="font-semibold text-[var(--slate-200)]">Pack Objectif4C2</span> aide les candidats
             à préparer le TCF Canada avec des exercices organisés par compétence, des simulations
             et une correction IA pour l&apos;expression écrite et orale.
           </p>
-          <p className="text-base leading-relaxed text-[--slate-400]">
+          <p className="text-base leading-relaxed text-[var(--slate-400)]">
             L&apos;objectif est simple : comprendre le format, s&apos;entraîner régulièrement,
             corriger ses erreurs et arriver plus confiant le jour de l&apos;examen.
           </p>
@@ -43,14 +43,14 @@ export function MethodologySection() {
 
         <ul className="mx-auto max-w-md space-y-3 text-left">
           {bulletPoints.map((point) => (
-            <li key={point} className="flex items-start gap-2 text-sm text-[--slate-400]">
+            <li key={point} className="flex items-start gap-2 text-sm text-[var(--slate-400)]">
               <CheckIcon />
               {point}
             </li>
           ))}
         </ul>
 
-        <h3 className="font-(family-name:--font-sora) text-xl font-bold text-[--slate-200]">
+        <h3 className="font-(family-name:--font-sora) text-xl font-bold text-[var(--slate-200)]">
           Pourquoi choisir Pack Objectif4C2 ?
         </h3>
       </div>

@@ -26,14 +26,14 @@ export function AuthPageTemplate({
   backLabel = "← Retour à la connexion",
 }: AuthPageTemplateProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-[--slate-950]">
+    <div className="flex min-h-screen flex-col bg-[var(--slate-950)]">
       <GlobalNav />
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-12">
         <div className={`w-full space-y-8 ${wide ? "max-w-xl" : "max-w-md"}`}>
           {backHref && (
             <Link
               href={backHref}
-              className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[--blue-400] transition-colors hover:text-[--blue-300]"
+              className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--blue-400)] transition-colors hover:text-[var(--blue-300)]"
             >
               {backLabel}
             </Link>
@@ -41,21 +41,21 @@ export function AuthPageTemplate({
           <div className="text-center">
             <Link href="/" className="flex items-center justify-center gap-2 text-lg font-black">
               <img src="/icon-rounded.png" alt="Objectif 4C2 Academy Logo" width={40} height={40} className="h-10 w-10 object-contain" />
-              <span className="text-[--brand-white]">Objectif 4C2 pour tous</span>
+              <span className="text-[var(--brand-white)]">Objectif 4C2 pour tous</span>
             </Link>
             {showHeading && (
               <>
-                <h1 className="mt-6 font-(family-name:--font-sora) text-2xl font-bold text-[--slate-200]">
+                <h1 className="mt-6 font-(family-name:--font-sora) text-2xl font-bold text-[var(--slate-200)]">
                   Connexion à votre espace
                 </h1>
-                <p className="mt-2 text-sm text-[--slate-400]">
+                <p className="mt-2 text-sm text-[var(--slate-400)]">
                   Accès réservé aux comptes provisionnés par l&apos;administrateur.
                 </p>
               </>
             )}
           </div>
 
-          <div className="rounded-2xl border border-[--blue-900] bg-[--slate-900] p-8">
+          <div className="rounded-2xl border border-[var(--blue-900)] bg-[var(--slate-900)] p-8">
             {children}
           </div>
         </div>

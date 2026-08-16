@@ -19,18 +19,18 @@ const columns = [
 
 export function PageFooter() {
   return (
-    <footer className="w-full border-t border-[--slate-800] bg-[--slate-900] px-4 py-14">
+    <footer className="w-full border-t border-[var(--slate-800)] bg-[var(--slate-900)] px-4 py-14">
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           {/* Brand column */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-lg font-black">
               <span>🇨🇦</span>
-              <span className="bg-gradient-to-r from-[--brand-red] to-[--brand-white] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[var(--brand-red)] to-[var(--brand-white)] bg-clip-text text-transparent">
                 Objectif 4C2 pour tous
               </span>
             </div>
-            <p className="max-w-xs text-sm leading-relaxed text-[--slate-500]">
+            <p className="max-w-xs text-sm leading-relaxed text-[var(--slate-500)]">
               La plateforme de préparation TEF/TCF Canada pour les futurs résidents permanents
               francophones.
             </p>
@@ -41,8 +41,8 @@ export function PageFooter() {
           ))}
         </div>
 
-        <div className="secure-canvas-wrapper mt-12 border-t border-[--slate-800] pt-6 text-center">
-          <p className="text-xs text-[--slate-500]">
+        <div className="secure-canvas-wrapper mt-12 border-t border-[var(--slate-800)] pt-6 text-center">
+          <p className="text-xs text-[var(--slate-500)]">
             © {new Date().getFullYear()} Objectif 4C2 pour tous. Tous droits réservés.
             Contenu pédagogique protégé — reproduction interdite.
           </p>

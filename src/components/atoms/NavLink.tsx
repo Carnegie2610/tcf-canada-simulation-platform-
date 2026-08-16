@@ -15,8 +15,8 @@ export function NavLink({ href, label }: NavLinkProps) {
   return (
     <Link
       href={href}
-      className={`relative text-base transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-[--brand-red] after:transition-transform hover:text-[--slate-200] hover:after:scale-x-100 ${
-        isActive ? "text-[--slate-200] after:scale-x-100" : "text-[--slate-400]"
+      className={`relative text-base transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-[var(--brand-red)] after:transition-transform hover:text-[var(--slate-200)] hover:after:scale-x-100 ${
+        isActive ? "text-[var(--slate-200)] after:scale-x-100" : "text-[var(--slate-400)]"
       }`}
     >
       {label}

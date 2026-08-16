@@ -61,8 +61,8 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
     return (
       <div className="space-y-5">
         <div>
-          <h2 className="text-base font-semibold text-[--slate-100]">Réinitialiser le mot de passe</h2>
-          <p className="mt-1 text-sm text-[--slate-400]">
+          <h2 className="text-base font-semibold text-[var(--slate-100)]">Réinitialiser le mot de passe</h2>
+          <p className="mt-1 text-sm text-[var(--slate-400)]">
             Entrez votre adresse e-mail pour recevoir un lien de réinitialisation.
           </p>
         </div>
@@ -74,13 +74,13 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
         ) : (
           <form onSubmit={handleForgotSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-[--slate-200]">Adresse e-mail</label>
+              <label className="block text-sm font-medium text-[var(--slate-200)]">Adresse e-mail</label>
               <input
                 type="email"
                 required
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
-                className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 text-sm text-[--slate-200] placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
+                className="w-full rounded-lg bg-[var(--slate-950)] px-4 py-2.5 text-sm text-[var(--slate-200)] placeholder-[var(--slate-500)] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[var(--blue-500)]"
                 placeholder="votre@email.com"
               />
             </div>
@@ -98,7 +98,7 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
         <button
           type="button"
           onClick={() => { setForgotMode(false); setForgotStatus("idle"); setForgotError(null); }}
-          className="text-xs text-[--slate-500] hover:text-[--slate-300] transition-colors"
+          className="text-xs text-[var(--slate-500)] hover:text-[var(--slate-300)] transition-colors"
         >
           ← Retour à la connexion
         </button>
@@ -110,7 +110,7 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-8">
         <div className="space-y-1.5">
-          <label htmlFor="email" className="block text-sm font-medium text-[--slate-200]">
+          <label htmlFor="email" className="block text-sm font-medium text-[var(--slate-200)]">
             Adresse e-mail
           </label>
           <input
@@ -120,13 +120,13 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 text-sm text-[--slate-200] placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
+            className="w-full rounded-lg bg-[var(--slate-950)] px-4 py-2.5 text-sm text-[var(--slate-200)] placeholder-[var(--slate-500)] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[var(--blue-500)]"
             placeholder="votre@email.com"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="password" className="block text-sm font-medium text-[--slate-200]">
+          <label htmlFor="password" className="block text-sm font-medium text-[var(--slate-200)]">
             Mot de passe
           </label>
           <div className="relative">
@@ -137,13 +137,13 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg bg-[--slate-950] px-4 py-2.5 pr-10 text-sm text-[--slate-200] placeholder-[--slate-500] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[--blue-500]"
+              className="w-full rounded-lg bg-[var(--slate-950)] px-4 py-2.5 pr-10 text-sm text-[var(--slate-200)] placeholder-[var(--slate-500)] shadow-md shadow-black/50 focus:outline-none focus:ring-2 focus:ring-[var(--blue-500)]"
               placeholder="••••••••"
             />
             <button
               type="button"
               onClick={() => setShowPw((v) => !v)}
-              className="absolute inset-y-0 right-3 flex items-center text-[--slate-500] hover:text-[--slate-300] transition-colors"
+              className="absolute inset-y-0 right-3 flex items-center text-[var(--slate-500)] hover:text-[var(--slate-300)] transition-colors"
               tabIndex={-1}
               aria-label={showPw ? "Masquer le mot de passe" : "Afficher le mot de passe"}
             >
@@ -154,7 +154,7 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
             <button
               type="button"
               onClick={() => { setForgotMode(true); setForgotEmail(email); }}
-              className="mt-1 text-xs text-[--slate-500] hover:text-[--blue-400] transition-colors"
+              className="mt-1 text-xs text-[var(--slate-500)] hover:text-[var(--blue-400)] transition-colors"
             >
               Mot de passe oublié ?
             </button>
@@ -167,9 +167,9 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
           type="checkbox"
           checked={rememberMe}
           onChange={(e) => setRememberMe(e.target.checked)}
-          className="rounded border-[--slate-600] bg-[--slate-800]"
+          className="rounded border-[var(--slate-600)] bg-[var(--slate-800)]"
         />
-        <span className="text-sm text-[--slate-300]">Se souvenir de moi</span>
+        <span className="text-sm text-[var(--slate-300)]">Se souvenir de moi</span>
       </label>
 
       {error && (
@@ -182,7 +182,7 @@ export function AuthForm({ onSubmit, loading, error, onForgotPassword }: AuthFor
         type="submit"
         loading={loading}
         disabled={loading}
-        className="w-full justify-center bg-[--blue-600] hover:bg-[--blue-500] shadow-blue-900/30"
+        className="w-full justify-center bg-[var(--blue-600)] hover:bg-[var(--blue-500)] shadow-blue-900/30"
       >
         Se connecter
       </Button>

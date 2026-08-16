@@ -12,9 +12,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<Variant, string> = {
-  primary: "bg-[--brand-red] hover:bg-red-600 text-white shadow-lg shadow-red-900/30",
-  secondary: "bg-[--slate-800] hover:bg-[--slate-700] text-[--slate-200] border border-[--slate-700]",
-  ghost: "text-[--slate-300] hover:text-[--slate-200]",
+  primary: "bg-[var(--brand-red)] hover:bg-red-600 text-white shadow-lg shadow-red-900/30",
+  secondary: "bg-[var(--slate-800)] hover:bg-[var(--slate-700)] text-[var(--slate-200)] border border-[var(--slate-700)]",
+  ghost: "text-[var(--slate-300)] hover:text-[var(--slate-200)]",
 };
 
 const sizeStyles: Record<Size, string> = {
@@ -24,7 +24,7 @@ const sizeStyles: Record<Size, string> = {
 };
 
 const base =
-  "inline-flex items-center justify-center font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[--brand-red] disabled:opacity-50 cursor-pointer";
+  "inline-flex items-center justify-center font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--brand-red)] disabled:opacity-50 cursor-pointer";
 
 export function Button({
   variant = "primary",

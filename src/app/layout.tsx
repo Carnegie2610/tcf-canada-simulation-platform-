@@ -50,7 +50,7 @@ export default function RootLayout({
       className={`${sora.variable} ${jakarta.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-[--slate-950] text-[--slate-200]">
+      <body className="min-h-full flex flex-col bg-[var(--slate-950)] text-[var(--slate-200)]">
         <script
           dangerouslySetInnerHTML={{
             __html:

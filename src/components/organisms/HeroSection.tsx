@@ -10,14 +10,14 @@ export function HeroSection() {
         <div className="text-center lg:text-left">
           <SectionLabel>Préparation TEF / TCF Canada</SectionLabel>
 
-          <h1 className="mt-6 font-(family-name:--font-sora) text-4xl font-black tracking-tight text-[--slate-200] sm:text-5xl lg:text-6xl">
+          <h1 className="mt-6 font-(family-name:--font-sora) text-4xl font-black tracking-tight text-[var(--slate-200)] sm:text-5xl lg:text-6xl">
             Réussissez votre examen de français.{" "}
-            <span className="bg-gradient-to-r from-[--brand-red] to-[--accent-orange-text] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[var(--brand-red)] to-[var(--accent-orange-text)] bg-clip-text text-transparent">
               Immigrez au Canada.
             </span>
           </h1>
 
-          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[--slate-400] sm:text-lg lg:mx-0">
+          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[var(--slate-400)] sm:text-lg lg:mx-0">
             Entraînez-vous sur des sujets d&apos;écriture authentiques et obtenez une
             correction instantanée par IA avec score CECRL et réponse modèle niveau C2.
           </p>

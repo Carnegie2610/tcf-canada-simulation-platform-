@@ -52,14 +52,14 @@ export function PricingCard({
   }
 
   const cardClass = isHighlighted
-    ? "border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.2)] bg-[--slate-900]"
+    ? "border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.2)] bg-[var(--slate-900)]"
     : isSecondary
-    ? "border-emerald-500/50 shadow-emerald-500/10 bg-[--slate-900]"
+    ? "border-emerald-500/50 shadow-emerald-500/10 bg-[var(--slate-900)]"
     : accent === "purple"
-    ? "border-purple-500/50 shadow-purple-500/10 bg-[--slate-900]"
+    ? "border-purple-500/50 shadow-purple-500/10 bg-[var(--slate-900)]"
     : accent === "amber"
-    ? "border-amber-500/50 shadow-amber-500/10 bg-[--slate-900]"
-    : "border-[--slate-800] bg-[--slate-900]";
+    ? "border-amber-500/50 shadow-amber-500/10 bg-[var(--slate-900)]"
+    : "border-[var(--slate-800)] bg-[var(--slate-900)]";
 
   const buttonClass = isHighlighted
     ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-900/30"
@@ -69,17 +69,17 @@ export function PricingCard({
     ? "bg-purple-600 hover:bg-purple-500 text-white"
     : accent === "amber"
     ? "bg-amber-600 hover:bg-amber-500 text-white"
-    : "border border-[--slate-700] bg-[--slate-800] text-[--slate-200] hover:bg-[--slate-700]";
+    : "border border-[var(--slate-700)] bg-[var(--slate-800)] text-[var(--slate-200)] hover:bg-[var(--slate-700)]";
 
   const durationPillClass = isHighlighted
-    ? "bg-blue-500/10 text-[--accent-blue-text] ring-1 ring-blue-500/30"
+    ? "bg-blue-500/10 text-[var(--accent-blue-text)] ring-1 ring-blue-500/30"
     : isSecondary
-    ? "bg-emerald-500/10 text-[--accent-emerald-text] ring-1 ring-emerald-500/30"
+    ? "bg-emerald-500/10 text-[var(--accent-emerald-text)] ring-1 ring-emerald-500/30"
     : accent === "purple"
-    ? "bg-purple-500/10 text-[--accent-purple-text] ring-1 ring-purple-500/30"
+    ? "bg-purple-500/10 text-[var(--accent-purple-text)] ring-1 ring-purple-500/30"
     : accent === "amber"
-    ? "bg-amber-500/10 text-[--accent-amber-text] ring-1 ring-amber-500/30"
-    : "bg-[--slate-800] text-[--slate-400] ring-1 ring-[--slate-700]";
+    ? "bg-amber-500/10 text-[var(--accent-amber-text)] ring-1 ring-amber-500/30"
+    : "bg-[var(--slate-800)] text-[var(--slate-400)] ring-1 ring-[var(--slate-700)]";
 
   return (
     <div
@@ -100,21 +100,21 @@ export function PricingCard({
         </div>
       )}
 
-      <h3 className="font-(family-name:--font-sora) text-lg font-bold text-[--slate-200]">
+      <h3 className="font-(family-name:--font-sora) text-lg font-bold text-[var(--slate-200)]">
         {name}
       </h3>
 
       <div className="secure-canvas-wrapper mt-5">
         <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
-          <p className="whitespace-nowrap text-3xl font-black text-[--slate-200] xl:text-4xl">
+          <p className="whitespace-nowrap text-3xl font-black text-[var(--slate-200)] xl:text-4xl">
             {price}{" "}
-            <span className="text-sm font-normal text-[--slate-400]">{currency}</span>
+            <span className="text-sm font-normal text-[var(--slate-400)]">{currency}</span>
           </p>
           <span className={`mb-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold ${durationPillClass}`}>
             ⏱ {duration}
           </span>
         </div>
-        <p className="mt-1 text-sm text-[--slate-400]">{description}</p>
+        <p className="mt-1 text-sm text-[var(--slate-400)]">{description}</p>
       </div>
 
       <ul className="mt-6 flex-1 space-y-3">
@@ -124,7 +124,7 @@ export function PricingCard({
           return (
             <li
               key={feature}
-              className={`flex items-start gap-2 text-sm ${isStarred ? "font-semibold text-[--slate-200]" : "text-[--slate-400]"}`}
+              className={`flex items-start gap-2 text-sm ${isStarred ? "font-semibold text-[var(--slate-200)]" : "text-[var(--slate-400)]"}`}
             >
               <CheckIcon />
               {label}
