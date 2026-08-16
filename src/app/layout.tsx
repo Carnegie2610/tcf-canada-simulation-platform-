@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   description:
     "Préparez l'examen TEF ou TCF Canada avec des simulations d'écriture réalistes et des corrections personnalisées par intelligence artificielle.",
   icons: {
-    icon: "/favicon-rounded.svg",
+    icon: "/icon-rounded.png",
     shortcut: "/favicon.ico",
     apple: "/icon-rounded.png",
   },

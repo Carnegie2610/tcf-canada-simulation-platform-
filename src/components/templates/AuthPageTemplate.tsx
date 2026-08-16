@@ -40,7 +40,7 @@ export function AuthPageTemplate({
           )}
           <div className="text-center">
             <Link href="/" className="flex items-center justify-center gap-2 text-lg font-black">
-              <img src="/favicon-rounded.svg" alt="Objectif 4C2 Academy Logo" width={40} height={40} className="h-10 w-10 object-contain" />
+              <img src="/icon-rounded.png" alt="Objectif 4C2 Academy Logo" width={40} height={40} className="h-10 w-10 object-contain" />
               <span className="text-[--brand-white]">Objectif 4C2 pour tous</span>
             </Link>
             {showHeading && (
