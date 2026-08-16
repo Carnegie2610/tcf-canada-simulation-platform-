@@ -70,16 +70,31 @@ export function FAQSection() {
           </p>
         </div>
 
-        <dl className="space-y-4">
+        <div className="space-y-4">
           {faqs.map((faq) => (
-            <div key={faq.question} className="rounded-2xl bg-[--slate-900] p-6">
-              <dt className="font-(family-name:--font-sora) text-lg font-bold text-white">
+            <details
+              key={faq.question}
+              className="group rounded-2xl bg-[--slate-900] p-6 open:pb-6"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-(family-name:--font-sora) text-lg font-bold text-white marker:content-none">
                 {faq.question}
-              </dt>
-              <dd className="mt-2 text-sm leading-relaxed text-[--slate-400]">{faq.answer}</dd>
-            </div>
+                <svg
+                  className="h-5 w-5 shrink-0 text-[--slate-500] transition-transform duration-200 group-open:rotate-180"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5 7.5 10 12.5 15 7.5" />
+                </svg>
+              </summary>
+              <p className="mt-3 text-sm leading-relaxed text-[--slate-400]">{faq.answer}</p>
+            </details>
           ))}
-        </dl>
+        </div>
       </div>
     </section>
   );
