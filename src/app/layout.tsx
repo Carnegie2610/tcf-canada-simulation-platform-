@@ -17,14 +17,28 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://objectif4c2.com"),
   title: "Objectif 4C2 pour tous — Préparation TEF/TCF Canada",
   description:
     "Préparez l'examen TEF ou TCF Canada avec des simulations d'écriture réalistes et des corrections personnalisées par intelligence artificielle.",
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/icon-rounded.png",
     shortcut: "/favicon.ico",
     apple: "/icon-rounded.png",
   },
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Objectif 4C2 pour tous",
+  url: "https://objectif4c2.com",
+  logo: "https://objectif4c2.com/icon-rounded.png",
+  description:
+    "Préparation à l'examen TEF/TCF Canada avec simulations d'écriture réalistes et corrections personnalisées par intelligence artificielle.",
 };
 
 export default function RootLayout({
@@ -36,6 +50,10 @@ export default function RootLayout({
       className={`${sora.variable} ${jakarta.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[--slate-950] text-[--slate-200]">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         {children}
       </body>
     </html>

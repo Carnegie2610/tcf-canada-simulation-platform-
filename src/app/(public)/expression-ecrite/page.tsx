@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Expression Écrite — Objectif 4C2 pour tous",
   description: "Préparez l'expression écrite du TEF/TCF Canada avec nos simulations et corrections IA.",
+  alternates: {
+    canonical: "/expression-ecrite",
+  },
 };
 
 export default function ExpressionEcritePage() {

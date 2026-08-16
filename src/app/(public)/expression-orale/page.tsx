@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Expression Orale — Objectif 4C2 pour tous",
   description: "Préparez l'expression orale du TEF/TCF Canada avec nos ressources et stratégies.",
+  alternates: {
+    canonical: "/expression-orale",
+  },
 };
 
 export default function ExpressionOralePage() {

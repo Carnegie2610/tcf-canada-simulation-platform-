@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Compréhension Orale — Objectif 4C2 pour tous",
   description: "Préparez la compréhension orale du TEF/TCF Canada avec nos ressources et stratégies.",
+  alternates: {
+    canonical: "/comprehension-orale",
+  },
 };
 
 export default function ComprehensionOralePage() {
