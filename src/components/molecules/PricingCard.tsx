@@ -105,12 +105,12 @@ export function PricingCard({
       </h3>
 
       <div className="secure-canvas-wrapper mt-5">
-        <div className="flex items-end gap-3">
-          <p className="text-4xl font-black text-white">
+        <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
+          <p className="whitespace-nowrap text-3xl font-black text-white xl:text-4xl">
             {price}{" "}
             <span className="text-sm font-normal text-[--slate-400]">{currency}</span>
           </p>
-          <span className={`mb-1 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${durationPillClass}`}>
+          <span className={`mb-1 inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold ${durationPillClass}`}>
             ⏱ {duration}
           </span>
         </div>
