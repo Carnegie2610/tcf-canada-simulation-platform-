@@ -4,6 +4,7 @@ import { PackSection } from "@/components/organisms/PackSection";
 import { StatsSection } from "@/components/organisms/StatsSection";
 import { SkillGrid } from "@/components/organisms/SkillGrid";
 import { MethodologySection } from "@/components/organisms/MethodologySection";
+import { FAQSection } from "@/components/organisms/FAQSection";
 import { PricingSection } from "@/components/organisms/PricingSection";
 
 export default function LandingPage() {
@@ -14,6 +15,7 @@ export default function LandingPage() {
       <StatsSection />
       <SkillGrid />
       <MethodologySection />
+      <FAQSection />
       <PricingSection />
     </PublicPageTemplate>
   );
