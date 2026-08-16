@@ -30,19 +30,25 @@ export function NavBar({ navItems }: NavBarProps) {
   }, []);
 
   return (
-    <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
       <Link
         href="/"
         aria-label="Objectif 4C2 pour tous — Accueil"
-        className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-black tracking-tight xl:mr-4"
+        className="flex shrink-0 items-center gap-2 text-lg font-black tracking-tight whitespace-nowrap xl:mr-16"
       >
-        <img src="/icon-rounded.png" alt="Objectif 4C2 Academy Logo" width={40} height={40} className="h-10 w-10 object-contain" />
+        <img
+          src="/icon-rounded.png"
+          alt="Objectif 4C2 Academy Logo"
+          width={40}
+          height={40}
+          className="h-10 w-10 object-contain"
+        />
         <span className="bg-gradient-to-r from-[var(--brand-red)] to-[var(--brand-white)] bg-clip-text text-transparent">
           Objectif 4C2 pour tous
         </span>
       </Link>
 
-      <ul className="hidden items-center gap-8 xl:flex" role="list">
+      <ul className="hidden items-center gap-5 xl:flex" role="list">
         {navItems.map((item) => (
           <li key={item.href} className="whitespace-nowrap">
             <NavLink href={item.href} label={item.label} />
@@ -50,7 +56,7 @@ export function NavBar({ navItems }: NavBarProps) {
         ))}
       </ul>
 
-      <div className="flex items-center gap-2 xl:ml-6">
+      <div className="flex items-center gap-2 xl:ml-2">
         <ThemeToggle />
         <Button variant="secondary" size="sm" href="/login">
           Connexion
@@ -63,7 +69,7 @@ export function NavBar({ navItems }: NavBarProps) {
           <button
             onClick={() => setMobileMenuOpen((v) => !v)}
             aria-label="Ouvrir le menu de navigation"
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-[var(--slate-700)] hover:bg-[var(--slate-800)] transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-[var(--slate-700)] transition-colors hover:bg-[var(--slate-800)]"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -83,14 +89,14 @@ export function NavBar({ navItems }: NavBarProps) {
           {mobileMenuOpen && (
             <div
               onClick={() => setMobileMenuOpen(false)}
-              className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-950)] py-1 shadow-xl"
+              className="absolute top-full right-0 mt-2 w-56 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-950)] py-1 shadow-xl"
               role="list"
             >
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="block px-4 py-2.5 text-sm text-[var(--slate-400)] hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)] transition-colors"
+                  className="block px-4 py-2.5 text-sm text-[var(--slate-400)] transition-colors hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)]"
                 >
                   {item.label}
                 </Link>
