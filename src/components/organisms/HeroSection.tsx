@@ -39,6 +39,30 @@ export function HeroSection() {
             className="mx-auto w-full max-w-md object-contain lg:max-w-none"
             priority
           />
+
+          <div
+            className="hero-float-badge absolute -top-2 left-2 z-20 flex items-center gap-2 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]/90 px-4 py-2 shadow-lg backdrop-blur-sm sm:top-4 sm:left-4"
+            style={{ animationDelay: "0s" }}
+          >
+            <span className="text-lg" aria-hidden="true">
+              🎯
+            </span>
+            <span className="text-sm font-semibold text-[var(--slate-200)]">
+              98% de réussite
+            </span>
+          </div>
+
+          <div
+            className="hero-float-badge absolute -bottom-2 right-2 z-20 flex items-center gap-2 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]/90 px-4 py-2 shadow-lg backdrop-blur-sm sm:right-4 sm:bottom-4"
+            style={{ animationDelay: "4.5s" }}
+          >
+            <span className="text-lg" aria-hidden="true">
+              ⭐
+            </span>
+            <span className="text-sm font-semibold text-[var(--slate-200)]">
+              4.9/5 satisfaction
+            </span>
+          </div>
         </div>
       </div>
     </section>

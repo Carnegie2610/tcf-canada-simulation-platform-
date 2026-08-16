@@ -34,7 +34,7 @@ export function NavBar({ navItems }: NavBarProps) {
       <Link
         href="/"
         aria-label="Objectif 4C2 pour tous — Accueil"
-        className="flex items-center gap-2 text-lg font-black tracking-tight"
+        className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-black tracking-tight xl:mr-4"
       >
         <img src="/icon-rounded.png" alt="Objectif 4C2 Academy Logo" width={40} height={40} className="h-10 w-10 object-contain" />
         <span className="bg-gradient-to-r from-[var(--brand-red)] to-[var(--brand-white)] bg-clip-text text-transparent">
@@ -42,15 +42,15 @@ export function NavBar({ navItems }: NavBarProps) {
         </span>
       </Link>
 
-      <ul className="hidden items-center gap-7 md:flex" role="list">
+      <ul className="hidden items-center gap-8 xl:flex" role="list">
         {navItems.map((item) => (
-          <li key={item.href}>
+          <li key={item.href} className="whitespace-nowrap">
             <NavLink href={item.href} label={item.label} />
           </li>
         ))}
       </ul>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 xl:ml-6">
         <ThemeToggle />
         <Button variant="secondary" size="sm" href="/login">
           Connexion
@@ -59,7 +59,7 @@ export function NavBar({ navItems }: NavBarProps) {
           S&apos;inscrire
         </Button>
 
-        <div className="relative md:hidden" ref={mobileMenuRef}>
+        <div className="relative xl:hidden" ref={mobileMenuRef}>
           <button
             onClick={() => setMobileMenuOpen((v) => !v)}
             aria-label="Ouvrir le menu de navigation"
