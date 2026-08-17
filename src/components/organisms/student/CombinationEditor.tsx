@@ -412,7 +412,7 @@ export function CombinationEditor({
               <button
                 onClick={handleQuit}
                 disabled={isLocked}
-                className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-[var(--accent-red-text)] transition-colors hover:bg-red-950/40 hover:text-[var(--accent-red-text)] disabled:opacity-40"
+                className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-[var(--accent-red-text)] transition-colors hover:bg-red-950/40 hover:text-red-300 disabled:opacity-40"
               >
                 Quitter le test
               </button>
@@ -484,7 +484,7 @@ export function CombinationEditor({
                   onClick={() => insertAccent(char, textareaRef)}
                   disabled={isLocked || isExpired}
                   title={`Insérer ${char}`}
-                  className="rounded px-1 py-1.5 text-sm font-medium text-[var(--slate-200)] transition-colors bg-[var(--slate-800)] hover:bg-[var(--slate-700)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded px-1 py-1.5 text-sm font-medium text-[var(--slate-200)] transition-colors bg-[var(--slate-800)] hover:bg-[var(--slate-700)] hover:text-[var(--slate-200)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {char}
                 </button>
@@ -520,7 +520,7 @@ export function CombinationEditor({
                     disabled={isLocked}
                     className={`flex items-center gap-2 rounded-xl border py-2.5 px-3 text-sm font-bold transition-all disabled:opacity-50 ${
                       activeTask === key
-                        ? "border-blue-500 bg-blue-950/60 text-[var(--accent-blue-text)]"
+                        ? "border-blue-500 bg-blue-950/60 text-blue-300"
                         : "border-[var(--slate-700)] bg-[var(--slate-800)]/60 text-[var(--slate-400)] hover:bg-[var(--slate-800)]"
                     }`}
                   >
@@ -559,7 +559,7 @@ export function CombinationEditor({
                 <button
                   onClick={handleQuit}
                   disabled={isLocked}
-                  className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-[var(--accent-red-text)] transition-colors hover:bg-red-950/40 hover:text-[var(--accent-red-text)] disabled:opacity-40"
+                  className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-[var(--accent-red-text)] transition-colors hover:bg-red-950/40 hover:text-red-300 disabled:opacity-40"
                 >
                   Quitter le test
                 </button>
@@ -623,7 +623,7 @@ export function CombinationEditor({
                   onClick={() => insertAccent(char, mobileTextareaRef)}
                   disabled={isLocked || isExpired}
                   title={`Insérer ${char}`}
-                  className="rounded px-1 py-1 text-xs font-medium text-[var(--slate-200)] transition-colors bg-[var(--slate-800)] hover:bg-[var(--slate-700)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded px-1 py-1 text-xs font-medium text-[var(--slate-200)] transition-colors bg-[var(--slate-800)] hover:bg-[var(--slate-700)] hover:text-[var(--slate-200)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {char}
                 </button>

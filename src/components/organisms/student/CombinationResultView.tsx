@@ -23,15 +23,15 @@ interface CombinationResultViewProps {
 }
 
 const CEFR_COLOR: Record<string, string> = {
-  C2:    "bg-emerald-900/60 text-[var(--accent-emerald-text)] border-emerald-700/50",
-  "C1+": "bg-emerald-900/40 text-[var(--accent-emerald-text)] border-emerald-800/50",
-  C1:    "bg-teal-900/50 text-[var(--accent-teal-text)] border-teal-700/50",
-  "B2+": "bg-blue-900/50 text-[var(--accent-blue-text)] border-blue-700/50",
-  B2:    "bg-blue-900/40 text-[var(--accent-blue-text)] border-blue-800/50",
+  C2:    "bg-emerald-900/60 text-emerald-300 border-emerald-700/50",
+  "C1+": "bg-emerald-900/40 text-emerald-400 border-emerald-800/50",
+  C1:    "bg-teal-900/50 text-teal-300 border-teal-700/50",
+  "B2+": "bg-blue-900/50 text-blue-300 border-blue-700/50",
+  B2:    "bg-blue-900/40 text-blue-400 border-blue-800/50",
   "B1+": "bg-indigo-900/50 text-indigo-300 border-indigo-700/50",
-  B1:    "bg-amber-900/50 text-[var(--accent-amber-text)] border-amber-700/50",
-  A2:    "bg-red-900/40 text-[var(--accent-red-text)] border-red-800/50",
-  A1:    "bg-red-900/60 text-[var(--accent-red-text)] border-red-700/50",
+  B1:    "bg-amber-900/50 text-amber-300 border-amber-700/50",
+  A2:    "bg-red-900/40 text-red-400 border-red-800/50",
+  A1:    "bg-red-900/60 text-red-300 border-red-700/50",
 };
 
 function ModelSolutionModal({
@@ -482,7 +482,7 @@ export function CombinationResultView({
       <div className="flex flex-wrap items-center gap-2">
         <Link
           href="/dashboard/history"
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]/60 px-4 py-2 text-xs font-medium text-[var(--slate-200)] transition-all duration-200 hover:bg-[var(--slate-800)] hover:text-white"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]/60 px-4 py-2 text-xs font-medium text-[var(--slate-200)] transition-all duration-200 hover:bg-[var(--slate-800)]"
         >
           ← Historique &amp; Progrès
         </Link>
@@ -498,7 +498,7 @@ export function CombinationResultView({
         <button
           onClick={handleDownloadPdf}
           disabled={isDownloadingPdf}
-          className="flex items-center gap-2 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]/60 px-4 py-2 text-xs font-medium text-[var(--slate-200)] transition-all duration-200 hover:bg-[var(--slate-800)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]/60 px-4 py-2 text-xs font-medium text-[var(--slate-200)] transition-all duration-200 hover:bg-[var(--slate-800)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isDownloadingPdf ? "Génération du PDF…" : "📥 Télécharger le PDF complet"}
         </button>
@@ -536,7 +536,7 @@ export function CombinationResultView({
               onClick={() => setActiveTab(key)}
               className={`rounded-lg border px-3 py-3.5 text-sm font-bold transition-all ${
                 activeTab === key
-                  ? "border-blue-600/50 bg-blue-950/60 text-[var(--accent-blue-text)]"
+                  ? "border-blue-600/50 bg-blue-950/60 text-blue-300"
                   : "border-[var(--slate-800)] bg-[var(--slate-800)]/40 text-[var(--slate-500)] hover:text-[var(--slate-200)]"
               }`}
             >

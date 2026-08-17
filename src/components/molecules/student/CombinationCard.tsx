@@ -109,14 +109,14 @@ export function CombinationCard({
           <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--accent-teal-text)]">
             <span className="text-sm">📝</span> Expression Écrite
           </span>
-          <span className="px-2.5 py-0.5 text-[10px] font-bold tracking-widest uppercase rounded-full bg-blue-950 text-[var(--accent-blue-text)] border border-blue-800/50">
+          <span className="whitespace-nowrap px-2.5 py-0.5 text-[10px] font-bold tracking-widest uppercase rounded-full bg-blue-950 text-blue-300 border border-blue-800/50">
             ⚡ {combination.exam_type} Canada
           </span>
         </div>
 
         {/* 2. Bold Name & Theme */}
         <div className="mb-6">
-          <h3 className="flex items-start gap-2 text-xl font-extrabold text-[var(--slate-200)] group-hover:text-white line-clamp-2 transition-colors duration-200">
+          <h3 className="flex items-start gap-2 text-xl font-extrabold text-[var(--slate-200)] line-clamp-2 transition-colors duration-200">
             <span>📁</span> {combination.title}
           </h3>
         </div>
@@ -140,7 +140,7 @@ export function CombinationCard({
                 🔒 Soumis
               </span>
             ) : isInProgress ? (
-              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-amber-950 text-[var(--accent-amber-text)] text-[10px] font-bold uppercase tracking-wider border border-amber-900/50">
+              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-amber-950 text-amber-400 text-[10px] font-bold uppercase tracking-wider border border-amber-900/50">
                 ✏️ En cours
               </span>
             ) : isLocked ? (
@@ -148,7 +148,7 @@ export function CombinationCard({
                 🔒 Bloqué
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-950 text-[var(--accent-emerald-text)] text-[10px] font-bold uppercase tracking-wider border border-emerald-900/50">
+              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-950 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-900/50">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />

@@ -41,10 +41,10 @@ export function SubmissionGate({ onDashboard, onEvaluate }: SubmissionGateProps)
             className="flex flex-col items-center gap-2 rounded-xl border border-blue-600/40 bg-gradient-to-b from-blue-950/60 to-[var(--slate-900)] p-5 text-center transition-all hover:border-blue-500/60 hover:from-blue-950/80"
           >
             <span className="text-3xl">🧠</span>
-            <span className="text-sm font-semibold text-[var(--accent-blue-text)]">
+            <span className="text-sm font-semibold text-blue-300">
               Obtenir ma Correction IA
             </span>
-            <span className="text-xs text-[var(--accent-blue-text)]/70">Analyse instantanée</span>
+            <span className="text-xs text-blue-300/70">Analyse instantanée</span>
           </button>
         </div>
 
