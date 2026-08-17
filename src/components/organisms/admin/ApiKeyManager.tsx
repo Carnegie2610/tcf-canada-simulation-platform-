@@ -206,8 +206,8 @@ export function ApiKeyManager() {
       )}
 
       {/* Active Provider Selector */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">Fournisseur actif</h2>
+      <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/60 p-5">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">Fournisseur actif</h2>
         <div className="flex flex-wrap items-center gap-3">
           {PROVIDERS.map((p) => (
             <label key={p.id} className="flex cursor-pointer items-center gap-2">
@@ -230,8 +230,8 @@ export function ApiKeyManager() {
             {settingActive ? "Enregistrement..." : "Définir actif"}
           </button>
           {vercelStatus?.activeProvider && (
-            <span className="text-xs text-slate-500">
-              Actuel sur Vercel : <span className="font-semibold text-slate-300">{vercelStatus.activeProvider}</span>
+            <span className="text-xs text-[var(--slate-500)]">
+              Actuel sur Vercel : <span className="font-semibold text-[var(--slate-200)]">{vercelStatus.activeProvider}</span>
             </span>
           )}
         </div>
@@ -247,22 +247,22 @@ export function ApiKeyManager() {
           const callCount = usage?.byProvider?.[p.id] ?? 0;
 
           return (
-            <div key={p.id} className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+            <div key={p.id} className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/50 p-5">
               <div className="mb-4 flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className={`h-2 w-2 rounded-full ${isConfigured ? "bg-emerald-400" : "bg-red-500"}`} />
-                    <h3 className="text-sm font-bold text-slate-100">{p.label}</h3>
+                    <h3 className="text-sm font-bold text-[var(--slate-200)]">{p.label}</h3>
                   </div>
-                  <p className="mt-0.5 text-xs text-slate-600">{p.model}</p>
+                  <p className="mt-0.5 text-xs text-[var(--slate-500)]">{p.model}</p>
                 </div>
                 <div className="text-right">
                   <span className={`text-xs font-semibold ${isConfigured ? "text-emerald-500" : "text-red-500"}`}>
                     {isConfigured ? "Configuré" : "Non configuré"}
                   </span>
-                  <p className="mt-0.5 text-[10px] text-slate-600">{callCount} appels (30j)</p>
+                  <p className="mt-0.5 text-[10px] text-[var(--slate-500)]">{callCount} appels (30j)</p>
                   {isConfigured && maskedKeys[p.key] && (
-                    <p className="mt-1 font-mono text-[10px] text-slate-500 tracking-wider">
+                    <p className="mt-1 font-mono text-[10px] text-[var(--slate-500)] tracking-wider">
                       {maskedKeys[p.key]}
                     </p>
                   )}
@@ -276,7 +276,7 @@ export function ApiKeyManager() {
                   value={keyInputs[p.key] ?? ""}
                   onChange={(e) => setKeyInputs((prev) => ({ ...prev, [p.key]: e.target.value }))}
                   disabled={notConfigured}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:border-blue-600 focus:outline-none disabled:opacity-50"
+                  className="w-full rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)]/60 px-3 py-2 text-xs text-[var(--slate-200)] placeholder-[var(--slate-500)] focus:border-blue-600 focus:outline-none disabled:opacity-50"
                 />
                 <div className="flex gap-2">
                   <button
@@ -304,12 +304,12 @@ export function ApiKeyManager() {
 
       {/* Usage summary */}
       {usage && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 space-y-5">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/50 p-5 space-y-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">Statistiques d&apos;utilisation — 30 derniers jours</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">Statistiques d&apos;utilisation — 30 derniers jours</h2>
             <button
               onClick={loadUsage}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-2.5 py-1 text-[10px] font-semibold text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--slate-700)] px-2.5 py-1 text-[10px] font-semibold text-[var(--slate-400)] transition hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)]"
             >
               🔄 Actualiser
             </button>
@@ -317,35 +317,35 @@ export function ApiKeyManager() {
 
           {/* Global totals */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-lg bg-slate-800/50 p-3 text-center">
-              <p className="text-2xl font-extrabold text-slate-100">{usage.total}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider">Total appels</p>
+            <div className="rounded-lg bg-[var(--slate-800)]/50 p-3 text-center">
+              <p className="text-2xl font-extrabold text-[var(--slate-200)]">{usage.total}</p>
+              <p className="text-[10px] text-[var(--slate-500)] uppercase tracking-wider">Total appels</p>
             </div>
             <div className="rounded-lg bg-emerald-900/20 p-3 text-center">
               <p className="text-2xl font-extrabold text-emerald-400">{usage.totalSuccess}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider">Succès</p>
+              <p className="text-[10px] text-[var(--slate-500)] uppercase tracking-wider">Succès</p>
             </div>
             <div className="rounded-lg bg-red-900/20 p-3 text-center">
               <p className="text-2xl font-extrabold text-red-400">{usage.totalFailed}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider">Échecs</p>
+              <p className="text-[10px] text-[var(--slate-500)] uppercase tracking-wider">Échecs</p>
             </div>
-            <div className="rounded-lg bg-slate-800/50 p-3 text-center">
-              <p className="text-2xl font-extrabold text-slate-100">
+            <div className="rounded-lg bg-[var(--slate-800)]/50 p-3 text-center">
+              <p className="text-2xl font-extrabold text-[var(--slate-200)]">
                 {usage.total > 0 ? Math.round((usage.totalSuccess / usage.total) * 100) : 0}%
               </p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider">Taux succès</p>
+              <p className="text-[10px] text-[var(--slate-500)] uppercase tracking-wider">Taux succès</p>
             </div>
           </div>
 
           {/* Per-provider breakdown */}
           <div>
-            <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-600">Détail par fournisseur</p>
-            <div className="overflow-x-auto rounded-lg border border-slate-800">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">Détail par fournisseur</p>
+            <div className="overflow-x-auto rounded-lg border border-[var(--slate-800)]">
               <table className="w-full text-xs">
-                <thead className="bg-slate-800/60">
+                <thead className="bg-[var(--slate-800)]/60">
                   <tr>
                     {["Fournisseur", "Modèle utilisé", "Appels", "Succès", "Échecs", "Taux", "Durée moy."].map((h) => (
-                      <th key={h} className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                      <th key={h} className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-[var(--slate-500)]">
                         {h}
                       </th>
                     ))}
@@ -356,23 +356,23 @@ export function ApiKeyManager() {
                     const d = usage.providerDetails?.[p.id];
                     if (!d || d.total === 0) {
                       return (
-                        <tr key={p.id} className="border-t border-slate-800/60">
+                        <tr key={p.id} className="border-t border-[var(--slate-800)]/60">
                           <td className="px-3 py-2.5">
                             <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold ${p.badge}`}>{p.label}</span>
                           </td>
-                          <td className="px-3 py-2.5 text-slate-600" colSpan={6}>Aucun appel</td>
+                          <td className="px-3 py-2.5 text-[var(--slate-500)]" colSpan={6}>Aucun appel</td>
                         </tr>
                       );
                     }
                     const topModel = Object.entries(d.models).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
                     const rate = d.total > 0 ? Math.round((d.success / d.total) * 100) : 0;
                     return (
-                      <tr key={p.id} className="border-t border-slate-800/60 hover:bg-slate-800/20">
+                      <tr key={p.id} className="border-t border-[var(--slate-800)]/60 hover:bg-[var(--slate-800)]/20">
                         <td className="px-3 py-2.5">
                           <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold ${p.badge}`}>{p.label}</span>
                         </td>
-                        <td className="px-3 py-2.5 font-mono text-[10px] text-slate-400">{topModel}</td>
-                        <td className="px-3 py-2.5 font-bold text-slate-200">{d.total}</td>
+                        <td className="px-3 py-2.5 font-mono text-[10px] text-[var(--slate-400)]">{topModel}</td>
+                        <td className="px-3 py-2.5 font-bold text-[var(--slate-200)]">{d.total}</td>
                         <td className="px-3 py-2.5 text-emerald-400">{d.success}</td>
                         <td className="px-3 py-2.5 text-red-400">{d.failed}</td>
                         <td className="px-3 py-2.5">
@@ -380,7 +380,7 @@ export function ApiKeyManager() {
                             {rate}%
                           </span>
                         </td>
-                        <td className="px-3 py-2.5 text-slate-500">
+                        <td className="px-3 py-2.5 text-[var(--slate-500)]">
                           {d.avgDurationMs != null ? `${(d.avgDurationMs / 1000).toFixed(1)}s` : "—"}
                         </td>
                       </tr>
@@ -392,7 +392,7 @@ export function ApiKeyManager() {
           </div>
 
           {lastUpdated && (
-            <p className="text-right text-[10px] text-slate-600">
+            <p className="text-right text-[10px] text-[var(--slate-500)]">
               Mis à jour : {lastUpdated.toLocaleTimeString("fr-FR")}
             </p>
           )}

@@ -84,16 +84,16 @@ function PromptPanel({ promptKey, existing, defaultConfig }: PromptPanelProps) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+    <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/50 overflow-hidden">
       {/* Header */}
-      <div className="flex items-start justify-between border-b border-slate-800 bg-slate-900 px-5 py-4">
+      <div className="flex items-start justify-between border-b border-[var(--slate-800)] bg-[var(--slate-900)] px-5 py-4">
         <div>
-          <h3 className="text-sm font-bold text-slate-100">{meta.label}</h3>
-          <p className="mt-0.5 text-xs text-slate-500">{meta.description}</p>
+          <h3 className="text-sm font-bold text-[var(--slate-200)]">{meta.label}</h3>
+          <p className="mt-0.5 text-xs text-[var(--slate-500)]">{meta.description}</p>
         </div>
         <div className="flex items-center gap-2">
           {isUsingDefault ? (
-            <span className="rounded border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-400">
+            <span className="rounded border border-[var(--slate-700)] bg-[var(--slate-800)] px-2 py-0.5 text-[10px] font-semibold text-[var(--slate-400)]">
               DÉFAUT SYSTÈME
             </span>
           ) : (
@@ -113,8 +113,8 @@ function PromptPanel({ promptKey, existing, defaultConfig }: PromptPanelProps) {
 
         {/* Preset loader */}
         {defaultConfig.presets.length > 1 && (
-          <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 px-3 py-2.5">
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          <div className="rounded-lg border border-[var(--slate-700)]/60 bg-[var(--slate-800)]/40 px-3 py-2.5">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
               Charger un preset
             </p>
             <div className="flex flex-wrap gap-2">
@@ -122,19 +122,19 @@ function PromptPanel({ promptKey, existing, defaultConfig }: PromptPanelProps) {
                 <button
                   key={preset.key}
                   onClick={() => setText(preset.text)}
-                  className="rounded border border-slate-600 bg-slate-700 px-2.5 py-1 text-[11px] font-semibold text-slate-200 transition hover:bg-slate-600 hover:border-slate-500 active:scale-95"
+                  className="rounded border border-[var(--slate-700)] bg-[var(--slate-700)] px-2.5 py-1 text-[11px] font-semibold text-[var(--slate-200)] transition hover:bg-[var(--slate-700)] hover:border-[var(--slate-700)] active:scale-95"
                 >
                   {preset.label}
                 </button>
               ))}
               <button
                 onClick={() => setText("")}
-                className="rounded border border-dashed border-slate-500 bg-transparent px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition hover:border-blue-500 hover:text-blue-400 active:scale-95"
+                className="rounded border border-dashed border-[var(--slate-700)] bg-transparent px-2.5 py-1 text-[11px] font-semibold text-[var(--slate-400)] transition hover:border-blue-500 hover:text-blue-400 active:scale-95"
               >
                 + Écrire mon propre prompt
               </button>
             </div>
-            <p className="mt-2 text-[10px] text-slate-600">
+            <p className="mt-2 text-[10px] text-[var(--slate-500)]">
               Cliquez pour pré-remplir l&apos;éditeur. Appuyez sur &laquo; Enregistrer &raquo; pour activer.
             </p>
           </div>
@@ -153,16 +153,16 @@ function PromptPanel({ promptKey, existing, defaultConfig }: PromptPanelProps) {
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={20}
-            className="w-full resize-y rounded-lg border border-slate-700 bg-slate-800/60 px-4 py-3 font-mono text-xs text-slate-200 placeholder-slate-600 focus:border-blue-600 focus:outline-none leading-relaxed"
+            className="w-full resize-y rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)]/60 px-4 py-3 font-mono text-xs text-[var(--slate-200)] placeholder-[var(--slate-500)] focus:border-blue-600 focus:outline-none leading-relaxed"
           />
-          <div className="absolute bottom-2 right-3 text-[10px] text-slate-600">
+          <div className="absolute bottom-2 right-3 text-[10px] text-[var(--slate-500)]">
             {text.length.toLocaleString()} caractères
           </div>
         </div>
 
         {/* Last updated */}
         {existing?.updated_at && (
-          <p className="text-[10px] text-slate-600">
+          <p className="text-[10px] text-[var(--slate-500)]">
             Dernière modification : {new Date(existing.updated_at).toLocaleString("fr-FR")}
           </p>
         )}

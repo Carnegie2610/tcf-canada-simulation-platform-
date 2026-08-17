@@ -214,8 +214,8 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-100">Mes Commissions</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-2xl font-extrabold text-[var(--slate-200)]">Mes Commissions</h1>
+        <p className="mt-1 text-sm text-[var(--slate-500)]">
           Suivi des revenus d&apos;affiliation et des transactions (35% par inscription)
         </p>
       </div>
@@ -229,7 +229,7 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
             className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${
               period === p
                 ? "border-blue-600 bg-blue-700 text-white"
-                : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600 hover:bg-slate-700"
+                : "border-[var(--slate-700)] bg-[var(--slate-800)] text-[var(--slate-200)] hover:border-[var(--slate-700)] hover:bg-[var(--slate-700)]"
             }`}
           >
             {PERIOD_LABELS[p]}
@@ -243,7 +243,7 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
             className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors flex items-center gap-1.5 ${
               period === "custom"
                 ? "border-blue-600 bg-blue-700 text-white"
-                : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600 hover:bg-slate-700"
+                : "border-[var(--slate-700)] bg-[var(--slate-800)] text-[var(--slate-200)] hover:border-[var(--slate-700)] hover:bg-[var(--slate-700)]"
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -254,7 +254,7 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
           {customDates && (
             <button
               onClick={handleClearCustom}
-              className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs text-slate-400 hover:bg-slate-700 transition-colors"
+              className="rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-2 py-2 text-xs text-[var(--slate-400)] hover:bg-[var(--slate-700)] transition-colors"
               title="Effacer la plage"
             >
               ✕
@@ -263,14 +263,14 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
         </div>
 
         {loading && (
-          <span className="flex items-center text-xs text-slate-500 ml-2">Chargement...</span>
+          <span className="flex items-center text-xs text-[var(--slate-500)] ml-2">Chargement...</span>
         )}
 
         {/* Calendar popover */}
         {calOpen && (
-          <div className="absolute top-full left-0 mt-2 z-50 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl p-3">
+          <div className="absolute top-full left-0 mt-2 z-50 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] shadow-2xl p-3">
             {clickPhaseRef.current === "first" && (
-              <p className="text-[11px] text-slate-500 mb-2 text-center">Cliquez sur la date de début</p>
+              <p className="text-[11px] text-[var(--slate-500)] mb-2 text-center">Cliquez sur la date de début</p>
             )}
             {clickPhaseRef.current === "second" && (
               <p className="text-[11px] text-amber-400 mb-2 text-center">Cliquez sur la date de fin</p>
@@ -283,25 +283,25 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
               numberOfMonths={1}
               showOutsideDays
               classNames={{
-                root: "text-slate-200 text-sm",
+                root: "text-[var(--slate-200)] text-sm",
                 months: "flex flex-col",
-                month_caption: "flex justify-center items-center gap-2 py-2 text-slate-100 font-semibold",
+                month_caption: "flex justify-center items-center gap-2 py-2 text-[var(--slate-200)] font-semibold",
                 nav: "flex items-center gap-1",
-                button_previous: "rounded p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors",
-                button_next: "rounded p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors",
+                button_previous: "rounded p-1 text-[var(--slate-400)] hover:text-[var(--slate-200)] hover:bg-[var(--slate-800)] transition-colors",
+                button_next: "rounded p-1 text-[var(--slate-400)] hover:text-[var(--slate-200)] hover:bg-[var(--slate-800)] transition-colors",
                 weeks: "w-full border-collapse",
                 weekdays: "flex",
-                weekday: "text-slate-500 text-[10px] font-semibold uppercase w-9 text-center",
+                weekday: "text-[var(--slate-500)] text-[10px] font-semibold uppercase w-9 text-center",
                 week: "flex w-full mt-1",
                 day: "w-9 h-9 text-center text-xs p-0",
-                day_button: "w-9 h-9 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors cursor-pointer",
+                day_button: "w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[var(--slate-700)] transition-colors cursor-pointer",
                 selected: "bg-blue-700 text-white font-bold",
                 range_start: "bg-blue-600 text-white font-bold",
                 range_end: "bg-blue-600 text-white font-bold",
                 range_middle: "bg-blue-900/50 text-blue-200",
                 today: "text-amber-400 font-bold",
-                outside: "text-slate-600",
-                disabled: "text-slate-700 cursor-not-allowed opacity-40",
+                outside: "text-[var(--slate-500)]",
+                disabled: "text-[var(--slate-700)] cursor-not-allowed opacity-40",
               }}
             />
           </div>
@@ -311,8 +311,8 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
       {/* 2×2 KPI grid */}
       <div className="grid grid-cols-2 gap-4">
         {/* Top-left: 35% commission */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Revenus Principaux (35%)
           </p>
           <p className="text-2xl font-extrabold text-cyan-400">{fmt(data.totalCommission)}</p>
@@ -320,8 +320,8 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
         </div>
 
         {/* Top-right: 65% secondary */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Revenus Secondaires (65%)
           </p>
           <p className="text-2xl font-extrabold text-amber-400">{fmt(data.totalRevenue * 0.65)}</p>
@@ -329,21 +329,21 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
         </div>
 
         {/* Bottom-left: registrations */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Inscriptions Payées
           </p>
-          <p className="text-2xl font-extrabold text-slate-100">{data.totalRegistrations}</p>
+          <p className="text-2xl font-extrabold text-[var(--slate-200)]">{data.totalRegistrations}</p>
           {deltaBadge(data.totalRegistrations, data.previousDayRegistrations, true)}
         </div>
 
         {/* Bottom-right: total revenue */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Chiffre d&apos;Affaires Total
           </p>
-          <p className="text-2xl font-extrabold text-slate-100">{fmt(data.totalRevenue)}</p>
-          <span className="text-[11px] text-slate-600">
+          <p className="text-2xl font-extrabold text-[var(--slate-200)]">{fmt(data.totalRevenue)}</p>
+          <span className="text-[11px] text-[var(--slate-500)]">
             {period === "all" ? "Cumul depuis le lancement" : "Sur la période sélectionnée"}
           </span>
         </div>
@@ -352,8 +352,8 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Line chart */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-500">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Progression Mensuelle des Commissions
           </p>
           <ResponsiveContainer width="100%" height={220}>
@@ -390,12 +390,12 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
         </div>
 
         {/* Donut chart */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-500">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Répartition des Plans Vendus
           </p>
           {data.planDistribution.length === 0 ? (
-            <div className="flex items-center justify-center h-[220px] text-slate-600 text-sm">
+            <div className="flex items-center justify-center h-[220px] text-[var(--slate-500)] text-sm">
               Aucune donnée disponible
             </div>
           ) : (
@@ -417,7 +417,7 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
                 </Pie>
                 <Legend
                   formatter={(value) => (
-                    <span className="text-[11px] text-slate-400">{value}</span>
+                    <span className="text-[11px] text-[var(--slate-400)]">{value}</span>
                   )}
                 />
                 <Tooltip
@@ -431,32 +431,32 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
       </div>
 
       {/* Ledger */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-5 py-4">
-          <p className="text-sm font-bold text-slate-100">Grand Livre des Commissions</p>
+      <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] overflow-hidden">
+        <div className="flex items-center justify-between border-b border-[var(--slate-800)] bg-[var(--slate-900)] px-5 py-4">
+          <p className="text-sm font-bold text-[var(--slate-200)]">Grand Livre des Commissions</p>
           <input
             type="text"
             placeholder="Rechercher un étudiant..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:border-blue-600 focus:outline-none w-52"
+            className="rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-1.5 text-xs text-[var(--slate-200)] placeholder-[var(--slate-500)] focus:border-blue-600 focus:outline-none w-52"
           />
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-800">
-                <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              <tr className="border-b border-[var(--slate-800)]">
+                <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Date d&apos;inscription
                 </th>
-                <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Étudiant
                 </th>
-                <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Formule Choisie
                 </th>
-                <th className="px-5 py-3 text-right text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                <th className="px-5 py-3 text-right text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Ma Commission
                 </th>
               </tr>
@@ -464,7 +464,7 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
             <tbody>
               {data.ledger.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-5 py-8 text-center text-sm text-slate-600">
+                  <td colSpan={4} className="px-5 py-8 text-center text-sm text-[var(--slate-500)]">
                     Aucune transaction trouvée
                   </td>
                 </tr>
@@ -474,11 +474,11 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
                   return (
                     <tr
                       key={row.id}
-                      className={`border-b border-slate-800/50 transition-colors hover:bg-slate-800/40 ${
+                      className={`border-b border-[var(--slate-800)]/50 transition-colors hover:bg-[var(--slate-800)]/40 ${
                         isNew ? "animate-pulse bg-emerald-900/20" : ""
                       }`}
                     >
-                      <td className="px-5 py-3 text-xs text-slate-400">
+                      <td className="px-5 py-3 text-xs text-[var(--slate-400)]">
                         {new Date(row.created_at).toLocaleString("fr-FR", {
                           day: "2-digit",
                           month: "2-digit",
@@ -488,10 +488,10 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
                         })}
                       </td>
                       <td className="px-5 py-3">
-                        <p className="text-xs font-medium text-slate-200">{row.student_name}</p>
-                        <p className="text-[10px] text-slate-500">{row.student_email}</p>
+                        <p className="text-xs font-medium text-[var(--slate-200)]">{row.student_name}</p>
+                        <p className="text-[10px] text-[var(--slate-500)]">{row.student_email}</p>
                       </td>
-                      <td className="px-5 py-3 text-xs text-slate-300">{row.plan_label}</td>
+                      <td className="px-5 py-3 text-xs text-[var(--slate-200)]">{row.plan_label}</td>
                       <td className="px-5 py-3 text-right text-xs font-semibold text-emerald-400">
                         {fmt(row.commission)}
                       </td>
@@ -504,22 +504,22 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-800 px-5 py-3">
-            <p className="text-[11px] text-slate-500">
+          <div className="flex items-center justify-between border-t border-[var(--slate-800)] px-5 py-3">
+            <p className="text-[11px] text-[var(--slate-500)]">
               Page {page} sur {totalPages} — {data.ledgerTotal} transaction{data.ledgerTotal > 1 ? "s" : ""}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => handlePage(page - 1)}
                 disabled={page <= 1}
-                className="rounded border border-slate-700 bg-slate-800 px-3 py-1 text-xs text-slate-300 transition hover:bg-slate-700 disabled:opacity-40"
+                className="rounded border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-1 text-xs text-[var(--slate-200)] transition hover:bg-[var(--slate-700)] disabled:opacity-40"
               >
                 Précédent
               </button>
               <button
                 onClick={() => handlePage(page + 1)}
                 disabled={page >= totalPages}
-                className="rounded border border-slate-700 bg-slate-800 px-3 py-1 text-xs text-slate-300 transition hover:bg-slate-700 disabled:opacity-40"
+                className="rounded border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-1 text-xs text-[var(--slate-200)] transition hover:bg-[var(--slate-700)] disabled:opacity-40"
               >
                 Suivant
               </button>
