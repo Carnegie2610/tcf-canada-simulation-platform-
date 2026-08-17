@@ -8,16 +8,17 @@ type TaskKey = "tache_1" | "tache_2" | "tache_3";
 
 interface TaskState {
   question: string;
+  solution: string;
   prepTimeSeconds: number;
   speakingTimeSeconds: number;
 }
 
 // Fixed to match the real TEF/TCF Expression Orale exam timing — not editable in the
-// form (see the disabled prep/speaking inputs below). Only "question" varies per exercise.
+// form (see the disabled prep/speaking inputs below). Only "question" and "solution" vary per exercise.
 const TASK_DEFAULTS: Record<TaskKey, TaskState> = {
-  tache_1: { question: "", prepTimeSeconds: 0, speakingTimeSeconds: 120 },
-  tache_2: { question: "", prepTimeSeconds: 60, speakingTimeSeconds: 210 },
-  tache_3: { question: "", prepTimeSeconds: 0, speakingTimeSeconds: 270 },
+  tache_1: { question: "", solution: "", prepTimeSeconds: 0, speakingTimeSeconds: 120 },
+  tache_2: { question: "", solution: "", prepTimeSeconds: 60, speakingTimeSeconds: 210 },
+  tache_3: { question: "", solution: "", prepTimeSeconds: 0, speakingTimeSeconds: 270 },
 };
 
 const TASK_LABELS: Record<TaskKey, string> = {
@@ -44,9 +45,21 @@ export function OralCombinationForm({ mode, initial, onSuccess, onCancel }: Oral
   const [tasks, setTasks] = useState<Record<TaskKey, TaskState>>(
     initial
       ? {
-          tache_1: { ...TASK_DEFAULTS.tache_1, question: initial.tasks.tache_1.question },
-          tache_2: { ...TASK_DEFAULTS.tache_2, question: initial.tasks.tache_2.question },
-          tache_3: { ...TASK_DEFAULTS.tache_3, question: initial.tasks.tache_3.question },
+          tache_1: {
+            ...TASK_DEFAULTS.tache_1,
+            question: initial.tasks.tache_1.question,
+            solution: initial.tasks.tache_1.solution ?? "",
+          },
+          tache_2: {
+            ...TASK_DEFAULTS.tache_2,
+            question: initial.tasks.tache_2.question,
+            solution: initial.tasks.tache_2.solution ?? "",
+          },
+          tache_3: {
+            ...TASK_DEFAULTS.tache_3,
+            question: initial.tasks.tache_3.question,
+            solution: initial.tasks.tache_3.solution ?? "",
+          },
         }
       : structuredClone(TASK_DEFAULTS)
   );
@@ -156,6 +169,17 @@ export function OralCombinationForm({ mode, initial, onSuccess, onCancel }: Oral
               onChange={(e) => setTaskField("question", e.target.value)}
               className={`${inputCls} resize-none`}
               placeholder="Décrivez le sujet de l'entretien..."
+            />
+          </Field>
+
+          <Field label={`Solution modèle — ${TASK_LABELS[activeTask]}`}>
+            <textarea
+              required
+              rows={4}
+              value={t.solution}
+              onChange={(e) => setTaskField("solution", e.target.value)}
+              className={`${inputCls} resize-none`}
+              placeholder="Voici un exemple de réponse orale modèle C2..."
             />
           </Field>
 

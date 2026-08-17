@@ -116,6 +116,7 @@ export type CombinationSearchParams = z.infer<typeof CombinationSearchParamsSche
 
 const OralTaskSchema = z.object({
   question: z.string().min(10),
+  solution: z.string().min(10),
   prepTimeSeconds: z.number().int().min(0).max(120),
   speakingTimeSeconds: z.number().int().min(30).max(300),
 });

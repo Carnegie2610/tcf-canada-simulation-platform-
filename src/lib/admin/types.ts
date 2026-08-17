@@ -232,6 +232,7 @@ export interface UpdateCombinationInput {
 
 export interface OralTask {
   question: string;
+  solution: string;
   prepTimeSeconds: number;
   speakingTimeSeconds: number;
 }
