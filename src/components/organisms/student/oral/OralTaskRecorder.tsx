@@ -41,13 +41,13 @@ function PrepCountdown({
   }, [isExpired, onComplete]);
 
   return (
-    <div className="flex flex-col items-center gap-4 rounded-xl border border-slate-800 bg-slate-900/40 p-6 text-center">
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+    <div className="flex flex-col items-center gap-4 rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-6 text-center">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
         Préparation
       </p>
-      <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-300">{question}</p>
-      <p className="font-mono text-4xl font-bold text-amber-500">{timeLeft}</p>
-      <p className="text-xs text-slate-500">
+      <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--slate-200)]">{question}</p>
+      <p className="font-mono text-4xl font-bold text-[var(--accent-amber-text)]">{timeLeft}</p>
+      <p className="text-xs text-[var(--slate-500)]">
         L&apos;enregistrement démarrera automatiquement à la fin de la préparation.
       </p>
     </div>
@@ -67,7 +67,7 @@ function RecordingCountdown({
     if (isExpired) onExpire();
   }, [isExpired, onExpire]);
 
-  return <p className="font-mono text-4xl font-bold text-red-400">{timeLeft}</p>;
+  return <p className="font-mono text-4xl font-bold text-[var(--accent-red-text)]">{timeLeft}</p>;
 }
 
 export function OralTaskRecorder({
@@ -151,15 +151,15 @@ export function OralTaskRecorder({
   if (recorder.status === "permission-denied") {
     return (
       <div className="flex flex-col items-center gap-3 rounded-xl border border-red-800/60 bg-red-950/30 p-6 text-center">
-        <p className="text-sm font-semibold text-red-400">Accès au microphone refusé</p>
-        <p className="text-xs leading-relaxed text-red-300">
+        <p className="text-sm font-semibold text-[var(--accent-red-text)]">Accès au microphone refusé</p>
+        <p className="text-xs leading-relaxed text-[var(--accent-red-text)]">
           {recorder.errorMessage ??
             "Veuillez autoriser l'accès au microphone dans les paramètres de votre navigateur, puis réessayez."}
         </p>
         <button
           type="button"
           onClick={handleReRecord}
-          className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700"
+          className="rounded-lg bg-[var(--slate-800)] px-4 py-2 text-xs font-semibold text-[var(--slate-200)] hover:bg-[var(--slate-700)]"
         >
           Réessayer
         </button>
@@ -170,10 +170,10 @@ export function OralTaskRecorder({
   if (recorder.status === "unsupported") {
     return (
       <div className="flex flex-col items-center gap-3 rounded-xl border border-amber-800/60 bg-amber-950/30 p-6 text-center">
-        <p className="text-sm font-semibold text-amber-400">
+        <p className="text-sm font-semibold text-[var(--accent-amber-text)]">
           Enregistrement audio non pris en charge
         </p>
-        <p className="text-xs leading-relaxed text-amber-300">
+        <p className="text-xs leading-relaxed text-[var(--accent-amber-text)]">
           Votre navigateur ne prend pas en charge l&apos;enregistrement audio requis pour cette
           épreuve. Veuillez utiliser une version récente de Chrome, Edge, Firefox ou Safari.
         </p>
@@ -184,14 +184,14 @@ export function OralTaskRecorder({
   if (recorder.status === "error") {
     return (
       <div className="flex flex-col items-center gap-3 rounded-xl border border-red-800/60 bg-red-950/30 p-6 text-center">
-        <p className="text-sm font-semibold text-red-400">Erreur d&apos;enregistrement</p>
-        <p className="text-xs leading-relaxed text-red-300">
+        <p className="text-sm font-semibold text-[var(--accent-red-text)]">Erreur d&apos;enregistrement</p>
+        <p className="text-xs leading-relaxed text-[var(--accent-red-text)]">
           {recorder.errorMessage ?? "Une erreur inattendue est survenue."}
         </p>
         <button
           type="button"
           onClick={handleReRecord}
-          className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700"
+          className="rounded-lg bg-[var(--slate-800)] px-4 py-2 text-xs font-semibold text-[var(--slate-200)] hover:bg-[var(--slate-700)]"
         >
           Réessayer
         </button>
@@ -201,14 +201,14 @@ export function OralTaskRecorder({
 
   if (phase === "idle") {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-xl border border-slate-800 bg-slate-900/40 p-6 text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+      <div className="flex flex-col items-center gap-4 rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-6 text-center">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
           Prête quand vous l&apos;êtes
         </p>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-300">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--slate-200)]">
           {task.question}
         </p>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[var(--slate-500)]">
           {Math.round(task.prepTimeSeconds / 60) || Math.round(task.prepTimeSeconds)} min de
           préparation, puis {Math.round(task.speakingTimeSeconds / 60) || task.speakingTimeSeconds}{" "}
           min de parole.
@@ -237,14 +237,14 @@ export function OralTaskRecorder({
 
   if (phase === "recording") {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-xl border border-slate-800 bg-slate-900/40 p-6 text-center">
+      <div className="flex flex-col items-center gap-4 rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-6 text-center">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-red-400">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--accent-red-text)]">
             Enregistrement en cours
           </p>
         </div>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-300">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--slate-200)]">
           {task.question}
         </p>
         <RecordingCountdown
@@ -264,11 +264,11 @@ export function OralTaskRecorder({
 
   // phase === "review": recording stopped, previewable, re-recordable.
   return (
-    <div className="flex flex-col items-center gap-4 rounded-xl border border-emerald-800/50 bg-slate-900/40 p-6 text-center">
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400">
+    <div className="flex flex-col items-center gap-4 rounded-xl border border-emerald-800/50 bg-[var(--slate-900)]/40 p-6 text-center">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--accent-emerald-text)]">
         Enregistrement terminé
       </p>
-      <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-300">{task.question}</p>
+      <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--slate-200)]">{task.question}</p>
       {audioUrl && (
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <audio controls src={audioUrl} className="w-full max-w-sm" />
@@ -278,7 +278,7 @@ export function OralTaskRecorder({
           type="button"
           onClick={handleReRecord}
           disabled={disabled}
-          className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-4 py-2 text-xs font-semibold text-[var(--slate-200)] hover:bg-[var(--slate-700)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           Réenregistrer
         </button>

@@ -25,7 +25,7 @@ function SkillTile({ icon, title, description, href, disabled }: SkillTileProps)
           className={`text-base font-semibold transition-colors ${
             disabled
               ? "text-[var(--slate-400)]"
-              : "text-[var(--brand-white)] group-hover:text-white"
+              : "text-[var(--brand-white)] group-hover:text-[var(--slate-200)]"
           }`}
         >
           {title}

@@ -56,7 +56,7 @@ export function CompletedCombinationCard({
     : null;
 
   const cefrBadgeClass = evaluation
-    ? (CEFR_BADGE[evaluation.cefr_level] ?? "bg-slate-800 text-slate-300 border-slate-700")
+    ? (CEFR_BADGE[evaluation.cefr_level] ?? "bg-[var(--slate-800)] text-[var(--slate-200)] border-[var(--slate-700)]")
     : null;
 
   async function handleEvaluate() {
@@ -89,14 +89,14 @@ export function CompletedCombinationCard({
           onClick={() => setErrorMsg(null)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl border border-red-500/30 bg-slate-900 p-6 shadow-2xl"
+            className="w-full max-w-sm rounded-2xl border border-red-500/30 bg-[var(--slate-900)] p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="mb-1 text-sm font-semibold text-red-400">Erreur</p>
-            <p className="text-sm text-slate-300 leading-relaxed">{errorMsg}</p>
+            <p className="mb-1 text-sm font-semibold text-[var(--accent-red-text)]">Erreur</p>
+            <p className="text-sm text-[var(--slate-200)] leading-relaxed">{errorMsg}</p>
             <button
               onClick={() => setErrorMsg(null)}
-              className="mt-4 w-full rounded-xl bg-slate-800 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 transition-colors"
+              className="mt-4 w-full rounded-xl bg-[var(--slate-800)] py-2 text-xs font-medium text-[var(--slate-200)] hover:bg-[var(--slate-700)] transition-colors"
             >
               Fermer
             </button>
@@ -104,10 +104,10 @@ export function CompletedCombinationCard({
         </div>
       )}
 
-      <div className="group relative rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6 transition-all duration-300 ease-out hover:-translate-y-2 hover:border-blue-500/40 hover:bg-slate-900/90 hover:shadow-[0_20px_50px_rgba(59,130,246,0.12)]">
+      <div className="group relative rounded-2xl border border-[var(--slate-800)]/80 bg-[var(--slate-900)]/60 p-6 transition-all duration-300 ease-out hover:-translate-y-2 hover:border-blue-500/40 hover:bg-[var(--slate-900)]/90 hover:shadow-[0_20px_50px_rgba(59,130,246,0.12)]">
         {/* 1. Header badges */}
         <div className="flex items-center justify-between mb-4">
-          <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-teal-400">
+          <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--accent-teal-text)]">
             <span className="text-sm">📝</span> Expression Écrite
           </span>
           <span className="px-2.5 py-0.5 text-[10px] font-bold tracking-widest uppercase rounded-full bg-blue-950 text-blue-300 border border-blue-800/50">
@@ -119,10 +119,10 @@ export function CompletedCombinationCard({
         <div className="mb-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-extrabold text-slate-100 group-hover:text-white transition-colors duration-200">
+              <h3 className="text-xl font-extrabold text-[var(--slate-200)] transition-colors duration-200">
                 📁 Combinaison {index}
               </h3>
-              <p className="text-sm text-slate-400 group-hover:text-slate-300 mt-1 line-clamp-2 transition-colors duration-200">
+              <p className="text-sm text-[var(--slate-400)] group-hover:text-[var(--slate-200)] mt-1 line-clamp-2 transition-colors duration-200">
                 {combination.title}
               </p>
             </div>
@@ -131,21 +131,21 @@ export function CompletedCombinationCard({
                 <span className={`rounded-lg border px-2.5 py-1 text-sm font-extrabold ${cefrBadgeClass}`}>
                   {evaluation.cefr_level}
                 </span>
-                <p className="text-base font-bold text-slate-200">
+                <p className="text-base font-bold text-[var(--slate-200)]">
                   {evaluation.global_score.toFixed(1)}
-                  <span className="text-xs text-slate-500">/20</span>
+                  <span className="text-xs text-[var(--slate-500)]">/20</span>
                 </p>
               </div>
             )}
           </div>
           {completedAt && (
-            <p className="mt-1.5 text-[11px] text-slate-600">Soumis le {completedAt}</p>
+            <p className="mt-1.5 text-[11px] text-[var(--slate-500)]">Soumis le {completedAt}</p>
           )}
         </div>
 
         {/* 3. Metadata row */}
-        <div className="border-t border-slate-800/60 pt-4 space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-300">
+        <div className="border-t border-[var(--slate-800)]/60 pt-4 space-y-2">
+          <div className="flex items-center justify-between text-xs text-[var(--slate-200)]">
             <span className="flex items-center gap-1.5 font-medium">
               <span>📋</span> 3 Tâches
             </span>

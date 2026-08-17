@@ -143,11 +143,11 @@ export function OralAttemptFlow({
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-8">
-      <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/40 px-4 py-3">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+      <div className="flex items-center justify-between rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 px-4 py-3">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
           Temps restant pour l&apos;épreuve
         </p>
-        <p className={`font-mono text-lg font-bold ${globalExpired ? "text-red-400" : "text-blue-400"}`}>
+        <p className={`font-mono text-lg font-bold ${globalExpired ? "text-[var(--accent-red-text)]" : "text-[var(--accent-blue-text)]"}`}>
           {globalTimeLeft}
         </p>
       </div>
@@ -163,8 +163,8 @@ export function OralAttemptFlow({
               t.number === currentTaskMeta.number
                 ? "bg-blue-600 text-white"
                 : recordings[t.number]
-                  ? "bg-emerald-900/60 text-emerald-300"
-                  : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                  ? "bg-emerald-900/60 text-emerald-400"
+                  : "bg-[var(--slate-800)] text-[var(--slate-400)] hover:bg-[var(--slate-700)]"
             }`}
           >
             {t.label} {recordings[t.number] ? "✓" : ""}
@@ -185,7 +185,7 @@ export function OralAttemptFlow({
 
       {phase === "attempt" && (
         <div className="flex flex-col items-center gap-2">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[var(--slate-500)]">
             {recordedCount} / {TASK_ORDER.length} tâche(s) enregistrée(s). Vous pouvez naviguer
             entre les tâches, réécouter et réenregistrer avant de soumettre.
           </p>
@@ -200,16 +200,16 @@ export function OralAttemptFlow({
       )}
 
       {phase === "submitting" && (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/40 p-6 text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-700 border-t-blue-500" />
-          <p className="text-sm text-slate-300">Envoi et finalisation de votre examen…</p>
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-6 text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--slate-700)] border-t-blue-500" />
+          <p className="text-sm text-[var(--slate-200)]">Envoi et finalisation de votre examen…</p>
         </div>
       )}
 
       {phase === "error" && (
         <div className="flex flex-col items-center gap-4 rounded-xl border border-red-800/60 bg-red-950/30 p-6 text-center">
-          <p className="text-sm font-semibold text-red-400">Échec de l&apos;envoi</p>
-          <p className="text-xs leading-relaxed text-red-300">{errorMessage}</p>
+          <p className="text-sm font-semibold text-[var(--accent-red-text)]">Échec de l&apos;envoi</p>
+          <p className="text-xs leading-relaxed text-[var(--accent-red-text)]">{errorMessage}</p>
           <button
             type="button"
             onClick={() => void handleSubmit()}

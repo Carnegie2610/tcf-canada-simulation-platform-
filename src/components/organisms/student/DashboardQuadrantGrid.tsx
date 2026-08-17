@@ -25,7 +25,7 @@ function QuadrantCard({ href, icon, title, bullets, badge }: QuadrantCardProps) 
         )}
       </div>
       <div>
-        <h2 className="text-base font-semibold text-[var(--brand-white)] group-hover:text-white transition-colors">
+        <h2 className="text-base font-semibold text-[var(--brand-white)] group-hover:text-[var(--slate-200)] transition-colors">
           {title}
         </h2>
         <ul className="mt-2 space-y-1">

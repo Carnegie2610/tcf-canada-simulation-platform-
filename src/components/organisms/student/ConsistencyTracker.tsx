@@ -10,7 +10,7 @@ interface ConsistencyTrackerProps {
 }
 
 const TILE_CLASSES: Record<0 | 1 | 2 | 3, string> = {
-  0: "bg-slate-800 border-slate-700",
+  0: "bg-[var(--slate-800)] border-[var(--slate-700)]",
   1: "bg-blue-900/60 border-blue-800/50",
   2: "bg-blue-700/60 border-blue-600/50",
   3: "bg-blue-500 border-blue-400/50",
@@ -38,7 +38,7 @@ export function ConsistencyTracker({
         <div className="flex items-center gap-4 text-xs text-[var(--slate-400)]">
           <span>
             Série active&nbsp;:&nbsp;
-            <span className="font-bold text-amber-400">
+            <span className="font-bold text-[var(--accent-amber-text)]">
               {currentStreak} jour{currentStreak !== 1 ? "s" : ""} consécutif{currentStreak !== 1 ? "s" : ""}
             </span>
           </span>

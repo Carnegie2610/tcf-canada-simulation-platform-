@@ -54,17 +54,17 @@ function TaskPanel({
   const connecteursLogiques = task.connecteurs_logiques ?? { utilises: [], manquants: [] };
 
   return (
-    <div className="task-panel rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+    <div className="task-panel rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/50 overflow-hidden">
       {/* Task header */}
-      <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-6 py-4">
-        <h3 className="text-base font-bold text-slate-100">{label}</h3>
+      <div className="flex items-center justify-between border-b border-[var(--slate-800)] bg-[var(--slate-900)] px-6 py-4">
+        <h3 className="text-base font-bold text-[var(--slate-200)]">{label}</h3>
         <div className="flex items-center gap-2">
           {task.pertinence_verdict && (
-            <span className="rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1 text-[11px] font-semibold text-slate-400">
+            <span className="rounded-full border border-[var(--slate-700)] bg-[var(--slate-800)]/60 px-3 py-1 text-[11px] font-semibold text-[var(--slate-400)]">
               {task.pertinence_verdict}
             </span>
           )}
-          <span className="rounded-full bg-slate-800 px-4 py-1 text-sm font-bold text-slate-300">
+          <span className="rounded-full bg-[var(--slate-800)] px-4 py-1 text-sm font-bold text-[var(--slate-200)]">
             {task.score} pts
           </span>
         </div>
@@ -73,11 +73,11 @@ function TaskPanel({
       <div className="p-6 space-y-6">
         {/* Section A — Transcription */}
         <div className="print-section-a space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Section A — Transcription de votre réponse orale
           </p>
-          <div className="secure-canvas-wrapper rounded-lg border border-slate-700/50 bg-slate-800/30 p-4">
-            <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+          <div className="secure-canvas-wrapper rounded-lg border border-[var(--slate-700)]/50 bg-[var(--slate-800)]/30 p-4">
+            <p className="text-sm text-[var(--slate-200)] leading-relaxed whitespace-pre-wrap">
               {task.transcript || "—"}
             </p>
           </div>
@@ -85,14 +85,14 @@ function TaskPanel({
 
         {/* Section B — Critères CECR */}
         <div className="print-section-b space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Section B — Critères CECR
           </p>
-          <div className="criteria-block rounded-lg bg-slate-800/40 p-4 border-l-2 border-emerald-700/40">
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+          <div className="criteria-block rounded-lg bg-[var(--slate-800)]/40 p-4 border-l-2 border-emerald-700/40">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
               Durée de la réponse
             </p>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-[var(--slate-200)] leading-relaxed">
               {formatDuration(speakingDurationSeconds)}
             </p>
           </div>
@@ -107,12 +107,12 @@ function TaskPanel({
             ].map(({ label: l, value }) => (
               <div
                 key={l}
-                className="criteria-block secure-canvas-wrapper rounded-lg bg-slate-800/40 p-4 border-l-2 border-blue-700/40"
+                className="criteria-block secure-canvas-wrapper rounded-lg bg-[var(--slate-800)]/40 p-4 border-l-2 border-blue-700/40"
               >
-                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   {l}
                 </p>
-                <p className="text-sm text-slate-300 leading-relaxed">{value}</p>
+                <p className="text-sm text-[var(--slate-200)] leading-relaxed">{value}</p>
               </div>
             ))}
           </div>
@@ -128,13 +128,13 @@ function TaskPanel({
           task.exercice_recommande ||
           task.comparaison_niveau_vise) && (
           <div className="print-section-c-analysis space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
               Section C — Analyse complémentaire
             </p>
 
             {pointsForts.length > 0 && (
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Points forts
                 </p>
                 {pointsForts.map((p, i) => (
@@ -142,7 +142,7 @@ function TaskPanel({
                     key={i}
                     className="secure-canvas-wrapper rounded-lg bg-emerald-950/20 border-l-2 border-emerald-700/40 p-4"
                   >
-                    <p className="text-sm text-slate-300 leading-relaxed">{p}</p>
+                    <p className="text-sm text-[var(--slate-200)] leading-relaxed">{p}</p>
                   </div>
                 ))}
               </div>
@@ -150,7 +150,7 @@ function TaskPanel({
 
             {prioritesATravailler.length > 0 && (
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Priorités à travailler
                 </p>
                 {prioritesATravailler.map((p, i) => (
@@ -158,7 +158,7 @@ function TaskPanel({
                     key={i}
                     className="secure-canvas-wrapper rounded-lg border border-blue-800/30 bg-blue-950/20 p-4"
                   >
-                    <p className="text-sm text-slate-300 leading-relaxed">{p}</p>
+                    <p className="text-sm text-[var(--slate-200)] leading-relaxed">{p}</p>
                   </div>
                 ))}
               </div>
@@ -166,7 +166,7 @@ function TaskPanel({
 
             {erreursRecurrentes.length > 0 && (
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Erreurs récurrentes
                 </p>
                 {erreursRecurrentes.map((r, i) => (
@@ -174,11 +174,11 @@ function TaskPanel({
                     key={i}
                     className="secure-canvas-wrapper rounded-lg bg-amber-950/20 border-l-2 border-amber-700/40 p-4"
                   >
-                    <p className="text-sm font-semibold text-amber-300">
-                      {r.pattern} <span className="font-normal text-amber-500">— {r.occurrences}×</span>
+                    <p className="text-sm font-semibold text-[var(--accent-amber-text)]">
+                      {r.pattern} <span className="font-normal text-[var(--accent-amber-text)]">— {r.occurrences}×</span>
                     </p>
                     {r.exemples.length > 0 && (
-                      <p className="mt-1 text-sm text-slate-400 leading-relaxed">{r.exemples.join(" · ")}</p>
+                      <p className="mt-1 text-sm text-[var(--slate-400)] leading-relaxed">{r.exemples.join(" · ")}</p>
                     )}
                   </div>
                 ))}
@@ -187,30 +187,30 @@ function TaskPanel({
 
             {task.registre_et_tonalite && (
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Registre et tonalité
                 </p>
-                <div className="secure-canvas-wrapper rounded-lg bg-slate-800/40 p-4">
-                  <p className="text-sm text-slate-300 leading-relaxed">{task.registre_et_tonalite}</p>
+                <div className="secure-canvas-wrapper rounded-lg bg-[var(--slate-800)]/40 p-4">
+                  <p className="text-sm text-[var(--slate-200)] leading-relaxed">{task.registre_et_tonalite}</p>
                 </div>
               </div>
             )}
 
             {(connecteursLogiques.utilises.length > 0 || connecteursLogiques.manquants.length > 0) && (
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Connecteurs logiques
                 </p>
-                <div className="rounded-lg bg-slate-800/40 p-4 space-y-1">
+                <div className="rounded-lg bg-[var(--slate-800)]/40 p-4 space-y-1">
                   {connecteursLogiques.utilises.length > 0 && (
-                    <p className="text-sm text-slate-300 leading-relaxed">
-                      <span className="text-slate-500">Utilisés : </span>
+                    <p className="text-sm text-[var(--slate-200)] leading-relaxed">
+                      <span className="text-[var(--slate-500)]">Utilisés : </span>
                       {connecteursLogiques.utilises.join(", ")}
                     </p>
                   )}
                   {connecteursLogiques.manquants.length > 0 && (
-                    <p className="text-sm text-slate-300 leading-relaxed">
-                      <span className="text-slate-500">À enrichir : </span>
+                    <p className="text-sm text-[var(--slate-200)] leading-relaxed">
+                      <span className="text-[var(--slate-500)]">À enrichir : </span>
                       {connecteursLogiques.manquants.join(", ")}
                     </p>
                   )}
@@ -220,22 +220,22 @@ function TaskPanel({
 
             {task.exercice_recommande && (
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Exercice recommandé
                 </p>
-                <div className="rounded-lg bg-slate-800/40 p-4">
-                  <p className="text-sm text-slate-300 leading-relaxed">{task.exercice_recommande}</p>
+                <div className="rounded-lg bg-[var(--slate-800)]/40 p-4">
+                  <p className="text-sm text-[var(--slate-200)] leading-relaxed">{task.exercice_recommande}</p>
                 </div>
               </div>
             )}
 
             {task.comparaison_niveau_vise && (
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Comparaison au niveau visé
                 </p>
-                <div className="rounded-lg bg-slate-800/40 p-4">
-                  <p className="text-sm text-slate-300 leading-relaxed">{task.comparaison_niveau_vise}</p>
+                <div className="rounded-lg bg-[var(--slate-800)]/40 p-4">
+                  <p className="text-sm text-[var(--slate-200)] leading-relaxed">{task.comparaison_niveau_vise}</p>
                 </div>
               </div>
             )}
@@ -270,7 +270,7 @@ export function OralResultView({
     { key: 3 as const, label: "Tâche 3", task: task3, duration: speakingDurationSeconds3 },
   ];
 
-  const cefrClass = CEFR_COLOR[cefrLevel] ?? "bg-slate-800 text-slate-300 border-slate-700";
+  const cefrClass = CEFR_COLOR[cefrLevel] ?? "bg-[var(--slate-800)] text-[var(--slate-200)] border-[var(--slate-700)]";
   const evalDate = new Date(createdAt).toLocaleDateString("fr-FR", {
     day: "numeric",
     month: "long",
@@ -320,7 +320,7 @@ export function OralResultView({
       <div className="flex flex-wrap items-center gap-2">
         <Link
           href="/dashboard/history"
-          className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-2 text-xs font-medium text-slate-300 transition-all duration-200 hover:bg-slate-800 hover:text-white"
+          className="flex items-center gap-1.5 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]/60 px-4 py-2 text-xs font-medium text-[var(--slate-200)] transition-all duration-200 hover:bg-[var(--slate-800)]"
         >
           ← Historique &amp; Progrès
         </Link>
@@ -328,32 +328,32 @@ export function OralResultView({
         <button
           onClick={handleDownloadPdf}
           disabled={isDownloadingPdf}
-          className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-2 text-xs font-medium text-slate-300 transition-all duration-200 hover:bg-slate-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]/60 px-4 py-2 text-xs font-medium text-[var(--slate-200)] transition-all duration-200 hover:bg-[var(--slate-800)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isDownloadingPdf ? "Génération du PDF…" : "📥 Télécharger le PDF"}
         </button>
       </div>
 
       {/* Score summary card */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+      <div className="rounded-2xl border border-[var(--slate-800)] bg-[var(--slate-900)]/60 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)] mb-1">
               {examType} Canada — Expression Orale
             </p>
-            <h1 className="text-xl font-extrabold text-slate-100">{oralCombinationTitle}</h1>
-            <p className="mt-1 text-xs text-slate-600">Évalué le {evalDate}</p>
+            <h1 className="text-xl font-extrabold text-[var(--slate-200)]">{oralCombinationTitle}</h1>
+            <p className="mt-1 text-xs text-[var(--slate-500)]">Évalué le {evalDate}</p>
           </div>
           <div className="flex items-center gap-3">
             <span className={`rounded-xl border px-4 py-2 text-2xl font-extrabold ${cefrClass}`}>
               {cefrLevel}
             </span>
             <div className="text-right">
-              <p className="text-3xl font-extrabold text-slate-100">
+              <p className="text-3xl font-extrabold text-[var(--slate-200)]">
                 {globalScore.toFixed(1)}
-                <span className="text-lg text-slate-500">/20</span>
+                <span className="text-lg text-[var(--slate-500)]">/20</span>
               </p>
-              <p className="text-sm text-slate-500 mt-0.5">{appreciation}</p>
+              <p className="text-sm text-[var(--slate-500)] mt-0.5">{appreciation}</p>
             </div>
           </div>
         </div>
@@ -367,7 +367,7 @@ export function OralResultView({
               className={`rounded-lg border px-3 py-3.5 text-sm font-bold transition-all ${
                 activeTab === key
                   ? "border-blue-600/50 bg-blue-950/60 text-blue-300"
-                  : "border-slate-800 bg-slate-800/40 text-slate-500 hover:text-slate-300"
+                  : "border-[var(--slate-800)] bg-[var(--slate-800)]/40 text-[var(--slate-500)] hover:text-[var(--slate-200)]"
               }`}
             >
               {label}: {task.score}

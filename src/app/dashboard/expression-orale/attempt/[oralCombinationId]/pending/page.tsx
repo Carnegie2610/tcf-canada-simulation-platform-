@@ -21,7 +21,7 @@ export default function OralPendingPage({ searchParams }: OralPendingPageProps) 
   if (aiError) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 p-6 text-center">
-        <p className="text-slate-300">
+        <p className="text-[var(--slate-200)]">
           Une erreur est survenue pendant l&apos;évaluation de votre simulation orale.
         </p>
         <button
