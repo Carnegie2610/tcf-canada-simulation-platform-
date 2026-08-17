@@ -44,8 +44,8 @@ function Card({
   className?: string;
 }) {
   return (
-    <div className={`rounded-xl border border-slate-800 bg-slate-900/40 p-3 ${className}`}>
-      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
+    <div className={`rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-3 ${className}`}>
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
         {title}
       </p>
       {children}
@@ -247,7 +247,7 @@ export function CombinationEditor({
   function tabDotClass(key: TaskKey): string {
     const count = wordCounts[key - 1];
     const { minWords: mn, maxWords: mx } = tasks[key - 1].task;
-    if (count === 0) return "bg-slate-600";
+    if (count === 0) return "bg-[var(--slate-700)]";
     if (isTaskValid(count, mn, mx)) return "bg-emerald-400";
     return "bg-amber-400";
   }
@@ -260,18 +260,18 @@ export function CombinationEditor({
         : "● Non sauvegardé";
 
   return (
-    <div className="relative flex h-screen flex-col overflow-hidden bg-slate-950">
+    <div className="relative flex h-screen flex-col overflow-hidden bg-[var(--slate-950)]">
 
       {/* ── TEMPS ÉCOULÉ OVERLAY ── */}
       {showExpiredOverlay && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-sm">
-          <p className="text-5xl font-extrabold tracking-widest uppercase text-red-500 mb-4">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[var(--slate-950)]/95 backdrop-blur-sm">
+          <p className="text-5xl font-extrabold tracking-widest uppercase text-[var(--accent-red-text)] mb-4">
             Temps écoulé
           </p>
-          <p className="text-sm text-slate-400 mb-6">
+          <p className="text-sm text-[var(--slate-400)] mb-6">
             Soumission automatique en cours…
           </p>
-          <div className="h-1 w-56 overflow-hidden rounded-full bg-slate-800">
+          <div className="h-1 w-56 overflow-hidden rounded-full bg-[var(--slate-800)]">
             <div
               className="h-full rounded-full bg-red-500"
               style={{ animation: "slideIn 2s linear forwards" }}
@@ -291,14 +291,14 @@ export function CombinationEditor({
 
       {/* ── AI CORRECTION ERROR FALLBACK ── */}
       {aiError && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-sm">
-          <p className="text-2xl font-bold text-red-400 mb-3">Erreur de correction</p>
-          <p className="text-sm text-slate-400 mb-6">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[var(--slate-950)]/95 backdrop-blur-sm">
+          <p className="text-2xl font-bold text-[var(--accent-red-text)] mb-3">Erreur de correction</p>
+          <p className="text-sm text-[var(--slate-400)] mb-6">
             Une erreur est survenue. Vos copies restent sauvegardées.
           </p>
           <button
             onClick={() => { setAiError(false); setShowAiHub(false); }}
-            className="rounded-xl border border-slate-700 px-5 py-2 text-sm text-slate-300 hover:bg-slate-800 transition-colors"
+            className="rounded-xl border border-[var(--slate-700)] px-5 py-2 text-sm text-[var(--slate-200)] hover:bg-[var(--slate-800)] transition-colors"
           >
             Retour au choix
           </button>
@@ -315,20 +315,20 @@ export function CombinationEditor({
 
       {/* ── RECOVERY BANNER ── */}
       {showRecoveryBanner && (
-        <div className="shrink-0 border-b border-green-500/30 bg-green-600/20 px-6 py-2 text-center text-xs font-medium text-green-400">
+        <div className="shrink-0 border-b border-green-500/30 bg-green-600/20 px-6 py-2 text-center text-xs font-medium text-[var(--accent-green-text)]">
           Session récupérée avec succès (sauvegardée localement)
         </div>
       )}
 
       {/* ── COMPONENT 1: HEADER (shared desktop + mobile) ── */}
-      <header className="shrink-0 flex h-14 items-center justify-between border-b border-slate-800/60 bg-slate-950/80 px-4 md:px-6 backdrop-blur-md">
+      <header className="shrink-0 flex h-14 items-center justify-between border-b border-[var(--slate-800)]/60 bg-[var(--slate-950)]/80 px-4 md:px-6 backdrop-blur-md">
         {/* Left: Branding */}
         <div className="flex items-center gap-2 md:gap-3">
           <span className="select-none bg-gradient-to-r from-[#2563eb] to-[#06b6d4] bg-clip-text text-sm md:text-base font-extrabold uppercase tracking-widest text-transparent">
             OBJECTIF 4C2
           </span>
-          <span className="hidden md:block select-none text-slate-700">|</span>
-          <span className="hidden md:block select-none text-xs font-light uppercase tracking-wider text-slate-500">
+          <span className="hidden md:block select-none text-[var(--slate-700)]">|</span>
+          <span className="hidden md:block select-none text-xs font-light uppercase tracking-wider text-[var(--slate-500)]">
             Examen Simulateur
           </span>
         </div>
@@ -336,7 +336,7 @@ export function CombinationEditor({
         {/* Center: Session badge (hidden on mobile) */}
         <div className="hidden md:flex items-center gap-2">
           <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-          <span className="select-none text-xs font-medium uppercase tracking-wide text-emerald-400">
+          <span className="select-none text-xs font-medium uppercase tracking-wide text-[var(--accent-emerald-text)]">
             Session Sécurisée (SSL)
           </span>
         </div>
@@ -346,13 +346,13 @@ export function CombinationEditor({
           <span
             className={`font-mono text-base md:text-lg font-bold leading-none ${
               isExpired
-                ? "text-red-400"
-                : "text-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+                ? "text-[var(--accent-red-text)]"
+                : "text-[var(--accent-amber-text)] shadow-[0_0_10px_rgba(245,158,11,0.2)]"
             }`}
           >
             🕒 {timeLeft}
           </span>
-          <span className="mt-0.5 text-[10px] text-slate-600">{saveLabel}</span>
+          <span className="mt-0.5 text-[10px] text-[var(--slate-500)]">{saveLabel}</span>
         </div>
       </header>
 
@@ -362,7 +362,7 @@ export function CombinationEditor({
       <div className="hidden md:flex flex-1 overflow-hidden">
 
         {/* ── LEFT COLUMN (15%) ── */}
-        <aside className="flex w-[15%] shrink-0 flex-col gap-3 overflow-y-auto border-r border-slate-800 bg-slate-900/40 p-3">
+        <aside className="flex w-[15%] shrink-0 flex-col gap-3 overflow-y-auto border-r border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-3">
 
           {/* Card: Tâches */}
           <Card title="Tâches">
@@ -374,15 +374,15 @@ export function CombinationEditor({
                   disabled={isLocked}
                   className={`w-full rounded-lg border-l-2 px-3 py-2.5 text-left transition-all disabled:opacity-50 ${
                     activeTask === key
-                      ? "border-l-blue-500 bg-slate-800/80 text-slate-100"
-                      : "border-l-transparent text-slate-500 hover:bg-slate-800/40 hover:text-slate-300"
+                      ? "border-l-blue-500 bg-[var(--slate-800)]/80 text-[var(--slate-200)]"
+                      : "border-l-transparent text-[var(--slate-500)] hover:bg-[var(--slate-800)]/40 hover:text-[var(--slate-200)]"
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <span className={`h-2 w-2 shrink-0 rounded-full ${tabDotClass(key)}`} />
                     <span className="text-xs font-semibold">{label}</span>
                   </div>
-                  <p className="mt-1 pl-4 text-[10px] text-slate-600">
+                  <p className="mt-1 pl-4 text-[10px] text-[var(--slate-500)]">
                     {task.minWords}–{task.maxWords} mots
                   </p>
                 </button>
@@ -397,14 +397,14 @@ export function CombinationEditor({
                 <button
                   onClick={() => goTo(-1)}
                   disabled={activeTask === 1 || isLocked}
-                  className="flex-1 rounded-lg border border-slate-700 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="flex-1 rounded-lg border border-[var(--slate-700)] py-2 text-xs font-medium text-[var(--slate-400)] transition-colors hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)] disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   ◀ Préc.
                 </button>
                 <button
                   onClick={() => goTo(1)}
                   disabled={activeTask === 3 || isLocked}
-                  className="flex-1 rounded-lg border border-slate-700 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="flex-1 rounded-lg border border-[var(--slate-700)] py-2 text-xs font-medium text-[var(--slate-400)] transition-colors hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)] disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   Suiv. ▶
                 </button>
@@ -412,7 +412,7 @@ export function CombinationEditor({
               <button
                 onClick={handleQuit}
                 disabled={isLocked}
-                className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-red-400 transition-colors hover:bg-red-950/40 hover:text-red-300 disabled:opacity-40"
+                className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-[var(--accent-red-text)] transition-colors hover:bg-red-950/40 hover:text-[var(--accent-red-text)] disabled:opacity-40"
               >
                 Quitter le test
               </button>
@@ -424,16 +424,16 @@ export function CombinationEditor({
         <main className="flex flex-1 flex-col overflow-hidden">
 
           {/* Component 5: Task Prompt — scrollable, max 250px */}
-          <div className="shrink-0 max-h-[250px] overflow-y-auto border-b border-slate-800 bg-slate-900/30 px-6 py-4">
+          <div className="shrink-0 max-h-[250px] overflow-y-auto border-b border-[var(--slate-800)] bg-[var(--slate-900)]/30 px-6 py-4">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                 {activeTaskData.label} — Sujet
               </p>
-              <p className="text-[10px] text-slate-600">
+              <p className="text-[10px] text-[var(--slate-500)]">
                 {minWords}–{maxWords} mots
               </p>
             </div>
-            <div className="pointer-events-none select-none whitespace-pre-wrap text-sm leading-relaxed text-slate-300">
+            <div className="pointer-events-none select-none whitespace-pre-wrap text-sm leading-relaxed text-[var(--slate-200)]">
               {activeTaskData.task.question}
             </div>
           </div>
@@ -445,31 +445,31 @@ export function CombinationEditor({
             onChange={(e) => handleChange(e.target.value)}
             disabled={isLocked || isExpired}
             placeholder="Commencez à rédiger votre réponse ici…"
-            className="flex-1 resize-none bg-slate-950 px-6 py-5 font-mono text-sm leading-relaxed text-slate-200 placeholder-slate-700 focus:outline-none disabled:opacity-60"
+            className="flex-1 resize-none bg-[var(--slate-950)] px-6 py-5 font-mono text-sm leading-relaxed text-[var(--slate-200)] placeholder-[var(--slate-500)] focus:outline-none disabled:opacity-60"
           />
         </main>
 
         {/* ── RIGHT COLUMN (15%) ── */}
-        <aside className="flex w-[15%] shrink-0 flex-col gap-3 overflow-y-auto border-l border-slate-800 bg-slate-900/40 p-3">
+        <aside className="flex w-[15%] shrink-0 flex-col gap-3 overflow-y-auto border-l border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-3">
 
           {/* Card: Compteur */}
           <Card title="Compteur">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
+            <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/60 p-3 text-center">
               <p
                 className={`text-3xl font-bold leading-none ${
                   activeWordCount === 0
-                    ? "text-slate-500"
+                    ? "text-[var(--slate-500)]"
                     : wordCountValid
-                      ? "text-emerald-400"
-                      : "text-red-400"
+                      ? "text-[var(--accent-emerald-text)]"
+                      : "text-[var(--accent-red-text)]"
                 }`}
               >
                 {activeWordCount}
               </p>
-              <p className="mt-1 text-[10px] text-slate-500">mots</p>
-              <div className="mt-2 border-t border-slate-800 pt-2 text-[10px] text-slate-500">
-                <span className="text-slate-400">Min:</span>{" "}{minWords}{" "}
-                <span className="text-slate-400">Max:</span>{" "}{maxWords}
+              <p className="mt-1 text-[10px] text-[var(--slate-500)]">mots</p>
+              <div className="mt-2 border-t border-[var(--slate-800)] pt-2 text-[10px] text-[var(--slate-500)]">
+                <span className="text-[var(--slate-400)]">Min:</span>{" "}{minWords}{" "}
+                <span className="text-[var(--slate-400)]">Max:</span>{" "}{maxWords}
               </div>
             </div>
           </Card>
@@ -484,7 +484,7 @@ export function CombinationEditor({
                   onClick={() => insertAccent(char, textareaRef)}
                   disabled={isLocked || isExpired}
                   title={`Insérer ${char}`}
-                  className="rounded px-1 py-1.5 text-sm font-medium text-slate-300 transition-colors bg-slate-800 hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded px-1 py-1.5 text-sm font-medium text-[var(--slate-200)] transition-colors bg-[var(--slate-800)] hover:bg-[var(--slate-700)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {char}
                 </button>
@@ -520,8 +520,8 @@ export function CombinationEditor({
                     disabled={isLocked}
                     className={`flex items-center gap-2 rounded-xl border py-2.5 px-3 text-sm font-bold transition-all disabled:opacity-50 ${
                       activeTask === key
-                        ? "border-blue-500 bg-blue-950/60 text-blue-300"
-                        : "border-slate-700 bg-slate-800/60 text-slate-400 hover:bg-slate-800"
+                        ? "border-blue-500 bg-blue-950/60 text-[var(--accent-blue-text)]"
+                        : "border-[var(--slate-700)] bg-[var(--slate-800)]/60 text-[var(--slate-400)] hover:bg-[var(--slate-800)]"
                     }`}
                   >
                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${tabDotClass(key)}`} />
@@ -538,14 +538,14 @@ export function CombinationEditor({
                 <button
                   onClick={() => goTo(-1)}
                   disabled={activeTask === 1 || isLocked}
-                  className="w-full rounded-lg border border-slate-700 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="w-full rounded-lg border border-[var(--slate-700)] py-2 text-xs font-medium text-[var(--slate-400)] transition-colors hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)] disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   ◀ Préc.
                 </button>
                 <button
                   onClick={() => goTo(1)}
                   disabled={activeTask === 3 || isLocked}
-                  className="w-full rounded-lg border border-slate-700 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="w-full rounded-lg border border-[var(--slate-700)] py-2 text-xs font-medium text-[var(--slate-400)] transition-colors hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)] disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   Suiv. ▶
                 </button>
@@ -559,7 +559,7 @@ export function CombinationEditor({
                 <button
                   onClick={handleQuit}
                   disabled={isLocked}
-                  className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-red-400 transition-colors hover:bg-red-950/40 hover:text-red-300 disabled:opacity-40"
+                  className="w-full rounded-lg border border-red-800/60 py-2 text-xs font-medium text-[var(--accent-red-text)] transition-colors hover:bg-red-950/40 hover:text-[var(--accent-red-text)] disabled:opacity-40"
                 >
                   Quitter le test
                 </button>
@@ -569,24 +569,24 @@ export function CombinationEditor({
         </div>
 
         {/* 4. Active question (scrollable, max 35vh) */}
-        <div className="shrink-0 max-h-[35vh] overflow-y-auto border-b border-slate-800 bg-slate-900/30 px-4 py-3">
-          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        <div className="shrink-0 max-h-[35vh] overflow-y-auto border-b border-[var(--slate-800)] bg-[var(--slate-900)]/30 px-4 py-3">
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             {activeTaskData.label} — Sujet
           </p>
-          <div className="pointer-events-none select-none whitespace-pre-wrap text-sm leading-relaxed text-slate-300">
+          <div className="pointer-events-none select-none whitespace-pre-wrap text-sm leading-relaxed text-[var(--slate-200)]">
             {activeTaskData.task.question}
           </div>
         </div>
 
         {/* 5. Textarea — its own bordered block, separate from the row below */}
-        <div className="shrink-0 mx-3 mt-3 overflow-hidden rounded-xl border border-slate-800">
+        <div className="shrink-0 mx-3 mt-3 overflow-hidden rounded-xl border border-[var(--slate-800)]">
           <textarea
             ref={mobileTextareaRef}
             value={activeDraft}
             onChange={(e) => handleChange(e.target.value)}
             disabled={isLocked || isExpired}
             placeholder="Commencez à rédiger votre réponse ici…"
-            className="h-[40vh] w-full resize-none bg-slate-950 px-4 py-4 font-mono text-sm leading-relaxed text-slate-200 placeholder-slate-700 focus:outline-none disabled:opacity-60"
+            className="h-[40vh] w-full resize-none bg-[var(--slate-950)] px-4 py-4 font-mono text-sm leading-relaxed text-[var(--slate-200)] placeholder-[var(--slate-500)] focus:outline-none disabled:opacity-60"
           />
         </div>
 
@@ -594,20 +594,20 @@ export function CombinationEditor({
         <div className="shrink-0 grid grid-cols-2 gap-2 mx-3 mt-3 mb-3">
           {/* Card: Compteur */}
           <Card title="Compteur">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center">
+            <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/60 p-3 text-center">
               <p
                 className={`text-2xl font-bold leading-none ${
                   activeWordCount === 0
-                    ? "text-slate-500"
+                    ? "text-[var(--slate-500)]"
                     : wordCountValid
-                      ? "text-emerald-400"
-                      : "text-red-400"
+                      ? "text-[var(--accent-emerald-text)]"
+                      : "text-[var(--accent-red-text)]"
                 }`}
               >
                 {activeWordCount}
               </p>
-              <p className="mt-0.5 text-[10px] text-slate-500">mots</p>
-              <p className="mt-1 text-[10px] text-slate-600">
+              <p className="mt-0.5 text-[10px] text-[var(--slate-500)]">mots</p>
+              <p className="mt-1 text-[10px] text-[var(--slate-500)]">
                 {minWords}–{maxWords}
               </p>
             </div>
@@ -623,7 +623,7 @@ export function CombinationEditor({
                   onClick={() => insertAccent(char, mobileTextareaRef)}
                   disabled={isLocked || isExpired}
                   title={`Insérer ${char}`}
-                  className="rounded px-1 py-1 text-xs font-medium text-slate-300 transition-colors bg-slate-800 hover:bg-slate-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded px-1 py-1 text-xs font-medium text-[var(--slate-200)] transition-colors bg-[var(--slate-800)] hover:bg-[var(--slate-700)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {char}
                 </button>

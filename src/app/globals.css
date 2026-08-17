@@ -24,6 +24,8 @@
   --accent-amber-text: #FBBF24;
   --accent-red-text: #F87171;
   --accent-orange-text: #FB923C;
+  --accent-teal-text: #2DD4BF;
+  --accent-green-text: #4ADE80;
 }
 
 /* Light theme — applied when the OS prefers light and the user hasn't explicitly chosen dark */
@@ -43,6 +45,8 @@
     --accent-amber-text: #B45309;
     --accent-red-text: #B91C1C;
     --accent-orange-text: #C2410C;
+    --accent-teal-text: #0F766E;
+    --accent-green-text: #15803D;
   }
 }
 
@@ -62,6 +66,8 @@
   --accent-amber-text: #B45309;
   --accent-red-text: #B91C1C;
   --accent-orange-text: #C2410C;
+  --accent-teal-text: #0F766E;
+  --accent-green-text: #15803D;
 }
 
 @theme inline {

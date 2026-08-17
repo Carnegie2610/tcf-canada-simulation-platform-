@@ -72,7 +72,7 @@ export function AiLoadingHub({ submissionId, onError, evaluateEndpoint, redirect
 
   return (
     <div
-      className={`absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 transition-opacity duration-400 ${
+      className={`absolute inset-0 z-50 flex flex-col items-center justify-center bg-[var(--slate-950)] transition-opacity duration-400 ${
         fading ? "opacity-0" : "opacity-100"
       }`}
     >
@@ -135,7 +135,7 @@ export function AiLoadingHub({ submissionId, onError, evaluateEndpoint, redirect
           className={`relative z-10 flex h-16 w-16 items-center justify-center rounded-full text-3xl transition-all duration-500 ${
             success
               ? "shadow-[0_0_50px_rgba(34,197,94,0.8)] bg-emerald-900/40"
-              : "shadow-[0_0_50px_rgba(34,197,94,0.3)] bg-slate-900/60 animate-pulse"
+              : "shadow-[0_0_50px_rgba(34,197,94,0.3)] bg-[var(--slate-900)]/60 animate-pulse"
           }`}
         >
           {success ? "✅" : "✦"}
@@ -144,7 +144,7 @@ export function AiLoadingHub({ submissionId, onError, evaluateEndpoint, redirect
 
       {/* Status text */}
       <p
-        className={`max-w-sm text-center text-sm font-medium text-slate-300 transition-opacity duration-300 ${
+        className={`max-w-sm text-center text-sm font-medium text-[var(--slate-200)] transition-opacity duration-300 ${
           fadeText ? "opacity-100" : "opacity-0"
         }`}
       >
@@ -157,7 +157,7 @@ export function AiLoadingHub({ submissionId, onError, evaluateEndpoint, redirect
           <span
             key={i}
             className={`h-1.5 w-1.5 rounded-full transition-colors duration-500 ${
-              i <= statusIndex ? "bg-blue-500" : "bg-slate-700"
+              i <= statusIndex ? "bg-blue-500" : "bg-[var(--slate-700)]"
             }`}
           />
         ))}
