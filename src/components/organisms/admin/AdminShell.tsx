@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { SignOutButton } from "@/components/molecules/student/SignOutButton";
 import { ThemeToggle } from "@/components/atoms/ThemeToggle";
+import { AdminNavLink } from "@/components/molecules/admin/AdminNavLink";
 import type { UserRole } from "@/lib/admin/types";
 
 interface AdminShellProps {
@@ -51,14 +51,7 @@ export function AdminShell({ children, currentUserName, currentUserRole }: Admin
           {navItems
             .filter((item) => !item.superAdminOnly || currentUserRole === "super_admin")
             .map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--slate-400)] hover:bg-[var(--slate-800)] hover:text-[var(--brand-white)] transition-colors"
-              >
-                <span className="text-base">{item.icon}</span>
-                {item.label}
-              </Link>
+              <AdminNavLink key={item.href} href={item.href} icon={item.icon} label={item.label} />
             ))}
         </nav>
 
