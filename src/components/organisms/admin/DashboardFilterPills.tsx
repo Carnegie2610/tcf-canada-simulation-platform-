@@ -54,7 +54,7 @@ export function DashboardFilterPills() {
             className={
               isActive
                 ? "rounded-lg border border-blue-500 bg-blue-600 px-4 py-1.5 text-sm font-bold text-white shadow-[0_0_15px_rgba(59,130,246,0.35)] scale-105 transition-all duration-300"
-                : "rounded-lg border border-[var(--slate-700)] bg-slate-900/40 px-4 py-1.5 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-all duration-200"
+                : "rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-4 py-1.5 text-sm text-[var(--slate-400)] hover:bg-[var(--slate-700)] hover:text-[var(--slate-200)] transition-all duration-200"
             }
           >
             {label}
@@ -71,8 +71,8 @@ export function DashboardFilterPills() {
           onChange={handleDateChange}
           className={`rounded-lg border px-3 py-1.5 text-sm transition-all duration-200 focus:outline-none ${
             current === "custom"
-              ? "border-blue-500 bg-blue-600/10 text-white"
-              : "border-[var(--slate-700)] bg-slate-900/40 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+              ? "border-blue-500 bg-blue-600/10 text-[var(--slate-200)]"
+              : "border-[var(--slate-700)] bg-[var(--slate-800)] text-[var(--slate-400)] hover:bg-[var(--slate-700)] hover:text-[var(--slate-200)]"
           }`}
         />
       </div>
