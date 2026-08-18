@@ -3,6 +3,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getPlanMeta } from "@/lib/plans";
 
+function isEoPlan(plan: string): boolean {
+  return getPlanMeta(plan).skillType === "eo";
+}
+
 function getPeriodRange(period: string): { start: string | null; end: string | null } {
   const now = new Date();
   const toISO = (d: Date) => d.toISOString();
@@ -78,7 +82,7 @@ export async function GET(request: NextRequest) {
   // Period-scoped KPIs
   let kpiQuery = adminClient
     .from("payments")
-    .select("commission, plan_price", { count: "exact" })
+    .select("commission, plan_price, plan", { count: "exact" })
     .eq("payment_status", "confirmed");
   if (start) kpiQuery = kpiQuery.gte("created_at", start);
   if (end) kpiQuery = kpiQuery.lte("created_at", end);
@@ -87,18 +91,24 @@ export async function GET(request: NextRequest) {
   const totalCommission = (kpiRows ?? []).reduce((s, r) => s + Number(r.commission), 0);
   const totalRevenue = (kpiRows ?? []).reduce((s, r) => s + Number(r.plan_price), 0);
   const totalRegistrations = kpiCount ?? 0;
+  const eoKpiRows = (kpiRows ?? []).filter((r) => isEoPlan(r.plan));
+  const totalCommissionEo = eoKpiRows.reduce((s, r) => s + Number(r.commission), 0);
+  const totalRevenueEo = eoKpiRows.reduce((s, r) => s + Number(r.plan_price), 0);
 
   // Previous day KPIs (for delta badges)
   const prev = getPreviousDayRange();
   const { data: prevRows, count: prevCount } = await adminClient
     .from("payments")
-    .select("commission, plan_price", { count: "exact" })
+    .select("commission, plan_price, plan", { count: "exact" })
     .eq("payment_status", "confirmed")
     .gte("created_at", prev.start)
     .lte("created_at", prev.end);
   const previousDayCommission = (prevRows ?? []).reduce((s, r) => s + Number(r.commission), 0);
   const previousDayRevenue = (prevRows ?? []).reduce((s, r) => s + Number(r.plan_price), 0);
   const previousDayRegistrations = prevCount ?? 0;
+  const eoPrevRows = (prevRows ?? []).filter((r) => isEoPlan(r.plan));
+  const previousDayCommissionEo = eoPrevRows.reduce((s, r) => s + Number(r.commission), 0);
+  const previousDayRevenueEo = eoPrevRows.reduce((s, r) => s + Number(r.plan_price), 0);
 
   // Lifetime revenue (always all-time for 3rd KPI card)
   const { data: lifetimeRows } = await adminClient
@@ -184,5 +194,9 @@ export async function GET(request: NextRequest) {
     planDistribution,
     ledger,
     ledgerTotal: ledgerTotal ?? 0,
+    totalCommissionEo,
+    totalRevenueEo,
+    previousDayCommissionEo,
+    previousDayRevenueEo,
   });
 }

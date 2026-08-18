@@ -81,12 +81,16 @@ export function StudentTopHeader({
         },
         (payload) => {
           const row = payload.new as {
-            simulations_quota: number;
-            simulations_remaining: number;
+            ee_simulations_quota: number;
+            ee_simulations_remaining: number;
+            eo_simulations_quota: number;
+            eo_simulations_remaining: number;
             expires_at: string;
           };
-          setTotal(row.simulations_quota);
-          setUsed(row.simulations_quota - row.simulations_remaining);
+          const quotaTotal = row.ee_simulations_quota + row.eo_simulations_quota;
+          const quotaRemaining = row.ee_simulations_remaining + row.eo_simulations_remaining;
+          setTotal(quotaTotal);
+          setUsed(quotaTotal - quotaRemaining);
           setExpiryStr(row.expires_at);
           setDaysLeft(computeDaysLeft(row.expires_at));
         }

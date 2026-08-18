@@ -41,6 +41,12 @@ interface CommissionsData {
   planDistribution: DistPoint[];
   ledger: LedgerRow[];
   ledgerTotal: number;
+  // Expression Orale plans only (PLAN_EO_*) — tracked separately from the EE/mix
+  // totals above since EO carries its own 30% commission rate.
+  totalCommissionEo: number;
+  totalRevenueEo: number;
+  previousDayCommissionEo: number;
+  previousDayRevenueEo: number;
 }
 
 interface CommissionsPageProps {
@@ -346,6 +352,25 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
           <span className="text-[11px] text-[var(--slate-500)]">
             {period === "all" ? "Cumul depuis le lancement" : "Sur la période sélectionnée"}
           </span>
+        </div>
+      </div>
+
+      {/* Expression Orale — separate 30% commission rate */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            Revenus EO Principaux (30%)
+          </p>
+          <p className="text-2xl font-extrabold text-cyan-400">{fmt(data.totalCommissionEo)}</p>
+          {deltaBadge(data.totalCommissionEo, data.previousDayCommissionEo)}
+        </div>
+
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            Revenus EO Secondaires (60%)
+          </p>
+          <p className="text-2xl font-extrabold text-amber-400">{fmt(data.totalRevenueEo * 0.6)}</p>
+          {deltaBadge(data.totalRevenueEo * 0.6, data.previousDayRevenueEo * 0.6)}
         </div>
       </div>
 

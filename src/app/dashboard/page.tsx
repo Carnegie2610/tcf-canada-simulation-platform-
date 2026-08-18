@@ -109,7 +109,7 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, simulations_quota, simulations_remaining")
+      .select("full_name, ee_simulations_quota, ee_simulations_remaining, eo_simulations_quota, eo_simulations_remaining")
       .eq("id", user.id)
       .single(),
     supabase
@@ -122,8 +122,10 @@ export default async function DashboardPage() {
       .eq("user_id", user.id),
   ]);
 
-  const simulationsUsed = (profile?.simulations_quota ?? 0) - (profile?.simulations_remaining ?? 0);
-  const simulationsTotal = profile?.simulations_quota ?? 0;
+  const quotaTotal = (profile?.ee_simulations_quota ?? 0) + (profile?.eo_simulations_quota ?? 0);
+  const quotaRemaining = (profile?.ee_simulations_remaining ?? 0) + (profile?.eo_simulations_remaining ?? 0);
+  const simulationsUsed = quotaTotal - quotaRemaining;
+  const simulationsTotal = quotaTotal;
   const firstName = profile?.full_name?.split(" ")[0] ?? "là";
 
   const { activityDays, currentStreak, totalCompleted } = computeActivityData(

@@ -4,6 +4,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CommissionsPage } from "@/components/organisms/admin/CommissionsPage";
 import { getPlanMeta } from "@/lib/plans";
 
+function isEoPlan(plan: string): boolean {
+  return getPlanMeta(plan).skillType === "eo";
+}
+
 export default async function CommissionsAdminPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -30,6 +34,9 @@ export default async function CommissionsAdminPage() {
   const totalRevenue = rows.reduce((s, r) => s + Number(r.plan_price), 0);
   const totalRegistrations = rows.length;
   const lifetimeRevenue = totalRevenue;
+  const eoRows = rows.filter((r) => isEoPlan(r.plan as string));
+  const totalCommissionEo = eoRows.reduce((s, r) => s + Number(r.commission), 0);
+  const totalRevenueEo = eoRows.reduce((s, r) => s + Number(r.plan_price), 0);
 
   // Previous day
   const now = new Date();
@@ -40,13 +47,16 @@ export default async function CommissionsAdminPage() {
   prevEnd.setHours(23, 59, 59, 999);
   const { data: prevRows } = await adminClient
     .from("payments")
-    .select("commission, plan_price")
+    .select("commission, plan_price, plan")
     .eq("payment_status", "confirmed")
     .gte("created_at", prevStart.toISOString())
     .lte("created_at", prevEnd.toISOString());
   const previousDayCommission = (prevRows ?? []).reduce((s, r) => s + Number(r.commission), 0);
   const previousDayRevenue = (prevRows ?? []).reduce((s, r) => s + Number(r.plan_price), 0);
   const previousDayRegistrations = (prevRows ?? []).length;
+  const eoPrevRows = (prevRows ?? []).filter((r) => isEoPlan(r.plan as string));
+  const previousDayCommissionEo = eoPrevRows.reduce((s, r) => s + Number(r.commission), 0);
+  const previousDayRevenueEo = eoPrevRows.reduce((s, r) => s + Number(r.plan_price), 0);
 
   // Monthly trend
   const thirtyDaysAgo = new Date();
@@ -106,6 +116,10 @@ export default async function CommissionsAdminPage() {
     planDistribution,
     ledger,
     ledgerTotal: ledgerTotal ?? 0,
+    totalCommissionEo,
+    totalRevenueEo,
+    previousDayCommissionEo,
+    previousDayRevenueEo,
   };
 
   return <CommissionsPage initialData={initialData} />;

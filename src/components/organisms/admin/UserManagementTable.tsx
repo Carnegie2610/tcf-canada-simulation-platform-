@@ -7,6 +7,7 @@ import { UserForm } from "@/components/molecules/admin/UserForm";
 import { ConfirmDeleteModal } from "@/components/molecules/admin/ConfirmDeleteModal";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { AdminProfile, UserRole } from "@/lib/admin/types";
+import { getPlanMeta } from "@/lib/plans";
 
 interface UserManagementTableProps {
   users: AdminProfile[];
@@ -14,15 +15,6 @@ interface UserManagementTableProps {
   currentUserId: string;
   onDeleted?: () => void;
 }
-
-const planLabel: Record<string, string> = {
-  PLAN_2000:  "2 000 F",
-  PLAN_3000:  "3 000 F",
-  PLAN_5000:  "5 000 F",
-  PLAN_10000: "10 000 F",
-  PLAN_15000: "15 000 F",
-  PLAN_20000: "20 000 F",
-};
 
 function ResetPasswordButton({ email }: { email: string }) {
   const [status, setStatus] = useState<"idle" | "sent" | "error">("idle");
@@ -154,14 +146,19 @@ export function UserManagementTable({
                     </span>
                   </AdminTableCell>
                   <AdminTableCell>
-                    {u.assigned_plan ? (planLabel[u.assigned_plan] ?? u.assigned_plan) : "—"}
+                    {u.assigned_plan ? getPlanMeta(u.assigned_plan).label : "—"}
                   </AdminTableCell>
                   <AdminTableCell>
-                    {u.simulations_quota == null ? (
+                    {u.ee_simulations_quota == null && u.eo_simulations_quota == null ? (
                       "—"
                     ) : (
-                      <span className={u.simulations_remaining === 0 ? "text-red-400" : ""}>
-                        {u.simulations_remaining}/{u.simulations_quota}
+                      <span className="space-x-2">
+                        <span className={u.ee_simulations_remaining === 0 ? "text-red-400" : ""}>
+                          EE {u.ee_simulations_remaining}/{u.ee_simulations_quota}
+                        </span>
+                        <span className={u.eo_simulations_remaining === 0 ? "text-red-400" : ""}>
+                          EO {u.eo_simulations_remaining}/{u.eo_simulations_quota}
+                        </span>
                       </span>
                     )}
                   </AdminTableCell>

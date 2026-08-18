@@ -1,26 +1,46 @@
 import { SupportTicketForm } from "@/components/molecules/student/SupportTicketForm";
 import { SignOutButton } from "@/components/molecules/student/SignOutButton";
 import type { AdminProfile } from "@/lib/admin/types";
+import { getPlanMeta } from "@/lib/plans";
 
 interface BillingPanelProps {
   profile: AdminProfile;
 }
 
-const planLabel: Record<string, string> = {
-  PLAN_5000:  "Forfait Découverte (5 000 F CFA)",
-  PLAN_10000: "Forfait Standard (10 000 F CFA)",
-  PLAN_30000: "Forfait Excellence (30 000 F CFA)",
-};
+function QuotaBar({ label, quota, remaining }: { label: string; quota: number; remaining: number }) {
+  const used = quota - remaining;
+  const pct = quota > 0 ? Math.min(100, (used / quota) * 100) : 0;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm text-[var(--slate-400)]">{label}</span>
+        <span className="text-sm font-semibold text-[var(--brand-white)]">
+          {used} / {quota}
+        </span>
+      </div>
+      <div className="h-2 w-full rounded-full bg-[var(--slate-800)]">
+        <div
+          className={`h-2 rounded-full transition-all ${pct >= 80 ? "bg-[var(--brand-red)]" : "bg-[var(--blue-500)]"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="mt-1 text-xs text-[var(--slate-600)]">
+        {remaining} simulation{remaining !== 1 ? "s" : ""} restante{remaining !== 1 ? "s" : ""}
+      </p>
+    </div>
+  );
+}
 
 export function BillingPanel({ profile }: BillingPanelProps) {
   // This panel is only ever rendered for the logged-in student's own profile, which
   // always has a plan — the DB enforces this (chk_students_require_plan). The
   // fallbacks below only exist to satisfy AdminProfile's shared nullable typing
   // (staff accounts have no plan) and are never hit in practice here.
-  const quota = profile.simulations_quota ?? 0;
-  const remaining = profile.simulations_remaining ?? 0;
-  const used = quota - remaining;
-  const pct = quota > 0 ? Math.min(100, (used / quota) * 100) : 0;
+  const eeQuota = profile.ee_simulations_quota ?? 0;
+  const eeRemaining = profile.ee_simulations_remaining ?? 0;
+  const eoQuota = profile.eo_simulations_quota ?? 0;
+  const eoRemaining = profile.eo_simulations_remaining ?? 0;
   const isExpired = profile.expires_at ? new Date(profile.expires_at) < new Date() : false;
 
   const expiryDate = profile.expires_at
@@ -43,7 +63,7 @@ export function BillingPanel({ profile }: BillingPanelProps) {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-lg font-bold text-[var(--brand-white)]">
-                {profile.assigned_plan ? (planLabel[profile.assigned_plan] ?? profile.assigned_plan) : "—"}
+                {profile.assigned_plan ? getPlanMeta(profile.assigned_plan).label : "—"}
               </p>
               <p className="text-sm text-[var(--slate-400)] mt-0.5">
                 Expire le {expiryDate}
@@ -60,23 +80,10 @@ export function BillingPanel({ profile }: BillingPanelProps) {
             </span>
           </div>
 
-          {/* Quota bar */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--slate-400)]">Simulations utilisées</span>
-              <span className="text-sm font-semibold text-[var(--brand-white)]">
-                {used} / {quota}
-              </span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-[var(--slate-800)]">
-              <div
-                className={`h-2 rounded-full transition-all ${pct >= 80 ? "bg-[var(--brand-red)]" : "bg-[var(--blue-500)]"}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <p className="mt-1 text-xs text-[var(--slate-600)]">
-              {remaining} simulation{remaining !== 1 ? "s" : ""} restante{remaining !== 1 ? "s" : ""}
-            </p>
+          {/* Quota bars — EE and EO tracked independently */}
+          <div className="space-y-4">
+            <QuotaBar label="Simulations EE utilisées" quota={eeQuota} remaining={eeRemaining} />
+            <QuotaBar label="Simulations EO utilisées" quota={eoQuota} remaining={eoRemaining} />
           </div>
 
           {/* AI corrections */}

@@ -3,15 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ActivityFeedRow, DashboardFilter } from "@/lib/admin/types";
-
-const PLAN_LABEL: Record<string, string> = {
-  PLAN_2000:  "Starter (2 000 CFA)",
-  PLAN_3000:  "Essentiel (3 000 CFA)",
-  PLAN_5000:  "Base (5 000 CFA)",
-  PLAN_10000: "Premium (10 000 CFA)",
-  PLAN_15000: "Avancé (15 000 CFA)",
-  PLAN_20000: "Elite (20 000 CFA)",
-};
+import { getPlanMeta } from "@/lib/plans";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -79,7 +71,7 @@ export function ActivityFeedTable({ rows, total, currentPage, filter, date }: Ac
                     <p className="text-xs text-[var(--slate-500)]">{row.email}</p>
                   </td>
                   <td className="px-4 py-3 text-sm text-[var(--slate-300)]">
-                    {PLAN_LABEL[row.assignedPlan] ?? row.assignedPlan}
+                    {getPlanMeta(row.assignedPlan).label}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`text-sm font-medium ${row.simulationsRemaining === 0 ? "text-red-400" : "text-[var(--slate-300)]"}`}>

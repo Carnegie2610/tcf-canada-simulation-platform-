@@ -16,14 +16,14 @@ export default async function ExpressionOralePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("simulations_quota, simulations_remaining, expires_at")
+    .select("eo_simulations_quota, eo_simulations_remaining, expires_at")
     .eq("id", user.id)
     .single();
 
   if (!profile) redirect("/dashboard");
 
   const combinationsWithStatus = await listOralCombinationsWithStatus(supabase, user.id);
-  const simulationsUsed = profile.simulations_quota - profile.simulations_remaining;
+  const simulationsUsed = profile.eo_simulations_quota - profile.eo_simulations_remaining;
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -40,7 +40,7 @@ export default async function ExpressionOralePage() {
       <OralCombinationGrid
         combinationsWithStatus={combinationsWithStatus}
         simulationsUsed={simulationsUsed}
-        simulationsTotal={profile.simulations_quota}
+        simulationsTotal={profile.eo_simulations_quota}
         expiresAt={profile.expires_at}
       />
     </div>

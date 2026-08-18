@@ -4,7 +4,12 @@ import { useState } from "react";
 import { CreateUserSchema, UpdateUserSchema } from "@/lib/schemas-admin";
 import { SuperAdminSecurityModule } from "./SuperAdminSecurityModule";
 import type { AdminProfile, UserRole } from "@/lib/admin/types";
-import { PLAN_CONFIG as PLANS, ADMIN_ONLY_PLAN_CONFIG } from "@/lib/plans";
+import {
+  PLAN_CONFIG as PLANS,
+  ADMIN_ONLY_PLAN_CONFIG,
+  EO_PLAN_CONFIG,
+  MIX_PLAN_CONFIG,
+} from "@/lib/plans";
 
 interface UserFormProps {
   mode: "create" | "edit";
@@ -16,19 +21,31 @@ interface UserFormProps {
 
 function buildPlanOptions(source: typeof PLANS) {
   return Object.fromEntries(
-    Object.entries(source).map(([k, v]) => [
-      k,
-      {
-        label: `${v.label} (${v.price.toLocaleString("fr-FR")} CFA — ${v.quota} sim.)`,
-        quota: v.quota,
-        days: v.days,
-      },
-    ])
+    Object.entries(source).map(([k, v]) => {
+      const simLabel =
+        v.skillType === "mix"
+          ? `${v.eeQuota} sim. EE + ${v.eoQuota} sim. EO`
+          : v.skillType === "eo"
+            ? `${v.eoQuota} sim. EO`
+            : `${v.eeQuota} sim. EE`;
+      return [
+        k,
+        {
+          label: `${v.label} (${v.price.toLocaleString("fr-FR")} CFA — ${simLabel})`,
+          eeQuota: v.eeQuota,
+          eoQuota: v.eoQuota,
+          days: v.days,
+        },
+      ];
+    })
   );
 }
 
 const PLAN_CONFIG = buildPlanOptions(PLANS);
 const ADMIN_ONLY_PLANS = buildPlanOptions(ADMIN_ONLY_PLAN_CONFIG);
+const EO_PLANS = buildPlanOptions(EO_PLAN_CONFIG);
+const MIX_PLANS = buildPlanOptions(MIX_PLAN_CONFIG);
+const ALL_PLANS = { ...PLAN_CONFIG, ...ADMIN_ONLY_PLANS, ...EO_PLANS, ...MIX_PLANS };
 
 function addDays(n: number): string {
   const d = new Date();
@@ -57,7 +74,7 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
   const [showPw, setShowPw] = useState(false);
 
   const defaultPlan = initial?.assigned_plan ?? "PLAN_5000";
-  const defaultCfg = PLAN_CONFIG[defaultPlan];
+  const defaultCfg = ALL_PLANS[defaultPlan];
   // Staff (admin/super_admin) accounts have no subscription plan — the plan/quota/
   // expiry fields are hidden and kept null for them, matching the DB constraint
   // that only students are required to have a plan.
@@ -69,7 +86,8 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
     password: string;
     role: UserRole;
     assigned_plan: string | null;
-    simulations_quota: number | null;
+    ee_simulations_quota: number | null;
+    eo_simulations_quota: number | null;
     ai_corrections_enabled: boolean;
     expires_at: string | null;
     cohort_tag: string;
@@ -79,7 +97,8 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
     password: "",
     role: initial?.role ?? "student",
     assigned_plan: initialIsStaff ? null : defaultPlan,
-    simulations_quota: initialIsStaff ? null : (initial?.simulations_quota ?? defaultCfg.quota),
+    ee_simulations_quota: initialIsStaff ? null : (initial?.ee_simulations_quota ?? defaultCfg.eeQuota),
+    eo_simulations_quota: initialIsStaff ? null : (initial?.eo_simulations_quota ?? defaultCfg.eoQuota),
     ai_corrections_enabled: initial?.ai_corrections_enabled ?? true,
     expires_at: initialIsStaff
       ? null
@@ -102,7 +121,8 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
         ...prev,
         role: nextRole,
         assigned_plan: prev.assigned_plan ?? defaultPlan,
-        simulations_quota: prev.simulations_quota ?? defaultCfg.quota,
+        ee_simulations_quota: prev.ee_simulations_quota ?? defaultCfg.eeQuota,
+        eo_simulations_quota: prev.eo_simulations_quota ?? defaultCfg.eoQuota,
         expires_at: prev.expires_at ?? addDays(defaultCfg.days),
       }));
     } else {
@@ -110,7 +130,8 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
         ...prev,
         role: nextRole,
         assigned_plan: null,
-        simulations_quota: null,
+        ee_simulations_quota: null,
+        eo_simulations_quota: null,
         expires_at: null,
       }));
     }
@@ -121,11 +142,12 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
       set("assigned_plan", plan);
       return;
     }
-    const cfg = PLAN_CONFIG[plan] ?? ADMIN_ONLY_PLANS[plan];
+    const cfg = ALL_PLANS[plan];
     setForm((prev) => ({
       ...prev,
       assigned_plan: plan,
-      simulations_quota: cfg.quota,
+      ee_simulations_quota: cfg.eeQuota,
+      eo_simulations_quota: cfg.eoQuota,
       expires_at: addDays(cfg.days),
     }));
   }
@@ -252,14 +274,24 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
                   className={inputCls}
                 >
                   {mode === "create" && (
-                    <optgroup label="Plans spéciaux">
+                    <optgroup label="Plans spéciaux (EE)">
                       {Object.entries(ADMIN_ONLY_PLANS).map(([key, cfg]) => (
                         <option key={key} value={key}>{cfg.label}</option>
                       ))}
                     </optgroup>
                   )}
-                  <optgroup label="Plans standards">
+                  <optgroup label="Expression Écrite">
                     {Object.entries(PLAN_CONFIG).map(([key, cfg]) => (
+                      <option key={key} value={key}>{cfg.label}</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Expression Orale">
+                    {Object.entries(EO_PLANS).map(([key, cfg]) => (
+                      <option key={key} value={key}>{cfg.label}</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Mix (EE + EO)">
+                    {Object.entries(MIX_PLANS).map(([key, cfg]) => (
                       <option key={key} value={key}>{cfg.label}</option>
                     ))}
                   </optgroup>
@@ -267,27 +299,39 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
               </Field>
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Quota simulations">
+                <Field label="Quota EE (Expression Écrite)">
                   <input
                     type="number"
-                    min={1}
+                    min={0}
                     max={500}
                     required
-                    value={form.simulations_quota ?? ""}
-                    onChange={(e) => set("simulations_quota", Number(e.target.value))}
+                    value={form.ee_simulations_quota ?? ""}
+                    onChange={(e) => set("ee_simulations_quota", Number(e.target.value))}
                     className={inputCls}
                   />
                 </Field>
-                <Field label="Expiration">
+                <Field label="Quota EO (Expression Orale)">
                   <input
-                    type="date"
-                    required={mode === "create"}
-                    value={form.expires_at ?? ""}
-                    onChange={(e) => set("expires_at", e.target.value)}
+                    type="number"
+                    min={0}
+                    max={500}
+                    required
+                    value={form.eo_simulations_quota ?? ""}
+                    onChange={(e) => set("eo_simulations_quota", Number(e.target.value))}
                     className={inputCls}
                   />
                 </Field>
               </div>
+
+              <Field label="Expiration">
+                <input
+                  type="date"
+                  required={mode === "create"}
+                  value={form.expires_at ?? ""}
+                  onChange={(e) => set("expires_at", e.target.value)}
+                  className={inputCls}
+                />
+              </Field>
             </>
           )}
 

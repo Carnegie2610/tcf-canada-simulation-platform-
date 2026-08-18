@@ -1,19 +1,11 @@
 import Link from "next/link";
 import { AdminTableCell } from "@/components/atoms/AdminTableCell";
 import type { AdminProfile } from "@/lib/admin/types";
+import { getPlanMeta } from "@/lib/plans";
 
 interface StudentResultRowProps {
   profile: AdminProfile;
 }
-
-const planLabel: Record<string, string> = {
-  PLAN_2000: "2 000 F",
-  PLAN_3000: "3 000 F",
-  PLAN_5000: "5 000 F",
-  PLAN_10000: "10 000 F",
-  PLAN_15000: "15 000 F",
-  PLAN_20000: "20 000 F",
-};
 
 export function StudentResultRow({ profile }: StudentResultRowProps) {
   const isExpired = profile.expires_at
@@ -30,15 +22,20 @@ export function StudentResultRow({ profile }: StudentResultRowProps) {
       <AdminTableCell>{profile.email}</AdminTableCell>
       <AdminTableCell>
         <span className="rounded bg-[var(--slate-700)] px-2 py-0.5 text-xs font-medium">
-          {profile.assigned_plan ? (planLabel[profile.assigned_plan] ?? profile.assigned_plan) : "—"}
+          {profile.assigned_plan ? getPlanMeta(profile.assigned_plan).label : "—"}
         </span>
       </AdminTableCell>
       <AdminTableCell>
-        {profile.simulations_quota == null ? (
+        {profile.ee_simulations_quota == null && profile.eo_simulations_quota == null ? (
           "—"
         ) : (
-          <span className={profile.simulations_remaining === 0 ? "text-red-400" : ""}>
-            {profile.simulations_remaining}/{profile.simulations_quota}
+          <span className="space-x-2">
+            <span className={profile.ee_simulations_remaining === 0 ? "text-red-400" : ""}>
+              EE {profile.ee_simulations_remaining}/{profile.ee_simulations_quota}
+            </span>
+            <span className={profile.eo_simulations_remaining === 0 ? "text-red-400" : ""}>
+              EO {profile.eo_simulations_remaining}/{profile.eo_simulations_quota}
+            </span>
           </span>
         )}
       </AdminTableCell>

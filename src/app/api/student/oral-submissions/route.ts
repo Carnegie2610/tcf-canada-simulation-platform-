@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ submissionId: existing.id, resumed: true });
   }
 
-  // Consume quota atomically — same as regular submissions
+  // Consume quota atomically — Expression Orale pool
   const { data: quotaOk, error: rpcError } = await supabase.rpc(
     "verify_and_consume_quota",
-    { p_user_id: user.id }
+    { p_user_id: user.id, p_skill_type: "eo" }
   );
 
   if (rpcError || !quotaOk) {

@@ -52,7 +52,8 @@ export async function POST(request: NextRequest) {
     const profile = await createUser(adminSupabase, {
       ...parsed.data,
       assigned_plan: parsed.data.assigned_plan ?? null,
-      simulations_quota: parsed.data.simulations_quota ?? null,
+      ee_simulations_quota: parsed.data.ee_simulations_quota ?? null,
+      eo_simulations_quota: parsed.data.eo_simulations_quota ?? null,
       expires_at: parsed.data.expires_at ?? null,
     });
     return NextResponse.json({ data: profile }, { status: 201 });

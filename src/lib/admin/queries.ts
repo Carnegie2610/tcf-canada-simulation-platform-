@@ -300,8 +300,10 @@ export async function createUser(
       full_name: data.full_name,
       role: data.role,
       assigned_plan: data.assigned_plan,
-      simulations_quota: data.simulations_quota,
-      simulations_remaining: data.simulations_quota,
+      ee_simulations_quota: data.ee_simulations_quota,
+      ee_simulations_remaining: data.ee_simulations_quota,
+      eo_simulations_quota: data.eo_simulations_quota,
+      eo_simulations_remaining: data.eo_simulations_quota,
       ai_corrections_enabled: data.ai_corrections_enabled,
       expires_at: data.expires_at,
       cohort_tag: data.cohort_tag,
@@ -697,7 +699,7 @@ export async function getDashboardFeed(
     .select(
       `id, created_at, user_id,
        combination:combinations ( id, title ),
-       profile:profiles ( id, full_name, email, assigned_plan, simulations_remaining, simulations_quota, expires_at )`,
+       profile:profiles ( id, full_name, email, assigned_plan, ee_simulations_remaining, ee_simulations_quota, expires_at )`,
       { count: "exact" }
     )
     .order("created_at", { ascending: false })
@@ -717,8 +719,8 @@ export async function getDashboardFeed(
       fullName: profile?.full_name as string ?? "",
       email: profile?.email as string ?? "",
       assignedPlan: (profile?.assigned_plan as ActivityFeedRow["assignedPlan"]) ?? "PLAN_5000",
-      simulationsRemaining: (profile?.simulations_remaining as number) ?? 0,
-      simulationsQuota: (profile?.simulations_quota as number) ?? 0,
+      simulationsRemaining: (profile?.ee_simulations_remaining as number) ?? 0,
+      simulationsQuota: (profile?.ee_simulations_quota as number) ?? 0,
       combinationTitle: combo?.title as string ?? "",
       createdAt: row.created_at as string,
       expiresAt: profile?.expires_at as string ?? "",

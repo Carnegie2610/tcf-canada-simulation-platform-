@@ -4,7 +4,15 @@ export type AssignedPlan =
   | "PLAN_3000"
   | "PLAN_5000"
   | "PLAN_10000"
-  | "PLAN_30000";
+  | "PLAN_30000"
+  | "PLAN_EO_2000"
+  | "PLAN_EO_3000"
+  | "PLAN_EO_5000"
+  | "PLAN_EO_10000"
+  | "PLAN_MIX_4000"
+  | "PLAN_MIX_5000"
+  | "PLAN_MIX_10000"
+  | "PLAN_MIX_20000";
 export type ExamSection = "SECTION_A" | "SECTION_B";
 export type ExamType = "TEF" | "TCF";
 export type CefrLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
@@ -22,8 +30,10 @@ export interface AdminProfile {
   role: UserRole;
   // null for staff (admin/super_admin) accounts, which have no subscription plan.
   assigned_plan: AssignedPlan | null;
-  simulations_quota: number | null;
-  simulations_remaining: number | null;
+  ee_simulations_quota: number | null;
+  ee_simulations_remaining: number | null;
+  eo_simulations_quota: number | null;
+  eo_simulations_remaining: number | null;
   ai_corrections_enabled: boolean;
   expires_at: string | null;
   cohort_tag: string | null;
@@ -151,7 +161,8 @@ export interface CreateUserInput {
   role: UserRole;
   // null for staff (admin/super_admin) accounts, which have no subscription plan.
   assigned_plan: AssignedPlan | null;
-  simulations_quota: number | null;
+  ee_simulations_quota: number | null;
+  eo_simulations_quota: number | null;
   ai_corrections_enabled: boolean;
   expires_at: string | null;
   cohort_tag: string | null;
@@ -162,8 +173,10 @@ export interface UpdateUserInput {
   full_name?: string;
   role?: UserRole;
   assigned_plan?: AssignedPlan | null;
-  simulations_quota?: number | null;
-  simulations_remaining?: number | null;
+  ee_simulations_quota?: number | null;
+  ee_simulations_remaining?: number | null;
+  eo_simulations_quota?: number | null;
+  eo_simulations_remaining?: number | null;
   ai_corrections_enabled?: boolean;
   expires_at?: string | null;
   cohort_tag?: string | null;

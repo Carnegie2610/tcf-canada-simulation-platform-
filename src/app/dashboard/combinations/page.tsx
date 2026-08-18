@@ -16,14 +16,14 @@ export default async function CombinationsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("simulations_quota, simulations_remaining, expires_at")
+    .select("ee_simulations_quota, ee_simulations_remaining, expires_at")
     .eq("id", user.id)
     .single();
 
   if (!profile) redirect("/dashboard");
 
   const combinationsWithStatus = await listCombinationsWithStatus(supabase, user.id);
-  const simulationsUsed = profile.simulations_quota - profile.simulations_remaining;
+  const simulationsUsed = profile.ee_simulations_quota - profile.ee_simulations_remaining;
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -40,7 +40,7 @@ export default async function CombinationsPage() {
       <CombinationGrid
         combinationsWithStatus={combinationsWithStatus}
         simulationsUsed={simulationsUsed}
-        simulationsTotal={profile.simulations_quota}
+        simulationsTotal={profile.ee_simulations_quota}
         expiresAt={profile.expires_at}
       />
     </div>

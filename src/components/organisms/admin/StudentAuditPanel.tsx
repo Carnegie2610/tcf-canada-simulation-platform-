@@ -10,6 +10,7 @@ import { computeTaskPerformance } from "@/lib/admin/analytics";
 import type { StudentAuditData, CefrDistributionItem, CefrLevel } from "@/lib/admin/types";
 import type { ActivityDay } from "@/components/organisms/student/ConsistencyTracker";
 import { numericToCefr } from "@/lib/admin/cefr";
+import { getPlanMeta } from "@/lib/plans";
 
 interface StudentAuditPanelProps {
   auditData: StudentAuditData;
@@ -17,15 +18,6 @@ interface StudentAuditPanelProps {
   currentStreak: number;
   totalCompleted: number;
 }
-
-const planLabel: Record<string, string> = {
-  PLAN_2000: "2 000 F",
-  PLAN_3000: "3 000 F",
-  PLAN_5000: "5 000 F",
-  PLAN_10000: "10 000 F",
-  PLAN_15000: "15 000 F",
-  PLAN_20000: "20 000 F",
-};
 
 export function StudentAuditPanel({
   auditData,
@@ -67,7 +59,7 @@ export function StudentAuditPanel({
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="rounded bg-[var(--slate-700)] px-3 py-1 text-sm font-medium text-[var(--slate-300)]">
-              {profile.assigned_plan ? (planLabel[profile.assigned_plan] ?? profile.assigned_plan) : "—"}
+              {profile.assigned_plan ? getPlanMeta(profile.assigned_plan).label : "—"}
             </span>
             {profile.cohort_tag && (
               <span className="rounded bg-[var(--blue-600)]/20 px-3 py-1 text-sm font-medium text-[var(--blue-500)]">
@@ -105,8 +97,10 @@ export function StudentAuditPanel({
         <div className="mt-5 border-t border-[var(--slate-700)] pt-4">
           <LiveQuotaBar
             userId={profile.id}
-            initialQuota={profile.simulations_quota ?? 0}
-            initialRemaining={profile.simulations_remaining ?? 0}
+            initialEeQuota={profile.ee_simulations_quota ?? 0}
+            initialEeRemaining={profile.ee_simulations_remaining ?? 0}
+            initialEoQuota={profile.eo_simulations_quota ?? 0}
+            initialEoRemaining={profile.eo_simulations_remaining ?? 0}
             expiresAt={profile.expires_at ?? ""}
           />
         </div>
