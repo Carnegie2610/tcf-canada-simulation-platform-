@@ -289,6 +289,67 @@ export async function listCompletedCombinationsWithEvaluation(
     }));
 }
 
+export interface CompletedOralCombinationWithEvaluation {
+  combination: OralCombination;
+  submission: OralSubmission;
+  evaluation: {
+    id: string;
+    global_score: number;
+    cefr_level: string;
+    appreciation: string;
+  } | null;
+}
+
+export async function listCompletedOralCombinationsWithEvaluation(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<CompletedOralCombinationWithEvaluation[]> {
+  const { data: rawSubs } = await supabase
+    .from("oral_submissions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_completed", true)
+    .order("completed_at", { ascending: false });
+
+  if (!rawSubs || rawSubs.length === 0) return [];
+
+  const subs = rawSubs as OralSubmission[];
+  const combinationIds = subs.map((s) => s.oral_combination_id);
+  const submissionIds = subs.map((s) => s.id);
+
+  const [{ data: rawCombinations }, { data: rawEvals }] = await Promise.all([
+    supabase.from("oral_combinations").select("*").in("id", combinationIds),
+    supabase
+      .from("oral_evaluations")
+      .select("id, submission_id, global_score, cefr_level, appreciation")
+      .in("submission_id", submissionIds),
+  ]);
+
+  const combinationMap = new Map<string, OralCombination>();
+  for (const c of rawCombinations ?? []) {
+    combinationMap.set((c as OralCombination).id, c as OralCombination);
+  }
+
+  const evalMap = new Map<string, CompletedOralCombinationWithEvaluation["evaluation"]>();
+  for (const e of rawEvals ?? []) {
+    const row = e as Record<string, unknown>;
+    evalMap.set(row.submission_id as string, {
+      id: row.id as string,
+      global_score: row.global_score as number,
+      cefr_level: row.cefr_level as string,
+      appreciation: row.appreciation as string,
+    });
+  }
+
+  return subs
+    .filter((s) => combinationMap.has(s.oral_combination_id))
+    .map((s) => ({
+      combination: combinationMap.get(s.oral_combination_id)!,
+      submission: s,
+      evaluation: evalMap.get(s.id) ?? null,
+    }));
+}
+
 export interface OralResultDetail {
   submission: OralSubmission;
   combination: OralCombination;
