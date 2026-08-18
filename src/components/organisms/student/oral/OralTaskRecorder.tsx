@@ -25,6 +25,18 @@ interface OralTaskRecorderProps {
 
 type Phase = "idle" | "prep" | "recording" | "review";
 
+// Even when a task has 0s of configured prep time, always show the "get ready"
+// screen for at least this long — otherwise the prep phase expires on the very
+// first render (before React even paints it) and recording starts invisibly,
+// with no cue for the student that they should start speaking. This was the
+// root cause of empty-transcript submissions on 0-prep tasks.
+const MIN_PREP_SECONDS = 3;
+
+// Below this, a take is very likely silence/near-silence that will fail STT
+// transcription at evaluation time — warn the student immediately instead of
+// letting them find out only after submitting.
+const MIN_RECORDING_MS = 1500;
+
 function PrepCountdown({
   prepTimeSeconds,
   question,
@@ -41,7 +53,7 @@ function PrepCountdown({
   }, [isExpired, onComplete]);
 
   return (
-    <div className="flex flex-col items-center gap-4 rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-6 text-center">
+    <div className="flex flex-col items-center gap-4 rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)]/40 p-6 text-center">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
         Préparation
       </p>
@@ -77,7 +89,11 @@ export function OralTaskRecorder({
   disabled,
 }: OralTaskRecorderProps) {
   const recorder = useAudioRecorder();
-  const phaseRef = useRef<Phase>("idle");
+  // Real state (not a ref) so clicking "Commencer" re-renders immediately into the
+  // prep screen — a ref mutation alone left the click invisible until some other,
+  // unrelated re-render happened to occur (see MIN_PREP_SECONDS above for why that
+  // mattered).
+  const [manualPhase, setManualPhase] = useState<"idle" | "prep">("idle");
   const hasStartedRecordingRef = useRef(false);
 
   // The blob actually shown for playback: either a take just finished this mount
@@ -98,13 +114,12 @@ export function OralTaskRecorder({
         ? "review"
         : activeBlob
           ? "review"
-          : phaseRef.current;
-  phaseRef.current = phase;
+          : manualPhase;
 
   function handleStart() {
     if (disabled) return;
     hasStartedRecordingRef.current = false;
-    phaseRef.current = "prep";
+    setManualPhase("prep");
   }
 
   function handlePrepComplete() {
@@ -123,7 +138,7 @@ export function OralTaskRecorder({
     hasStartedRecordingRef.current = false;
     hasHandledCompleteRef.current = null;
     setActiveBlob(null);
-    phaseRef.current = "idle";
+    setManualPhase("idle");
   }
 
   const hasHandledCompleteRef = useRef<Blob | null>(null);
@@ -201,7 +216,7 @@ export function OralTaskRecorder({
 
   if (phase === "idle") {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-6 text-center">
+      <div className="flex flex-col items-center gap-4 rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)]/40 p-6 text-center">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
           Prête quand vous l&apos;êtes
         </p>
@@ -228,7 +243,7 @@ export function OralTaskRecorder({
   if (phase === "prep") {
     return (
       <PrepCountdown
-        prepTimeSeconds={task.prepTimeSeconds}
+        prepTimeSeconds={Math.max(task.prepTimeSeconds, MIN_PREP_SECONDS)}
         question={task.question}
         onComplete={handlePrepComplete}
       />
@@ -237,7 +252,7 @@ export function OralTaskRecorder({
 
   if (phase === "recording") {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-6 text-center">
+      <div className="flex flex-col items-center gap-4 rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)]/40 p-6 text-center">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
           <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--accent-red-text)]">
@@ -263,6 +278,11 @@ export function OralTaskRecorder({
   }
 
   // phase === "review": recording stopped, previewable, re-recordable.
+  const isSuspiciouslyShort =
+    recorder.status === "stopped" &&
+    recorder.durationMs !== null &&
+    recorder.durationMs < MIN_RECORDING_MS;
+
   return (
     <div className="flex flex-col items-center gap-4 rounded-xl border border-emerald-800/50 bg-[var(--slate-900)]/40 p-6 text-center">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--accent-emerald-text)]">
@@ -272,6 +292,12 @@ export function OralTaskRecorder({
       {audioUrl && (
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <audio controls src={audioUrl} className="w-full max-w-sm" />
+      )}
+      {isSuspiciouslyShort && (
+        <p className="rounded-lg border border-amber-800/60 bg-amber-950/30 px-3 py-2 text-xs leading-relaxed text-[var(--accent-amber-text)]">
+          ⚠️ Cet enregistrement est très court — écoutez-le pour vérifier qu&apos;il contient bien
+          votre réponse avant de continuer, sinon réenregistrez.
+        </p>
       )}
       <div className="flex gap-2">
         <button

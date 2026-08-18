@@ -18,6 +18,9 @@ interface UseAudioRecorderResult {
   audioBlob: Blob | null;
   mimeType: string | null;
   errorMessage: string | null;
+  /** Wall-clock duration of the last completed take, in milliseconds — used to warn
+   * the student when a recording is suspiciously short before they move on. */
+  durationMs: number | null;
 }
 
 const PREFERRED_MIME_TYPE = "audio/webm;codecs=opus";
@@ -41,6 +44,7 @@ export function useAudioRecorder(): UseAudioRecorderResult {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [durationMs, setDurationMs] = useState<number | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -48,6 +52,7 @@ export function useAudioRecorder(): UseAudioRecorderResult {
   const isStartingRef = useRef(false);
   const isRecordingRef = useRef(false);
   const stopRequestedRef = useRef(false);
+  const startedAtRef = useRef<number | null>(null);
 
   const cleanupStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -95,6 +100,7 @@ export function useAudioRecorder(): UseAudioRecorderResult {
           const blob = new Blob(chunksRef.current, { type: resolvedMimeType });
           setAudioBlob(blob);
           setMimeType(resolvedMimeType);
+          setDurationMs(startedAtRef.current ? Date.now() - startedAtRef.current : null);
           setStatus("stopped");
           isRecordingRef.current = false;
           cleanupStream();
@@ -110,6 +116,8 @@ export function useAudioRecorder(): UseAudioRecorderResult {
         recorder.start();
         setAudioBlob(null);
         setMimeType(resolvedMimeType);
+        setDurationMs(null);
+        startedAtRef.current = Date.now();
         setStatus("recording");
         isRecordingRef.current = true;
         isStartingRef.current = false;
@@ -143,11 +151,13 @@ export function useAudioRecorder(): UseAudioRecorderResult {
     mediaRecorderRef.current = null;
     chunksRef.current = [];
     cleanupStream();
+    startedAtRef.current = null;
     setAudioBlob(null);
     setMimeType(null);
     setErrorMessage(null);
+    setDurationMs(null);
     setStatus("idle");
   }, [cleanupStream]);
 
-  return { status, start, stop, reset, audioBlob, mimeType, errorMessage };
+  return { status, start, stop, reset, audioBlob, mimeType, errorMessage, durationMs };
 }

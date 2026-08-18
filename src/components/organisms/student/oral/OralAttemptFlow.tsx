@@ -143,7 +143,7 @@ export function OralAttemptFlow({
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-8">
-      <div className="flex items-center justify-between rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 px-4 py-3">
+      <div className="flex items-center justify-between rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)]/40 px-4 py-3">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
           Temps restant pour l&apos;épreuve
         </p>
@@ -200,7 +200,7 @@ export function OralAttemptFlow({
       )}
 
       {phase === "submitting" && (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)]/40 p-6 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)]/40 p-6 text-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--slate-700)] border-t-blue-500" />
           <p className="text-sm text-[var(--slate-200)]">Envoi et finalisation de votre examen…</p>
         </div>
