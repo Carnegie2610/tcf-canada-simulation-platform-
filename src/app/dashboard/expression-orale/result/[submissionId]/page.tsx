@@ -49,6 +49,7 @@ export default async function OralResultPage({ params }: Props) {
         speakingDurationSeconds2={tasks.tache_2.speakingTimeSeconds}
         speakingDurationSeconds3={tasks.tache_3.speakingTimeSeconds}
         createdAt={ev.created_at}
+        combination={result.combination}
         studentName={studentName}
       />
     </div>

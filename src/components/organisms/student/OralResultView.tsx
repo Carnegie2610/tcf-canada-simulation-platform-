@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { OralTaskEval } from "@/lib/schemas";
+import type { OralCombination } from "@/lib/admin/types";
 
 interface OralResultViewProps {
   oralCombinationTitle: string;
@@ -17,7 +18,78 @@ interface OralResultViewProps {
   speakingDurationSeconds2: number;
   speakingDurationSeconds3: number;
   createdAt: string;
+  combination?: OralCombination;
   studentName?: string;
+}
+
+function OralModelSolutionModal({
+  combination,
+  onClose,
+}: {
+  combination: OralCombination;
+  onClose: () => void;
+}) {
+  const taskSections = [
+    { label: "Tâche 1", task: combination.tasks.tache_1 },
+    { label: "Tâche 2", task: combination.tasks.tache_2 },
+    { label: "Tâche 3", task: combination.tasks.tache_3 },
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-8 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-3xl rounded-2xl border border-[var(--slate-700)] bg-[var(--slate-900)] shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-[var(--slate-800)] px-6 py-4">
+          <div>
+            <h2 className="text-base font-extrabold text-[var(--slate-200)]">
+              📁 Solution Modèle de Référence
+            </h2>
+            <p className="mt-0.5 text-xs text-[var(--slate-500)]">Correction Expert C2 — {combination.title}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-[var(--slate-700)] px-3 py-1.5 text-xs font-medium text-[var(--slate-400)] transition-colors hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)]"
+          >
+            ✕ Fermer
+          </button>
+        </div>
+
+        <div className="divide-y divide-[var(--slate-800)]">
+          {taskSections.map(({ label, task }) => (
+            <div key={label} className="px-6 py-5 space-y-3">
+              <h3 className="text-sm font-bold text-[var(--slate-200)]">{label}</h3>
+              <div className="rounded-lg border border-[var(--slate-800)] bg-[var(--slate-800)]/30 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--slate-500)] mb-1.5">Sujet</p>
+                <p className="text-xs text-[var(--slate-400)] leading-relaxed">{task.question}</p>
+              </div>
+              <div className="secure-canvas-wrapper rounded-lg border border-emerald-800/40 bg-emerald-950/20 p-4">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-emerald-600">
+                  Solution Modèle (Niveau C2)
+                </p>
+                <p className="text-sm text-[var(--slate-200)] leading-relaxed whitespace-pre-wrap">
+                  {task.solution || "Solution non disponible."}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end border-t border-[var(--slate-800)] px-6 py-4">
+          <button
+            onClick={onClose}
+            className="rounded-xl bg-[var(--slate-800)] px-5 py-2 text-sm font-semibold text-[var(--slate-200)] transition-colors hover:bg-[var(--slate-700)]"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 const CEFR_COLOR: Record<string, string> = {
@@ -259,9 +331,11 @@ export function OralResultView({
   speakingDurationSeconds2,
   speakingDurationSeconds3,
   createdAt,
+  combination,
   studentName,
 }: OralResultViewProps) {
   const [activeTab, setActiveTab] = useState<1 | 2 | 3>(1);
+  const [showModal, setShowModal] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const tasks = [
@@ -316,6 +390,11 @@ export function OralResultView({
 
   return (
     <div className="space-y-8">
+      {/* Solution modal — never included in the PDF export */}
+      {showModal && combination && (
+        <OralModelSolutionModal combination={combination} onClose={() => setShowModal(false)} />
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <Link
@@ -325,6 +404,14 @@ export function OralResultView({
           ← Historique &amp; Progrès
         </Link>
         <div className="flex-1" />
+        {combination && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 rounded-xl border border-blue-800/50 bg-blue-950/30 px-4 py-2 text-xs font-medium text-[var(--accent-blue-text)] transition-all duration-200 hover:bg-blue-900/50 hover:text-blue-200"
+          >
+            📁 Solution Modèle de Référence
+          </button>
+        )}
         <button
           onClick={handleDownloadPdf}
           disabled={isDownloadingPdf}
