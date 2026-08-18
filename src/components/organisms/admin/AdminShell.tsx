@@ -18,6 +18,7 @@ const navItems = [
   { label: "Question EO", href: "/admin/oral", icon: "🎙️", superAdminOnly: false },
   { label: "Question CE", href: "/admin/reading-comprehension", icon: "📖", superAdminOnly: false },
   { label: "Clés API", href: "/admin/api-keys", icon: "🔑", superAdminOnly: false },
+  { label: "Tickets Support", href: "/admin/tickets", icon: "🎫", superAdminOnly: false },
   { label: "Prompts IA", href: "/admin/prompts", icon: "⌘", superAdminOnly: true },
   { label: "Mes Commissions", href: "/admin/commissions", icon: "💸", superAdminOnly: true },
 ];

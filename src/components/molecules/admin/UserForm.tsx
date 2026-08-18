@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CreateUserSchema, UpdateUserSchema } from "@/lib/schemas-admin";
 import { SuperAdminSecurityModule } from "./SuperAdminSecurityModule";
 import type { AdminProfile, UserRole } from "@/lib/admin/types";
@@ -65,6 +65,75 @@ function EyeIcon({ open }: { open: boolean }) {
       <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
       <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
+  );
+}
+
+// Native <select> popups can render off-screen inside this modal on some browsers
+// (a Chromium/Linux quirk with native popups anchored inside `position: fixed`
+// containers) — a custom-rendered dropdown sidesteps the issue entirely.
+function PlanDropdown({
+  value,
+  onChange,
+  groups,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  groups: { label: string; options: [string, { label: string }][] }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  const selectedLabel =
+    groups.flatMap((g) => g.options).find(([key]) => key === value)?.[1].label ??
+    "Sélectionner un plan";
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`${inputCls} flex items-center justify-between gap-2 text-left`}
+      >
+        <span className="truncate">{selectedLabel}</span>
+        <span className="shrink-0 text-[var(--slate-500)]">▾</span>
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] py-1 shadow-2xl">
+          {groups.map((group) => (
+            <div key={group.label}>
+              <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--slate-500)]">
+                {group.label}
+              </p>
+              {group.options.map(([key, cfg]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    onChange(key);
+                    setOpen(false);
+                  }}
+                  className={`block w-full px-3 py-2 text-left text-sm transition-colors ${
+                    key === value
+                      ? "bg-[var(--blue-600)]/20 text-blue-300"
+                      : "text-[var(--slate-200)] hover:bg-[var(--slate-700)]"
+                  }`}
+                >
+                  {cfg.label}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -268,34 +337,18 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
           ) : (
             <>
               <Field label="Plan de tarification">
-                <select
+                <PlanDropdown
                   value={form.assigned_plan ?? ""}
-                  onChange={(e) => handlePlanChange(e.target.value)}
-                  className={inputCls}
-                >
-                  {mode === "create" && (
-                    <optgroup label="Plans spéciaux (EE)">
-                      {Object.entries(ADMIN_ONLY_PLANS).map(([key, cfg]) => (
-                        <option key={key} value={key}>{cfg.label}</option>
-                      ))}
-                    </optgroup>
-                  )}
-                  <optgroup label="Expression Écrite">
-                    {Object.entries(PLAN_CONFIG).map(([key, cfg]) => (
-                      <option key={key} value={key}>{cfg.label}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Expression Orale">
-                    {Object.entries(EO_PLANS).map(([key, cfg]) => (
-                      <option key={key} value={key}>{cfg.label}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Mix (EE + EO)">
-                    {Object.entries(MIX_PLANS).map(([key, cfg]) => (
-                      <option key={key} value={key}>{cfg.label}</option>
-                    ))}
-                  </optgroup>
-                </select>
+                  onChange={handlePlanChange}
+                  groups={[
+                    ...(mode === "create"
+                      ? [{ label: "Plans spéciaux (EE)", options: Object.entries(ADMIN_ONLY_PLANS) }]
+                      : []),
+                    { label: "Expression Écrite", options: Object.entries(PLAN_CONFIG) },
+                    { label: "Expression Orale", options: Object.entries(EO_PLANS) },
+                    { label: "Mix (EE + EO)", options: Object.entries(MIX_PLANS) },
+                  ]}
+                />
               </Field>
 
               <div className="grid grid-cols-2 gap-4">
