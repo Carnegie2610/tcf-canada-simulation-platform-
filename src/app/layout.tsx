@@ -43,16 +43,14 @@ const organizationJsonLd = {
     "Préparation à l'examen TEF/TCF Canada avec simulations d'écriture réalistes et corrections personnalisées par intelligence artificielle.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="fr"
       className={`${sora.variable} ${jakarta.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-[var(--slate-950)] text-[var(--slate-200)]">
+      <body className="flex min-h-full flex-col bg-[var(--slate-950)] text-[var(--slate-200)]">
         <script
           dangerouslySetInnerHTML={{
             __html:
