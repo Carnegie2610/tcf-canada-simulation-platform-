@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { UserManagementTable } from "@/components/organisms/admin/UserManagementTable";
 import { UserForm } from "@/components/molecules/admin/UserForm";
@@ -40,17 +40,28 @@ export default function UsersPage() {
     }
   }
 
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
     void fetchUsers();
     void fetchCurrentUser();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    setPage(1);
-    void fetchUsers(search || undefined, 1);
-  }
+  // Live search — refetch automatically shortly after the user stops typing.
+  // Skips the initial mount so the first page load isn't delayed by the debounce.
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const id = setTimeout(() => {
+      setPage(1);
+      void fetchUsers(search || undefined, 1);
+    }, 300);
+    return () => clearTimeout(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   function handlePageChange(p: number) {
     setPage(p);
@@ -76,8 +87,8 @@ export default function UsersPage() {
         )}
       </div>
 
-      {/* Search */}
-      <form onSubmit={handleSearch} className="mt-6 flex gap-3">
+      {/* Live search — refetches automatically as you type */}
+      <div className="mt-6">
         <input
           type="text"
           value={search}
@@ -85,13 +96,7 @@ export default function UsersPage() {
           placeholder="Rechercher par nom ou e-mail..."
           className="w-80 rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-2 text-sm text-[var(--brand-white)] placeholder:text-[var(--slate-500)] focus:border-[var(--blue-500)] focus:outline-none"
         />
-        <button
-          type="submit"
-          className="rounded-lg bg-[var(--slate-700)] px-4 py-2 text-sm font-medium text-[var(--slate-300)] hover:bg-[var(--slate-600)] transition-colors"
-        >
-          Rechercher
-        </button>
-      </form>
+      </div>
 
       <div className="mt-6">
         {data === null ? (

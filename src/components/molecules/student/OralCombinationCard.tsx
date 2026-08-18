@@ -49,7 +49,7 @@ export function OralCombinationCard({
     }
     if (isLocked) {
       setGuardMessage(
-        `Quota atteint. Vous avez utilisé toutes vos simulations disponibles dans votre formule.`
+        `Votre forfait ne vous permet pas d'avoir accès à ceci. Contactez un administrateur pour cela.`
       );
       return;
     }
@@ -95,12 +95,20 @@ export function OralCombinationCard({
           >
             <p className="mb-1 text-sm font-semibold text-[var(--accent-red-text)]">Accès refusé</p>
             <p className="text-sm text-[var(--slate-200)] leading-relaxed">{guardMessage}</p>
-            <button
-              onClick={() => setGuardMessage(null)}
-              className="mt-4 w-full rounded-xl bg-[var(--slate-800)] py-2 text-xs font-medium text-[var(--slate-200)] hover:bg-[var(--slate-700)] transition-colors"
-            >
-              Fermer
-            </button>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => setGuardMessage(null)}
+                className="flex-1 rounded-xl bg-[var(--slate-800)] py-2 text-xs font-medium text-[var(--slate-200)] hover:bg-[var(--slate-700)] transition-colors"
+              >
+                Fermer
+              </button>
+              <button
+                onClick={() => router.push("/dashboard/billing")}
+                className="flex-1 rounded-xl bg-[var(--blue-600)] py-2 text-xs font-semibold text-white hover:bg-[var(--blue-500)] transition-colors"
+              >
+                Contacter un admin
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -186,14 +194,14 @@ export function OralCombinationCard({
           ) : (
             <button
               onClick={handleStart}
-              disabled={isLocked || loading}
+              disabled={loading}
               className={`w-full py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2 ${
                 isLocked
-                  ? "bg-[var(--slate-800)]/40 text-[var(--slate-500)] border border-[var(--slate-800)] cursor-not-allowed"
+                  ? "bg-[var(--slate-800)]/40 text-[var(--slate-500)] border border-[var(--slate-800)] cursor-pointer"
                   : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white group-hover:scale-[1.01] group-hover:brightness-110 shadow-lg shadow-blue-900/20"
               }`}
             >
-              {loading ? "Démarrage..." : "🚀 Commencer la simulation"}
+              {loading ? "Démarrage..." : isLocked ? "🔒 Accès restreint" : "🚀 Commencer la simulation"}
             </button>
           )}
         </div>

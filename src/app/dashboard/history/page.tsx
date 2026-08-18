@@ -35,7 +35,7 @@ function SkillFilterPills({
   ];
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-3">
       {pills.map((pill) => {
         const isActive = pill.value === active;
         const href = pill.value ? `/dashboard/history?skill=${pill.value}` : "/dashboard/history";
@@ -43,7 +43,7 @@ function SkillFilterPills({
           <Link
             key={pill.label}
             href={href}
-            className={`rounded-full border px-4 py-1.5 text-xs font-medium transition-colors ${
+            className={`rounded-full border-2 px-5 py-2.5 text-sm font-semibold transition-colors ${
               isActive
                 ? "border-blue-500 bg-blue-600/20 text-blue-300"
                 : "border-[var(--slate-700)] bg-[var(--slate-900)] text-[var(--slate-400)] hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)]"
@@ -97,6 +97,14 @@ export default async function HistoryPage({ searchParams }: Props) {
         eoCount={completedOralCombinations.length}
       />
 
+      {/* Single-exam (EE) analytics + attempt list — EE-only data, hidden under the EO filter */}
+      {showEe && (
+        <HistoryPanel
+          data={data}
+          otherAttemptsCount={completedCombinations.length + completedOralCombinations.length}
+        />
+      )}
+
       {/* Completed EE combination cards */}
       {showEe && completedCombinations.length > 0 && (
         <section>
@@ -141,14 +149,6 @@ export default async function HistoryPage({ searchParams }: Props) {
         <div className="flex h-24 items-center justify-center rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]">
           <p className="text-sm text-[var(--slate-500)]">Aucune simulation complétée pour le moment.</p>
         </div>
-      )}
-
-      {/* Single-exam (EE) analytics + attempt list — EE-only data, hidden under the EO filter */}
-      {showEe && (
-        <HistoryPanel
-          data={data}
-          otherAttemptsCount={completedCombinations.length + completedOralCombinations.length}
-        />
       )}
     </div>
   );

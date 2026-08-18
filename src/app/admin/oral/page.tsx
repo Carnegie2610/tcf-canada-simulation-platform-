@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { OralCombinationManagementTable } from "@/components/organisms/admin/OralCombinationManagementTable";
 import { OralCombinationForm } from "@/components/molecules/admin/OralCombinationForm";
@@ -26,16 +26,27 @@ export default function OralCombinationsPage() {
     setComboData(json.data);
   }
 
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
     void fetchOralCombinations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    setComboPage(1);
-    void fetchOralCombinations(search || undefined, examType || undefined, 1);
-  }
+  // Live search — refetch automatically shortly after filters change.
+  // Skips the initial mount so the first page load isn't delayed by the debounce.
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const id = setTimeout(() => {
+      setComboPage(1);
+      void fetchOralCombinations(search || undefined, examType || undefined, 1);
+    }, 300);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, examType]);
 
   function handleComboPageChange(page: number) {
     setComboPage(page);
@@ -63,8 +74,8 @@ export default function OralCombinationsPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <form onSubmit={handleSearch} className="mt-6 flex flex-wrap items-end gap-3">
+      {/* Live filters — refetches automatically as you type/select */}
+      <div className="mt-6 flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-[var(--slate-400)]">Titre</label>
           <input
@@ -87,13 +98,7 @@ export default function OralCombinationsPage() {
             <option value="TCF">TCF</option>
           </select>
         </div>
-        <button
-          type="submit"
-          className="rounded-lg bg-[var(--slate-700)] px-4 py-2 text-sm font-medium text-[var(--slate-300)] hover:bg-[var(--slate-600)] transition-colors"
-        >
-          Filtrer
-        </button>
-      </form>
+      </div>
 
       <div className="mt-6">
         {loading ? (
