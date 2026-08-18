@@ -26,8 +26,8 @@ interface LedgerRow {
   commission: number;
 }
 
-interface TrendPoint { date: string; commission: number; }
-interface DistPoint { plan: string; label: string; count: number; }
+interface TrendPoint { date: string; commissionEe: number; commissionEo: number; }
+interface DistPoint { skillType: "ee" | "eo"; label: string; count: number; }
 
 interface CommissionsData {
   totalCommission: number;
@@ -41,12 +41,17 @@ interface CommissionsData {
   planDistribution: DistPoint[];
   ledger: LedgerRow[];
   ledgerTotal: number;
-  // Expression Orale plans only (PLAN_EO_*) — tracked separately from the EE/mix
-  // totals above since EO carries its own 30% commission rate.
+  // Expression Orale plans only (PLAN_EO_*) — tracked separately from EE/mix
+  // since EO carries its own 30% commission rate.
   totalCommissionEo: number;
   totalRevenueEo: number;
   previousDayCommissionEo: number;
   previousDayRevenueEo: number;
+  // Expression Écrite + Mix plans (everything that isn't EO) — the flat 35% rate.
+  totalCommissionEe: number;
+  totalRevenueEe: number;
+  previousDayCommissionEe: number;
+  previousDayRevenueEe: number;
 }
 
 interface CommissionsPageProps {
@@ -62,7 +67,10 @@ const PERIOD_LABELS: Record<Exclude<Period, "custom">, string> = {
   all: "Tout",
 };
 
-const DONUT_COLORS = ["#3b82f6", "#10b981", "#f59e0b"];
+// Fixed colors reused consistently across the KPI cards, line chart, and pie
+// chart so EE and EO revenue are always visually identifiable at a glance.
+const EE_COLOR = "#3b82f6";
+const EO_COLOR = "#10b981";
 
 function fmt(n: number) {
   return n.toLocaleString("fr-FR") + " F CFA";
@@ -314,63 +322,64 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
         )}
       </div>
 
-      {/* 2×2 KPI grid */}
+      {/* KPI grid — EO first, then EE, then a merged registrations+total summary card */}
       <div className="grid grid-cols-2 gap-4">
-        {/* Top-left: 35% commission */}
-        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-            Revenus Principaux (35%)
-          </p>
-          <p className="text-2xl font-extrabold text-cyan-400">{fmt(data.totalCommission)}</p>
-          {deltaBadge(data.totalCommission, data.previousDayCommission)}
-        </div>
-
-        {/* Top-right: 65% secondary */}
-        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-            Revenus Secondaires (65%)
-          </p>
-          <p className="text-2xl font-extrabold text-amber-400">{fmt(data.totalRevenue * 0.65)}</p>
-          {deltaBadge(data.totalRevenue * 0.65, data.previousDayRevenue * 0.65)}
-        </div>
-
-        {/* Bottom-left: registrations */}
-        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-            Inscriptions Payées
-          </p>
-          <p className="text-2xl font-extrabold text-[var(--slate-200)]">{data.totalRegistrations}</p>
-          {deltaBadge(data.totalRegistrations, data.previousDayRegistrations, true)}
-        </div>
-
-        {/* Bottom-right: total revenue */}
-        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-            Chiffre d&apos;Affaires Total
-          </p>
-          <p className="text-2xl font-extrabold text-[var(--slate-200)]">{fmt(data.totalRevenue)}</p>
-          <span className="text-[11px] text-[var(--slate-500)]">
-            {period === "all" ? "Cumul depuis le lancement" : "Sur la période sélectionnée"}
-          </span>
-        </div>
-      </div>
-
-      {/* Expression Orale — separate 30% commission rate */}
-      <div className="grid grid-cols-2 gap-4">
+        {/* Revenus EO Principaux (30%) */}
         <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Revenus EO Principaux (30%)
           </p>
-          <p className="text-2xl font-extrabold text-cyan-400">{fmt(data.totalCommissionEo)}</p>
+          <p className="text-2xl font-extrabold" style={{ color: EO_COLOR }}>{fmt(data.totalCommissionEo)}</p>
           {deltaBadge(data.totalCommissionEo, data.previousDayCommissionEo)}
         </div>
 
+        {/* Revenus EO Secondaires (60%) */}
         <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Revenus EO Secondaires (60%)
           </p>
-          <p className="text-2xl font-extrabold text-amber-400">{fmt(data.totalRevenueEo * 0.6)}</p>
+          <p className="text-2xl font-extrabold" style={{ color: EO_COLOR }}>{fmt(data.totalRevenueEo * 0.6)}</p>
           {deltaBadge(data.totalRevenueEo * 0.6, data.previousDayRevenueEo * 0.6)}
+        </div>
+
+        {/* Revenus EE Principaux (35%) */}
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            Revenus EE Principaux (35%)
+          </p>
+          <p className="text-2xl font-extrabold" style={{ color: EE_COLOR }}>{fmt(data.totalCommissionEe)}</p>
+          {deltaBadge(data.totalCommissionEe, data.previousDayCommissionEe)}
+        </div>
+
+        {/* Revenus EE Secondaires (65%) */}
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            Revenus EE Secondaires (65%)
+          </p>
+          <p className="text-2xl font-extrabold" style={{ color: EE_COLOR }}>{fmt(data.totalRevenueEe * 0.65)}</p>
+          {deltaBadge(data.totalRevenueEe * 0.65, data.previousDayRevenueEe * 0.65)}
+        </div>
+
+        {/* Merged summary: registrations + grand total revenue */}
+        <div className="col-span-2 rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+                Inscriptions Payées
+              </p>
+              <p className="text-2xl font-extrabold text-[var(--slate-200)]">{data.totalRegistrations}</p>
+              {deltaBadge(data.totalRegistrations, data.previousDayRegistrations, true)}
+            </div>
+            <div className="space-y-1 text-right">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+                Chiffre d&apos;Affaires Total
+              </p>
+              <p className="text-2xl font-extrabold text-[var(--slate-200)]">{fmt(data.totalRevenue)}</p>
+              <span className="text-[11px] text-[var(--slate-500)]">
+                {period === "all" ? "Cumul depuis le lancement" : "Sur la période sélectionnée"}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -400,12 +409,27 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
               <Tooltip
                 contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8, fontSize: 12 }}
                 labelStyle={{ color: "#94a3b8" }}
-                formatter={(v) => [`${Number(v).toLocaleString("fr-FR")} F CFA`, "Commission"]}
+                formatter={(v, name) => [`${Number(v).toLocaleString("fr-FR")} F CFA`, name]}
+              />
+              <Legend
+                formatter={(value) => (
+                  <span className="text-[11px] text-[var(--slate-400)]">{value}</span>
+                )}
               />
               <Line
                 type="monotone"
-                dataKey="commission"
-                stroke="#06b6d4"
+                dataKey="commissionEe"
+                name="EE"
+                stroke={EE_COLOR}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="commissionEo"
+                name="EO"
+                stroke={EO_COLOR}
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4 }}
@@ -436,8 +460,11 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
                   outerRadius={85}
                   paddingAngle={3}
                 >
-                  {data.planDistribution.map((_, index) => (
-                    <Cell key={index} fill={DONUT_COLORS[index % DONUT_COLORS.length]} />
+                  {data.planDistribution.map((entry) => (
+                    <Cell
+                      key={entry.skillType}
+                      fill={entry.skillType === "eo" ? EO_COLOR : EE_COLOR}
+                    />
                   ))}
                 </Pie>
                 <Legend

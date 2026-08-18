@@ -37,6 +37,9 @@ export default async function CommissionsAdminPage() {
   const eoRows = rows.filter((r) => isEoPlan(r.plan as string));
   const totalCommissionEo = eoRows.reduce((s, r) => s + Number(r.commission), 0);
   const totalRevenueEo = eoRows.reduce((s, r) => s + Number(r.plan_price), 0);
+  const eeRows = rows.filter((r) => !isEoPlan(r.plan as string));
+  const totalCommissionEe = eeRows.reduce((s, r) => s + Number(r.commission), 0);
+  const totalRevenueEe = eeRows.reduce((s, r) => s + Number(r.plan_price), 0);
 
   // Previous day
   const now = new Date();
@@ -57,34 +60,37 @@ export default async function CommissionsAdminPage() {
   const eoPrevRows = (prevRows ?? []).filter((r) => isEoPlan(r.plan as string));
   const previousDayCommissionEo = eoPrevRows.reduce((s, r) => s + Number(r.commission), 0);
   const previousDayRevenueEo = eoPrevRows.reduce((s, r) => s + Number(r.plan_price), 0);
+  const eePrevRows = (prevRows ?? []).filter((r) => !isEoPlan(r.plan as string));
+  const previousDayCommissionEe = eePrevRows.reduce((s, r) => s + Number(r.commission), 0);
+  const previousDayRevenueEe = eePrevRows.reduce((s, r) => s + Number(r.plan_price), 0);
 
-  // Monthly trend
+  // Monthly trend — EE and EO tracked as separate series
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const trendMap = new Map<string, number>();
+  const trendMap = new Map<string, { commissionEe: number; commissionEo: number }>();
   for (let i = 29; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    trendMap.set(d.toISOString().slice(0, 10), 0);
+    trendMap.set(d.toISOString().slice(0, 10), { commissionEe: 0, commissionEo: 0 });
   }
   for (const row of rows) {
     const day = (row.created_at as string).slice(0, 10);
-    if (trendMap.has(day)) {
-      trendMap.set(day, (trendMap.get(day) ?? 0) + Number(row.commission));
+    const bucket = trendMap.get(day);
+    if (bucket) {
+      if (isEoPlan(row.plan as string)) {
+        bucket.commissionEo += Number(row.commission);
+      } else {
+        bucket.commissionEe += Number(row.commission);
+      }
     }
   }
-  const monthlyTrend = Array.from(trendMap.entries()).map(([date, commission]) => ({ date, commission }));
+  const monthlyTrend = Array.from(trendMap.entries()).map(([date, v]) => ({ date, ...v }));
 
-  // Plan distribution
-  const distMap = new Map<string, number>();
-  for (const row of rows) {
-    distMap.set(row.plan as string, (distMap.get(row.plan as string) ?? 0) + 1);
-  }
-  const planDistribution = Array.from(distMap.entries()).map(([plan, count]) => ({
-    plan,
-    label: getPlanMeta(plan).label,
-    count,
-  }));
+  // Plan distribution — grouped by skill (EE + Mix vs EO) rather than per individual plan
+  const planDistribution = [
+    { skillType: "eo" as const, label: "Expression Orale", count: eoRows.length },
+    { skillType: "ee" as const, label: "Expression Écrite (+ Mix)", count: eeRows.length },
+  ];
 
   // Ledger first page
   const { data: ledgerRows, count: ledgerTotal } = await adminClient
@@ -120,6 +126,10 @@ export default async function CommissionsAdminPage() {
     totalRevenueEo,
     previousDayCommissionEo,
     previousDayRevenueEo,
+    totalCommissionEe,
+    totalRevenueEe,
+    previousDayCommissionEe,
+    previousDayRevenueEe,
   };
 
   return <CommissionsPage initialData={initialData} />;

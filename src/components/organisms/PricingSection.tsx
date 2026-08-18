@@ -29,7 +29,7 @@ const tiers = [
       "Corrections IA avec scores CECRL",
       "Réponses modèles niveau C2",
       "Matériaux de préparation (PDFs)",
-      "Compréhension orale & écrite",
+      "Compréhension écrite",
     ],
     buttonLabel: "Choisir Intermédiaire",
     isHighlighted: false,
@@ -47,7 +47,7 @@ const tiers = [
       "Corrections IA avec scores CECRL",
       "Réponses modèles niveau C2",
       "Matériaux de préparation (PDFs)",
-      "Compréhension orale & écrite",
+      "Compréhension écrite",
     ],
     buttonLabel: "Choisir Découverte",
     isHighlighted: false,
@@ -90,6 +90,76 @@ const tiers = [
   },
 ];
 
+const mixTiers = [
+  {
+    name: "Forfait Mix Essentiel",
+    price: "4 000",
+    currency: "FCFA",
+    duration: "1 Mois",
+    description: "Combinez écrit et oral pour une préparation équilibrée.",
+    features: [
+      "★ 10 simulations d'expression écrite",
+      "★ 10 simulations d'expression orale",
+      "Corrections IA avec scores CECRL",
+      "Réponses modèles niveau C2",
+    ],
+    buttonLabel: "Choisir Mix Essentiel",
+    isHighlighted: false,
+    isSecondary: false,
+    accent: "purple" as const,
+  },
+  {
+    name: "Forfait Mix Intermédiaire",
+    price: "5 000",
+    currency: "FCFA",
+    duration: "1 Mois",
+    description: "Plus de volume sur les deux épreuves pour progresser vite.",
+    features: [
+      "★ 20 simulations d'expression écrite",
+      "★ 15 simulations d'expression orale",
+      "Corrections IA avec scores CECRL",
+      "Réponses modèles niveau C2",
+    ],
+    buttonLabel: "Choisir Mix Intermédiaire",
+    isHighlighted: false,
+    isSecondary: false,
+    accent: "amber" as const,
+  },
+  {
+    name: "Forfait Mix Standard",
+    price: "10 000",
+    currency: "FCFA",
+    duration: "1 Mois",
+    description: "Une préparation intensive complète écrit + oral.",
+    features: [
+      "★ 40 simulations d'expression écrite",
+      "★ 25 simulations d'expression orale",
+      "Corrections IA détaillées (niveaux CECRL)",
+      "Rapports diagnostiques complets",
+    ],
+    buttonLabel: "Choisir Mix Standard",
+    isHighlighted: true,
+    isSecondary: false,
+  },
+  {
+    name: "Forfait Mix Excellence",
+    price: "20 000",
+    currency: "FCFA",
+    duration: "2 Mois",
+    description: "Le maximum de pratique sur les deux épreuves, sur 2 mois.",
+    features: [
+      "★ 80 simulations d'expression écrite",
+      "★ 50 simulations d'expression orale",
+      "Corrections IA détaillées (niveaux CECRL)",
+      "Tableau de bord de progression",
+    ],
+    buttonLabel: "Choisir Mix Excellence",
+    isHighlighted: false,
+    isSecondary: true,
+    badge: "🔥 MEILLEUR VOLUME COMBINÉ",
+  },
+];
+
 export function PricingSection() {
   return (
     <section id="tarifs" className="w-full px-4 py-20">
@@ -106,6 +176,21 @@ export function PricingSection() {
 
         <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-5">
           {tiers.map((tier) => (
+            <PricingCard key={tier.name} {...tier} />
+          ))}
+        </div>
+
+        <div className="text-center space-y-3">
+          <h3 className="font-(family-name:--font-sora) text-2xl font-bold tracking-tight text-[var(--slate-200)]">
+            Forfaits Mix — Écrit &amp; Oral
+          </h3>
+          <p className="mx-auto max-w-xl text-base text-[var(--slate-400)]">
+            Un quota indépendant pour chaque épreuve, au sein d&apos;un seul forfait.
+          </p>
+        </div>
+
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {mixTiers.map((tier) => (
             <PricingCard key={tier.name} {...tier} />
           ))}
         </div>

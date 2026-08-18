@@ -1,17 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/atoms/Button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
+interface TicketCategory {
+  id: string;
+  label: string;
+}
+
+const OTHER_VALUE = "__other__";
+
 export function SupportTicketForm() {
+  const [categories, setCategories] = useState<TicketCategory[]>([]);
+  const [categoryChoice, setCategoryChoice] = useState<string>("");
+  const [customSubject, setCustomSubject] = useState("");
   const [message, setMessage] = useState("");
-  const [subject, setSubject] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    supabase
+      .from("ticket_categories")
+      .select("id, label")
+      .order("label", { ascending: true })
+      .then(({ data }) => setCategories((data as TicketCategory[]) ?? []));
+  }, []);
+
+  const isOther = categoryChoice === OTHER_VALUE;
+  const subject = isOther
+    ? customSubject.trim()
+    : (categories.find((c) => c.id === categoryChoice)?.label ?? "");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!message.trim() || !subject.trim()) return;
+    if (!message.trim() || !subject || !categoryChoice) return;
     setStatus("loading");
 
     try {
@@ -20,14 +43,16 @@ export function SupportTicketForm() {
 
       const { error } = await supabase.from("support_tickets").insert({
         user_id: user?.id,
-        subject: subject.trim(),
+        subject,
         message: message.trim(),
+        category_id: isOther ? null : categoryChoice,
       });
 
       if (error) throw error;
       setStatus("sent");
       setMessage("");
-      setSubject("");
+      setCustomSubject("");
+      setCategoryChoice("");
     } catch {
       setStatus("error");
     }
@@ -47,15 +72,36 @@ export function SupportTicketForm() {
         <label className="block text-xs font-medium text-[var(--slate-400)] mb-1">
           Sujet
         </label>
-        <input
-          type="text"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          placeholder="Ex: Problème de connexion, Question sur mon plan..."
-          className="w-full rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-2 text-sm text-[var(--brand-white)] placeholder-[var(--slate-600)] focus:border-[var(--blue-500)] focus:outline-none"
+        <select
+          value={categoryChoice}
+          onChange={(e) => setCategoryChoice(e.target.value)}
           required
-        />
+          className="w-full rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-2 text-sm text-[var(--brand-white)] focus:border-[var(--blue-500)] focus:outline-none"
+        >
+          <option value="" disabled>
+            Choisissez un sujet...
+          </option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.label}</option>
+          ))}
+          <option value={OTHER_VALUE}>Autre...</option>
+        </select>
       </div>
+      {isOther && (
+        <div>
+          <label className="block text-xs font-medium text-[var(--slate-400)] mb-1">
+            Précisez le sujet
+          </label>
+          <input
+            type="text"
+            value={customSubject}
+            onChange={(e) => setCustomSubject(e.target.value)}
+            placeholder="Ex: Problème de connexion, Question sur mon plan..."
+            className="w-full rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-2 text-sm text-[var(--brand-white)] placeholder-[var(--slate-600)] focus:border-[var(--blue-500)] focus:outline-none"
+            required
+          />
+        </div>
+      )}
       <div>
         <label className="block text-xs font-medium text-[var(--slate-400)] mb-1">
           Message

@@ -94,6 +94,9 @@ export async function GET(request: NextRequest) {
   const eoKpiRows = (kpiRows ?? []).filter((r) => isEoPlan(r.plan));
   const totalCommissionEo = eoKpiRows.reduce((s, r) => s + Number(r.commission), 0);
   const totalRevenueEo = eoKpiRows.reduce((s, r) => s + Number(r.plan_price), 0);
+  const eeKpiRows = (kpiRows ?? []).filter((r) => !isEoPlan(r.plan));
+  const totalCommissionEe = eeKpiRows.reduce((s, r) => s + Number(r.commission), 0);
+  const totalRevenueEe = eeKpiRows.reduce((s, r) => s + Number(r.plan_price), 0);
 
   // Previous day KPIs (for delta badges)
   const prev = getPreviousDayRange();
@@ -109,6 +112,9 @@ export async function GET(request: NextRequest) {
   const eoPrevRows = (prevRows ?? []).filter((r) => isEoPlan(r.plan));
   const previousDayCommissionEo = eoPrevRows.reduce((s, r) => s + Number(r.commission), 0);
   const previousDayRevenueEo = eoPrevRows.reduce((s, r) => s + Number(r.plan_price), 0);
+  const eePrevRows = (prevRows ?? []).filter((r) => !isEoPlan(r.plan));
+  const previousDayCommissionEe = eePrevRows.reduce((s, r) => s + Number(r.commission), 0);
+  const previousDayRevenueEe = eePrevRows.reduce((s, r) => s + Number(r.plan_price), 0);
 
   // Lifetime revenue (always all-time for 3rd KPI card)
   const { data: lifetimeRows } = await adminClient
@@ -117,42 +123,46 @@ export async function GET(request: NextRequest) {
     .eq("payment_status", "confirmed");
   const lifetimeRevenue = (lifetimeRows ?? []).reduce((s, r) => s + Number(r.plan_price), 0);
 
-  // Monthly trend: last 30 days grouped by day
+  // Monthly trend: last 30 days grouped by day — EE and EO tracked as separate series
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const { data: trendRows } = await adminClient
     .from("payments")
-    .select("commission, created_at")
+    .select("commission, created_at, plan")
     .eq("payment_status", "confirmed")
     .gte("created_at", thirtyDaysAgo.toISOString())
     .order("created_at", { ascending: true });
 
-  const trendMap = new Map<string, number>();
+  const trendMap = new Map<string, { commissionEe: number; commissionEo: number }>();
   for (let i = 29; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    trendMap.set(d.toISOString().slice(0, 10), 0);
+    trendMap.set(d.toISOString().slice(0, 10), { commissionEe: 0, commissionEo: 0 });
   }
   for (const row of trendRows ?? []) {
     const day = row.created_at.slice(0, 10);
-    trendMap.set(day, (trendMap.get(day) ?? 0) + Number(row.commission));
+    const bucket = trendMap.get(day);
+    if (bucket) {
+      if (isEoPlan(row.plan)) {
+        bucket.commissionEo += Number(row.commission);
+      } else {
+        bucket.commissionEe += Number(row.commission);
+      }
+    }
   }
-  const monthlyTrend = Array.from(trendMap.entries()).map(([date, commission]) => ({ date, commission }));
+  const monthlyTrend = Array.from(trendMap.entries()).map(([date, v]) => ({ date, ...v }));
 
-  // Plan distribution (all-time)
+  // Plan distribution (all-time) — grouped by skill (EE + Mix vs EO)
   const { data: distRows } = await adminClient
     .from("payments")
     .select("plan")
     .eq("payment_status", "confirmed");
-  const distMap = new Map<string, number>();
-  for (const row of distRows ?? []) {
-    distMap.set(row.plan, (distMap.get(row.plan) ?? 0) + 1);
-  }
-  const planDistribution = Array.from(distMap.entries()).map(([plan, count]) => ({
-    plan,
-    label: getPlanMeta(plan).label,
-    count,
-  }));
+  const eoDistCount = (distRows ?? []).filter((r) => isEoPlan(r.plan)).length;
+  const eeDistCount = (distRows ?? []).filter((r) => !isEoPlan(r.plan)).length;
+  const planDistribution = [
+    { skillType: "eo" as const, label: "Expression Orale", count: eoDistCount },
+    { skillType: "ee" as const, label: "Expression Écrite (+ Mix)", count: eeDistCount },
+  ];
 
   // Ledger with period + search + pagination
   let ledgerQuery = adminClient
@@ -198,5 +208,9 @@ export async function GET(request: NextRequest) {
     totalRevenueEo,
     previousDayCommissionEo,
     previousDayRevenueEo,
+    totalCommissionEe,
+    totalRevenueEe,
+    previousDayCommissionEe,
+    previousDayRevenueEe,
   });
 }

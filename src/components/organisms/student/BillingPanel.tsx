@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SupportTicketForm } from "@/components/molecules/student/SupportTicketForm";
 import { SignOutButton } from "@/components/molecules/student/SignOutButton";
 import type { AdminProfile } from "@/lib/admin/types";
@@ -54,6 +55,29 @@ export function BillingPanel({ profile }: BillingPanelProps) {
 
   return (
     <div className="space-y-8">
+      {/* Support — surfaced first so students don't have to scroll past everything
+          else to find help */}
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            Support technique
+          </h2>
+          <Link
+            href="/dashboard/tickets"
+            className="text-xs font-medium text-[var(--blue-500)] hover:text-[var(--blue-400)] transition-colors"
+          >
+            Voir mes tickets →
+          </Link>
+        </div>
+        <div className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-6">
+          <p className="mb-4 text-sm text-[var(--slate-400)]">
+            Vous avez un problème technique, une question sur votre abonnement ou besoin d&apos;aide avec le contenu pédagogique ?
+            Envoyez-nous un message et nous vous répondrons dans les plus brefs délais.
+          </p>
+          <SupportTicketForm />
+        </div>
+      </section>
+
       {/* Plan status */}
       <section>
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
@@ -108,20 +132,6 @@ export function BillingPanel({ profile }: BillingPanelProps) {
             Se déconnecter de votre session.
           </p>
           <SignOutButton />
-        </div>
-      </section>
-
-      {/* Support */}
-      <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-          Support technique
-        </h2>
-        <div className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-6">
-          <p className="mb-4 text-sm text-[var(--slate-400)]">
-            Vous avez un problème technique, une question sur votre abonnement ou besoin d&apos;aide avec le contenu pédagogique ?
-            Envoyez-nous un message et nous vous répondrons dans les plus brefs délais.
-          </p>
-          <SupportTicketForm />
         </div>
       </section>
     </div>

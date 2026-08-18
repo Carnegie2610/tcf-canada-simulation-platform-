@@ -1,43 +1,40 @@
 "use client";
 
 import { useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-export interface AdminTicketMessage {
+export interface MyTicketMessage {
   id: string;
   sender_role: "student" | "admin";
   body: string;
   created_at: string;
 }
 
-export interface AdminTicket {
+export interface MyTicket {
   id: string;
   subject: string;
   message: string;
   status: "open" | "in_progress" | "resolved";
   created_at: string;
-  student_name: string;
-  student_email: string;
   category_label: string | null;
-  messages: AdminTicketMessage[];
+  messages: MyTicketMessage[];
 }
 
-interface TicketListProps {
-  tickets: AdminTicket[];
+interface MyTicketsPanelProps {
+  tickets: MyTicket[];
 }
 
-const STATUS_LABEL: Record<AdminTicket["status"], string> = {
+const STATUS_LABEL: Record<MyTicket["status"], string> = {
   open: "Ouvert",
   in_progress: "En cours",
   resolved: "Résolu",
 };
 
-const STATUS_CLASS: Record<AdminTicket["status"], string> = {
+const STATUS_CLASS: Record<MyTicket["status"], string> = {
   open: "bg-red-950 text-red-400 border-red-900/50",
   in_progress: "bg-amber-950 text-amber-400 border-amber-900/50",
   resolved: "bg-emerald-950 text-emerald-400 border-emerald-900/50",
 };
-
-const STATUS_OPTIONS: AdminTicket["status"][] = ["open", "in_progress", "resolved"];
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -49,57 +46,42 @@ function formatDate(iso: string): string {
   });
 }
 
-function TicketCard({
-  ticket,
-  onStatusChange,
-}: {
-  ticket: AdminTicket;
-  onStatusChange: (id: string, status: AdminTicket["status"]) => void;
-}) {
-  const [updating, setUpdating] = useState(false);
-  const [status, setStatus] = useState(ticket.status);
+function TicketThread({ ticket }: { ticket: MyTicket }) {
   const [messages, setMessages] = useState(ticket.messages);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
-
-  async function handleStatusChange(next: AdminTicket["status"]) {
-    if (next === status || updating) return;
-    setUpdating(true);
-    const previous = status;
-    setStatus(next);
-    try {
-      const res = await fetch(`/api/admin/tickets/${ticket.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: next }),
-      });
-      if (!res.ok) throw new Error();
-      onStatusChange(ticket.id, next);
-    } catch {
-      setStatus(previous);
-    } finally {
-      setUpdating(false);
-    }
-  }
 
   async function handleSendReply(e: React.FormEvent) {
     e.preventDefault();
     if (!reply.trim() || sending) return;
     setSending(true);
     try {
-      const res = await fetch(`/api/admin/tickets/${ticket.id}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: reply.trim() }),
-      });
-      const json = (await res.json()) as { data?: AdminTicketMessage; error?: string };
-      if (!res.ok || !json.data) return;
-      setMessages((prev) => [...prev, json.data!]);
+      const supabase = createSupabaseBrowserClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("ticket_messages")
+        .insert({
+          ticket_id: ticket.id,
+          sender_id: user.id,
+          sender_role: "student",
+          body: reply.trim(),
+        })
+        .select()
+        .single();
+
+      if (error || !data) return;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: data.id as string,
+          sender_role: "student",
+          body: data.body as string,
+          created_at: data.created_at as string,
+        },
+      ]);
       setReply("");
-      if (status === "open") {
-        setStatus("in_progress");
-        onStatusChange(ticket.id, "in_progress");
-      }
     } finally {
       setSending(false);
     }
@@ -117,22 +99,19 @@ function TicketCard({
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-[var(--slate-500)]">
-            {ticket.student_name} — {ticket.student_email}
-          </p>
+          <p className="mt-0.5 text-xs text-[var(--slate-500)]">Envoyé le {formatDate(ticket.created_at)}</p>
         </div>
         <span
-          className={`shrink-0 rounded-md border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${STATUS_CLASS[status]}`}
+          className={`shrink-0 rounded-md border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${STATUS_CLASS[ticket.status]}`}
         >
-          {STATUS_LABEL[status]}
+          {STATUS_LABEL[ticket.status]}
         </span>
       </div>
 
-      {/* Thread: original message + replies */}
       <div className="space-y-2 rounded-lg border border-[var(--slate-800)] bg-[var(--slate-950)]/40 p-3">
-        <div className="rounded-lg bg-[var(--slate-800)]/60 p-3">
+        <div className="rounded-lg bg-[var(--slate-800)]/60 p-3 mr-4">
           <div className="flex items-center justify-between text-[10px] text-[var(--slate-500)]">
-            <span className="font-semibold text-[var(--slate-300)]">{ticket.student_name}</span>
+            <span className="font-semibold text-[var(--slate-300)]">Vous</span>
             <span>{formatDate(ticket.created_at)}</span>
           </div>
           <p className="mt-1 text-sm text-[var(--slate-300)] leading-relaxed whitespace-pre-wrap">
@@ -148,7 +127,7 @@ function TicketCard({
           >
             <div className="flex items-center justify-between text-[10px] text-[var(--slate-500)]">
               <span className="font-semibold text-[var(--slate-300)]">
-                {m.sender_role === "admin" ? "Admin" : ticket.student_name}
+                {m.sender_role === "admin" ? "Support Objectif 4C2" : "Vous"}
               </span>
               <span>{formatDate(m.created_at)}</span>
             </div>
@@ -159,12 +138,11 @@ function TicketCard({
         ))}
       </div>
 
-      {/* Reply box */}
       <form onSubmit={handleSendReply} className="flex gap-2">
         <input
           value={reply}
           onChange={(e) => setReply(e.target.value)}
-          placeholder="Répondre à l'étudiant..."
+          placeholder="Ajouter un message..."
           className="flex-1 rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-2 text-sm text-[var(--brand-white)] placeholder:text-[var(--slate-500)] focus:border-[var(--blue-500)] focus:outline-none"
         />
         <button
@@ -172,48 +150,28 @@ function TicketCard({
           disabled={sending || !reply.trim()}
           className="rounded-lg bg-[var(--blue-600)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--blue-500)] transition-colors disabled:opacity-50"
         >
-          {sending ? "Envoi..." : "Répondre"}
+          {sending ? "Envoi..." : "Envoyer"}
         </button>
       </form>
-
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--slate-800)] pt-3">
-        <span className="text-xs text-[var(--slate-500)]">Ticket créé le {formatDate(ticket.created_at)}</span>
-        <div className="flex gap-2">
-          {STATUS_OPTIONS.map((opt) => (
-            <button
-              key={opt}
-              disabled={updating || opt === status}
-              onClick={() => handleStatusChange(opt)}
-              className="rounded-lg border border-[var(--slate-700)] px-3 py-1.5 text-xs font-medium text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)] hover:text-[var(--brand-white)] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {STATUS_LABEL[opt]}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
 
-export function TicketList({ tickets }: TicketListProps) {
-  const [localTickets, setLocalTickets] = useState(tickets);
-
-  function handleStatusChange(id: string, status: AdminTicket["status"]) {
-    setLocalTickets((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
-  }
-
-  if (localTickets.length === 0) {
+export function MyTicketsPanel({ tickets }: MyTicketsPanelProps) {
+  if (tickets.length === 0) {
     return (
       <div className="flex h-32 items-center justify-center rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]">
-        <p className="text-sm text-[var(--slate-500)]">Aucun message reçu pour le moment.</p>
+        <p className="text-sm text-[var(--slate-500)]">
+          Vous n&apos;avez envoyé aucun ticket pour le moment.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      {localTickets.map((ticket) => (
-        <TicketCard key={ticket.id} ticket={ticket} onStatusChange={handleStatusChange} />
+      {tickets.map((ticket) => (
+        <TicketThread key={ticket.id} ticket={ticket} />
       ))}
     </div>
   );
