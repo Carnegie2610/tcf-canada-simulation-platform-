@@ -22,11 +22,11 @@ type TaskNumber = 1 | 2 | 3;
 
 const TASK_META: Record<
   TaskNumber,
-  { key: "tache_1" | "tache_2" | "tache_3"; label: string; jsonKey: string }
+  { key: "tache_1" | "tache_2" | "tache_3"; label: string; jsonKey: string; maxScore: number }
 > = {
-  1: { key: "tache_1", label: "TÂCHE 1", jsonKey: "task_1_evaluation" },
-  2: { key: "tache_2", label: "TÂCHE 2", jsonKey: "task_2_evaluation" },
-  3: { key: "tache_3", label: "TÂCHE 3", jsonKey: "task_3_evaluation" },
+  1: { key: "tache_1", label: "TÂCHE 1", jsonKey: "task_1_evaluation", maxScore: 4 },
+  2: { key: "tache_2", label: "TÂCHE 2", jsonKey: "task_2_evaluation", maxScore: 7 },
+  3: { key: "tache_3", label: "TÂCHE 3", jsonKey: "task_3_evaluation", maxScore: 9 },
 };
 
 function audioPathForTask(sub: OralSubmission, taskNumber: TaskNumber): string | null {
@@ -72,6 +72,7 @@ function buildTaskUserPrompt(
 - Consigne : "${task.question}"
 - Temps de préparation accordé : ${task.prepTimeSeconds} secondes
 - Temps de parole accordé : ${task.speakingTimeSeconds} secondes
+- Barème de cette tâche : notée sur ${meta.maxScore} points (le score global sur 20 est la somme des 3 tâches, pas une moyenne)
 - Transcription de la réponse orale du candidat (obtenue par reconnaissance vocale automatique, à prendre telle quelle) : "${transcript}"
 
 GRILLE DE STRUCTURE ATTENDUE pour la Tâche ${taskNumber} (sers-t'en pour renseigner "respect_de_methodologie" — vérifie chaque élément un par un) :
@@ -98,7 +99,7 @@ function missingTaskResult(taskNumber: TaskNumber, combination: OralCombination)
   const meta = TASK_META[taskNumber];
   const task = combination.tasks[meta.key];
   return {
-    score: "0/20",
+    score: `0/${meta.maxScore}`,
     consigne: task.question,
     transcript: "",
     comprehension_du_sujet: "Non évalué : tâche non enregistrée.",
@@ -439,12 +440,13 @@ export async function POST(
   const task2 = finalResults.get(2) as TaskEvalResult;
   const task3 = finalResults.get(3) as TaskEvalResult;
 
+  // Each task is scored on its own barème (Tâche 1 = /4, Tâche 2 = /7, Tâche 3 = /9), summing
+  // to 20 — the global score is the straight sum, not an average.
   const scoreNum =
     Math.round(
-      ((parseTaskScore(task1.data.score) +
+      (parseTaskScore(task1.data.score) +
         parseTaskScore(task2.data.score) +
-        parseTaskScore(task3.data.score)) /
-        3) *
+        parseTaskScore(task3.data.score)) *
         10
     ) / 10;
 

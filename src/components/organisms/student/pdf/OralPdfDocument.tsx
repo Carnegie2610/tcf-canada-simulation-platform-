@@ -530,9 +530,9 @@ function CoverPage({
   });
 
   const tasks = [
-    { label: "Tache 1", score: task1.score, max: 20 },
-    { label: "Tache 2", score: task2.score, max: 20 },
-    { label: "Tache 3", score: task3.score, max: 20 },
+    { label: "Tache 1", score: task1.score, max: 4 },
+    { label: "Tache 2", score: task2.score, max: 7 },
+    { label: "Tache 3", score: task3.score, max: 9 },
   ];
 
   return (
@@ -664,7 +664,7 @@ function TaskPage({
             </View>
           ) : null}
           <View style={styles.scorePill}>
-            <Text style={styles.scorePillText}>{task.score} / 20 pts</Text>
+            <Text style={styles.scorePillText}>{task.score} pts</Text>
           </View>
         </View>
       </View>

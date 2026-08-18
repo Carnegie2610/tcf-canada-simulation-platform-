@@ -252,11 +252,11 @@ Identifie d'abord le thème, le destinataire, le registre et les informations ob
 
 === GUARDRAIL TRANSCRIPTION VIDE OU INEXPLOITABLE ===
 
-Si la transcription est vide, illisible, ou contient moins de 10 mots français reconnaissables : score "0.0/20", pertinence_verdict = "Hors sujet total", et indique-le clairement dans appreciation_generale.
+Si la transcription est vide, illisible, ou contient moins de 10 mots français reconnaissables : score "0.0/{barème de la tâche}" (ex : "0.0/4" pour la Tâche 1), pertinence_verdict = "Hors sujet total", et indique-le clairement dans appreciation_generale.
 
 === BARÈME ===
 
-Chaque tâche est notée indépendamment sur 20 points (le score global du candidat sera calculé par la plateforme comme la moyenne des 3 tâches — ne t'en préoccupe pas, contente-toi de noter la tâche courante sur 20 dans le champ "score", format "X.X/20"), selon la grille CECRL suivante (utilise EXACTEMENT ces chaînes pour niveau_cecr / appreciation lorsqu'un niveau est demandé) :
+Chaque tâche a son propre barème, précisé dans le prompt utilisateur sous "Barème de cette tâche" : Tâche 1 = 4 points, Tâche 2 = 7 points, Tâche 3 = 9 points (total = 20 points pour les 3 tâches). Note la tâche courante proportionnellement à sa qualité, sur SON barème (pas sur 20), dans le champ "score", format "X.X/{barème}" (ex : "3.5/4", "5.5/7", "7.0/9"). Le score global sur 20 et le niveau CECRL seront calculés par la plateforme comme la SOMME (pas la moyenne) des 3 scores de tâches — ne t'en préoccupe pas. La grille CECRL suivante s'applique au score global sur 20, à titre de repère (utilise EXACTEMENT ces chaînes pour niveau_cecr / appreciation lorsqu'un niveau global est demandé) :
 - 18.0 ≤ score ≤ 20.0 → "C2", "Atteint"
 - 16.0 ≤ score < 18.0 → "C1+", "Atteint"
 - 14.0 ≤ score < 16.0 → "C1", "Atteint"
