@@ -8,6 +8,7 @@ import type {
   AdminOralCombinationListResponse,
   AdminProfile,
   AdminUserListResponse,
+  AssignedPlan,
   CefrDistributionItem,
   CefrLevel,
   Combination,
@@ -369,7 +370,8 @@ export async function createUser(
       email: data.email,
       full_name: data.full_name,
       role: data.role,
-      assigned_plan: data.assigned_plan,
+      assigned_plan_ee: data.assigned_plan_ee,
+      assigned_plan_eo: data.assigned_plan_eo,
       ee_simulations_quota: data.ee_simulations_quota,
       ee_simulations_remaining: data.ee_simulations_quota,
       eo_simulations_quota: data.eo_simulations_quota,
@@ -386,17 +388,27 @@ export async function createUser(
   }
 
   if (data.role === "student") {
-    // CreateUserSchema's refine() guarantees assigned_plan is non-null for students.
-    const meta = getPlanMeta(data.assigned_plan as string);
-    await adminSupabase.from("payments").insert({
-      user_id: authData.user.id,
-      student_name: data.full_name,
-      student_email: data.email,
-      plan: data.assigned_plan,
-      plan_price: meta.price,
-      commission: meta.commission,
-      payment_status: "confirmed",
-    });
+    // EE and EO packs are picked independently — log one payment row per pack
+    // actually chosen, each with that pack's own real price/commission, so the
+    // commissions dashboard's EE/EO totals stay unambiguous.
+    const rows = [data.assigned_plan_ee, data.assigned_plan_eo]
+      .filter((plan): plan is AssignedPlan => plan != null)
+      .map((plan) => {
+        const meta = getPlanMeta(plan);
+        return {
+          user_id: authData.user.id,
+          student_name: data.full_name,
+          student_email: data.email,
+          plan,
+          plan_price: meta.price,
+          commission: meta.commission,
+          payment_status: "confirmed",
+        };
+      });
+
+    if (rows.length > 0) {
+      await adminSupabase.from("payments").insert(rows);
+    }
   }
 
   return profile as AdminProfile;
@@ -769,7 +781,7 @@ export async function getDashboardFeed(
     .select(
       `id, created_at, user_id,
        combination:combinations ( id, title ),
-       profile:profiles ( id, full_name, email, assigned_plan, ee_simulations_remaining, ee_simulations_quota, expires_at )`,
+       profile:profiles ( id, full_name, email, assigned_plan_ee, ee_simulations_remaining, ee_simulations_quota, expires_at )`,
       { count: "exact" }
     )
     .order("created_at", { ascending: false })
@@ -788,7 +800,7 @@ export async function getDashboardFeed(
       userId: row.user_id as string,
       fullName: profile?.full_name as string ?? "",
       email: profile?.email as string ?? "",
-      assignedPlan: (profile?.assigned_plan as ActivityFeedRow["assignedPlan"]) ?? "PLAN_5000",
+      assignedPlan: (profile?.assigned_plan_ee as ActivityFeedRow["assignedPlan"]) ?? "PLAN_5000",
       simulationsRemaining: (profile?.ee_simulations_remaining as number) ?? 0,
       simulationsQuota: (profile?.ee_simulations_quota as number) ?? 0,
       combinationTitle: combo?.title as string ?? "",

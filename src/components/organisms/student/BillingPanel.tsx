@@ -86,9 +86,19 @@ export function BillingPanel({ profile }: BillingPanelProps) {
         <div className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-6 space-y-4">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-lg font-bold text-[var(--brand-white)]">
-                {profile.assigned_plan ? getPlanMeta(profile.assigned_plan).label : "—"}
-              </p>
+              {profile.assigned_plan_ee && (
+                <p className="text-lg font-bold text-[var(--brand-white)]">
+                  {getPlanMeta(profile.assigned_plan_ee).label}
+                </p>
+              )}
+              {profile.assigned_plan_eo && (
+                <p className="text-lg font-bold text-[var(--brand-white)]">
+                  {getPlanMeta(profile.assigned_plan_eo).label}
+                </p>
+              )}
+              {!profile.assigned_plan_ee && !profile.assigned_plan_eo && (
+                <p className="text-lg font-bold text-[var(--brand-white)]">—</p>
+              )}
               <p className="text-sm text-[var(--slate-400)] mt-0.5">
                 Expire le {expiryDate}
               </p>

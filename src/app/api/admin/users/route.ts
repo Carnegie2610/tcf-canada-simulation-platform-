@@ -51,7 +51,8 @@ export async function POST(request: NextRequest) {
     const adminSupabase = createSupabaseAdminClient();
     const profile = await createUser(adminSupabase, {
       ...parsed.data,
-      assigned_plan: parsed.data.assigned_plan ?? null,
+      assigned_plan_ee: parsed.data.assigned_plan_ee ?? null,
+      assigned_plan_eo: parsed.data.assigned_plan_eo ?? null,
       ee_simulations_quota: parsed.data.ee_simulations_quota ?? null,
       eo_simulations_quota: parsed.data.eo_simulations_quota ?? null,
       expires_at: parsed.data.expires_at ?? null,

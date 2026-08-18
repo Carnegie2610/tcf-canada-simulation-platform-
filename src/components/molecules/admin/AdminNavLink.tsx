@@ -7,9 +7,10 @@ interface AdminNavLinkProps {
   href: string;
   icon: string;
   label: string;
+  badgeCount?: number;
 }
 
-export function AdminNavLink({ href, icon, label }: AdminNavLinkProps) {
+export function AdminNavLink({ href, icon, label, badgeCount }: AdminNavLinkProps) {
   const pathname = usePathname();
   const isActive =
     href === "/admin"
@@ -27,7 +28,12 @@ export function AdminNavLink({ href, icon, label }: AdminNavLinkProps) {
       }`}
     >
       <span className="text-base">{icon}</span>
-      {label}
+      <span className="flex-1">{label}</span>
+      {!!badgeCount && (
+        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+          {badgeCount}
+        </span>
+      )}
     </Link>
   );
 }

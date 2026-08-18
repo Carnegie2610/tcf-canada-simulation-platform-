@@ -29,7 +29,9 @@ export interface AdminProfile {
   full_name: string;
   role: UserRole;
   // null for staff (admin/super_admin) accounts, which have no subscription plan.
-  assigned_plan: AssignedPlan | null;
+  // Independent EE/EO pack selections — a student can have either, or both.
+  assigned_plan_ee: AssignedPlan | null;
+  assigned_plan_eo: AssignedPlan | null;
   ee_simulations_quota: number | null;
   ee_simulations_remaining: number | null;
   eo_simulations_quota: number | null;
@@ -160,7 +162,8 @@ export interface CreateUserInput {
   password: string;
   role: UserRole;
   // null for staff (admin/super_admin) accounts, which have no subscription plan.
-  assigned_plan: AssignedPlan | null;
+  assigned_plan_ee: AssignedPlan | null;
+  assigned_plan_eo: AssignedPlan | null;
   ee_simulations_quota: number | null;
   eo_simulations_quota: number | null;
   ai_corrections_enabled: boolean;
@@ -172,7 +175,8 @@ export interface UpdateUserInput {
   email?: string;
   full_name?: string;
   role?: UserRole;
-  assigned_plan?: AssignedPlan | null;
+  assigned_plan_ee?: AssignedPlan | null;
+  assigned_plan_eo?: AssignedPlan | null;
   ee_simulations_quota?: number | null;
   ee_simulations_remaining?: number | null;
   eo_simulations_quota?: number | null;

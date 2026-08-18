@@ -1,6 +1,6 @@
 import { PricingCard } from "@/components/molecules/PricingCard";
 
-const tiers = [
+const eeTiers = [
   {
     name: "Forfait Essentiel",
     price: "2 000",
@@ -160,10 +160,63 @@ const mixTiers = [
   },
 ];
 
+const coachingTiers = [
+  {
+    name: "15 Jours",
+    price: "20 000",
+    currency: "FCFA",
+    duration: "15 Jours",
+    description: "Formation personnalisée chaque jour.",
+    features: [
+      "★ 20 simulations d'expression écrite",
+      "★ 15 simulations d'expression orale",
+      "40 simulations de compréhension écrite",
+      "40 simulations de compréhension orale",
+    ],
+    buttonLabel: "Contacter un conseiller",
+    isHighlighted: false,
+    isSecondary: false,
+    accent: "purple" as const,
+  },
+  {
+    name: "30 Jours",
+    price: "35 000",
+    currency: "FCFA",
+    duration: "30 Jours",
+    description: "Formation personnalisée chaque jour.",
+    features: [
+      "★ 40 simulations d'expression écrite",
+      "★ 30 simulations d'expression orale",
+      "40 simulations de compréhension écrite",
+      "40 simulations de compréhension orale",
+    ],
+    buttonLabel: "Contacter un conseiller",
+    isHighlighted: true,
+    isSecondary: false,
+  },
+  {
+    name: "60 Jours",
+    price: "60 000",
+    currency: "FCFA",
+    duration: "60 Jours",
+    description: "Formation personnalisée chaque jour.",
+    features: [
+      "★ 80 simulations d'expression écrite",
+      "★ 60 simulations d'expression orale",
+      "40 simulations de compréhension écrite",
+      "40 simulations de compréhension orale",
+    ],
+    buttonLabel: "Contacter un conseiller",
+    isHighlighted: false,
+    isSecondary: true,
+    badge: "🔥 FORMATION LA PLUS COMPLÈTE",
+  },
+];
+
 export function PricingSection() {
   return (
     <section id="tarifs" className="w-full px-4 py-20">
-      <div className="mx-auto max-w-7xl space-y-12">
+      <div className="mx-auto max-w-7xl space-y-16">
         <div className="text-center space-y-3">
           <h2 className="font-(family-name:--font-sora) text-3xl font-bold tracking-tight text-[var(--slate-200)]">
             Choisissez votre formule
@@ -174,25 +227,52 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-5">
-          {tiers.map((tier) => (
-            <PricingCard key={tier.name} {...tier} />
-          ))}
+        {/* 1. PACK REVISION */}
+        <div className="space-y-8">
+          <div className="text-center space-y-3">
+            <h3 className="font-(family-name:--font-sora) text-2xl font-bold tracking-tight text-[var(--slate-200)]">
+              PACK REVISION
+            </h3>
+            <p className="mx-auto max-w-xl text-base text-[var(--slate-400)]">
+              Préparez-vous en autonomie avec nos packs complets
+            </p>
+          </div>
+          <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {mixTiers.map((tier) => (
+              <PricingCard key={tier.name} {...tier} />
+            ))}
+          </div>
         </div>
 
-        <div className="text-center space-y-3">
-          <h3 className="font-(family-name:--font-sora) text-2xl font-bold tracking-tight text-[var(--slate-200)]">
-            Forfaits Mix — Écrit &amp; Oral
-          </h3>
-          <p className="mx-auto max-w-xl text-base text-[var(--slate-400)]">
-            Un quota indépendant pour chaque épreuve, au sein d&apos;un seul forfait.
-          </p>
+        {/* 2. NOS FORFAITS POUR FORMATION CHEZ NOUS */}
+        <div className="space-y-8">
+          <div className="text-center space-y-3">
+            <h3 className="font-(family-name:--font-sora) text-2xl font-bold tracking-tight text-[var(--slate-200)]">
+              NOS FORFAITS POUR FORMATION CHEZ NOUS
+            </h3>
+            <p className="mx-auto max-w-xl text-base text-[var(--slate-400)]">
+              Un accompagnement encadré, en présentiel, avec un suivi quotidien.
+            </p>
+          </div>
+          <div className="mx-auto grid max-w-5xl grid-cols-1 items-stretch gap-6 sm:grid-cols-3">
+            {coachingTiers.map((tier) => (
+              <PricingCard key={tier.name} {...tier} />
+            ))}
+          </div>
         </div>
 
-        <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {mixTiers.map((tier) => (
-            <PricingCard key={tier.name} {...tier} />
-          ))}
+        {/* 3. Pack — Expression Écrite */}
+        <div className="space-y-8">
+          <div className="text-center space-y-3">
+            <h3 className="font-(family-name:--font-sora) text-2xl font-bold tracking-tight text-[var(--slate-200)]">
+              Pack — Expression Écrite
+            </h3>
+          </div>
+          <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            {eeTiers.map((tier) => (
+              <PricingCard key={tier.name} {...tier} />
+            ))}
+          </div>
         </div>
 
         <div className="secure-canvas-wrapper text-center">

@@ -59,7 +59,10 @@ export function StudentAuditPanel({
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="rounded bg-[var(--slate-700)] px-3 py-1 text-sm font-medium text-[var(--slate-300)]">
-              {profile.assigned_plan ? getPlanMeta(profile.assigned_plan).label : "—"}
+              {profile.assigned_plan_ee ? getPlanMeta(profile.assigned_plan_ee).label : "EE : —"}
+            </span>
+            <span className="rounded bg-[var(--slate-700)] px-3 py-1 text-sm font-medium text-[var(--slate-300)]">
+              {profile.assigned_plan_eo ? getPlanMeta(profile.assigned_plan_eo).label : "EO : —"}
             </span>
             {profile.cohort_tag && (
               <span className="rounded bg-[var(--blue-600)]/20 px-3 py-1 text-sm font-medium text-[var(--blue-500)]">

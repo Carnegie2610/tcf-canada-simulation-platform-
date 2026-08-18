@@ -21,8 +21,13 @@ export function StudentResultRow({ profile }: StudentResultRowProps) {
       </AdminTableCell>
       <AdminTableCell>{profile.email}</AdminTableCell>
       <AdminTableCell>
-        <span className="rounded bg-[var(--slate-700)] px-2 py-0.5 text-xs font-medium">
-          {profile.assigned_plan ? getPlanMeta(profile.assigned_plan).label : "—"}
+        <span className="flex flex-col gap-0.5">
+          <span className="rounded bg-[var(--slate-700)] px-2 py-0.5 text-xs font-medium w-fit">
+            {profile.assigned_plan_ee ? getPlanMeta(profile.assigned_plan_ee).label : "EE : —"}
+          </span>
+          <span className="rounded bg-[var(--slate-700)] px-2 py-0.5 text-xs font-medium w-fit">
+            {profile.assigned_plan_eo ? getPlanMeta(profile.assigned_plan_eo).label : "EO : —"}
+          </span>
         </span>
       </AdminTableCell>
       <AdminTableCell>

@@ -8,8 +8,9 @@ import {
   PLAN_CONFIG as PLANS,
   ADMIN_ONLY_PLAN_CONFIG,
   EO_PLAN_CONFIG,
-  MIX_PLAN_CONFIG,
 } from "@/lib/plans";
+
+const NONE_VALUE = "";
 
 interface UserFormProps {
   mode: "create" | "edit";
@@ -44,8 +45,8 @@ function buildPlanOptions(source: typeof PLANS) {
 const PLAN_CONFIG = buildPlanOptions(PLANS);
 const ADMIN_ONLY_PLANS = buildPlanOptions(ADMIN_ONLY_PLAN_CONFIG);
 const EO_PLANS = buildPlanOptions(EO_PLAN_CONFIG);
-const MIX_PLANS = buildPlanOptions(MIX_PLAN_CONFIG);
-const ALL_PLANS = { ...PLAN_CONFIG, ...ADMIN_ONLY_PLANS, ...EO_PLANS, ...MIX_PLANS };
+const ALL_EE_PLANS = { ...PLAN_CONFIG, ...ADMIN_ONLY_PLANS };
+const ALL_EO_PLANS = { ...EO_PLANS };
 
 function addDays(n: number): string {
   const d = new Date();
@@ -75,10 +76,12 @@ function PlanDropdown({
   value,
   onChange,
   groups,
+  noneLabel,
 }: {
   value: string;
   onChange: (v: string) => void;
   groups: { label: string; options: [string, { label: string }][] }[];
+  noneLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -92,6 +95,7 @@ function PlanDropdown({
   }, []);
 
   const selectedLabel =
+    (value === NONE_VALUE ? noneLabel : undefined) ??
     groups.flatMap((g) => g.options).find(([key]) => key === value)?.[1].label ??
     "Sélectionner un plan";
 
@@ -107,6 +111,22 @@ function PlanDropdown({
       </button>
       {open && (
         <div className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] py-1 shadow-2xl">
+          {noneLabel && (
+            <button
+              type="button"
+              onClick={() => {
+                onChange(NONE_VALUE);
+                setOpen(false);
+              }}
+              className={`block w-full px-3 py-2 text-left text-sm transition-colors ${
+                value === NONE_VALUE
+                  ? "bg-[var(--blue-600)]/20 text-blue-300"
+                  : "text-[var(--slate-200)] hover:bg-[var(--slate-700)]"
+              }`}
+            >
+              {noneLabel}
+            </button>
+          )}
           {groups.map((group) => (
             <div key={group.label}>
               <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--slate-500)]">
@@ -142,8 +162,8 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
   const [error, setError] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
 
-  const defaultPlan = initial?.assigned_plan ?? "PLAN_5000";
-  const defaultCfg = ALL_PLANS[defaultPlan];
+  const defaultPlanEe = initial?.assigned_plan_ee ?? "PLAN_5000";
+  const defaultCfg = ALL_EE_PLANS[defaultPlanEe];
   // Staff (admin/super_admin) accounts have no subscription plan — the plan/quota/
   // expiry fields are hidden and kept null for them, matching the DB constraint
   // that only students are required to have a plan.
@@ -154,7 +174,8 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
     full_name: string;
     password: string;
     role: UserRole;
-    assigned_plan: string | null;
+    assigned_plan_ee: string | null;
+    assigned_plan_eo: string | null;
     ee_simulations_quota: number | null;
     eo_simulations_quota: number | null;
     ai_corrections_enabled: boolean;
@@ -165,9 +186,10 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
     full_name: initial?.full_name ?? "",
     password: "",
     role: initial?.role ?? "student",
-    assigned_plan: initialIsStaff ? null : defaultPlan,
+    assigned_plan_ee: initialIsStaff ? null : defaultPlanEe,
+    assigned_plan_eo: initialIsStaff ? null : (initial?.assigned_plan_eo ?? null),
     ee_simulations_quota: initialIsStaff ? null : (initial?.ee_simulations_quota ?? defaultCfg.eeQuota),
-    eo_simulations_quota: initialIsStaff ? null : (initial?.eo_simulations_quota ?? defaultCfg.eoQuota),
+    eo_simulations_quota: initialIsStaff ? null : (initial?.eo_simulations_quota ?? 0),
     ai_corrections_enabled: initial?.ai_corrections_enabled ?? true,
     expires_at: initialIsStaff
       ? null
@@ -189,16 +211,16 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
       setForm((prev) => ({
         ...prev,
         role: nextRole,
-        assigned_plan: prev.assigned_plan ?? defaultPlan,
+        assigned_plan_ee: prev.assigned_plan_ee ?? defaultPlanEe,
         ee_simulations_quota: prev.ee_simulations_quota ?? defaultCfg.eeQuota,
-        eo_simulations_quota: prev.eo_simulations_quota ?? defaultCfg.eoQuota,
         expires_at: prev.expires_at ?? addDays(defaultCfg.days),
       }));
     } else {
       setForm((prev) => ({
         ...prev,
         role: nextRole,
-        assigned_plan: null,
+        assigned_plan_ee: null,
+        assigned_plan_eo: null,
         ee_simulations_quota: null,
         eo_simulations_quota: null,
         expires_at: null,
@@ -206,18 +228,42 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
     }
   }
 
-  function handlePlanChange(plan: string) {
+  // EE and EO packs can have different validity periods — the account keeps
+  // access to whichever quota is still active, so expiry is whichever pack
+  // grants the longer period.
+  function longerExpiry(eePlan: string | null, eoPlan: string | null): string {
+    const eeDays = eePlan ? ALL_EE_PLANS[eePlan]?.days ?? 0 : 0;
+    const eoDays = eoPlan ? ALL_EO_PLANS[eoPlan]?.days ?? 0 : 0;
+    return addDays(Math.max(eeDays, eoDays));
+  }
+
+  function handleEePlanChange(plan: string) {
     if (mode !== "create") {
-      set("assigned_plan", plan);
+      set("assigned_plan_ee", plan || null);
       return;
     }
-    const cfg = ALL_PLANS[plan];
+    const nextPlan = plan || null;
+    const cfg = plan ? ALL_EE_PLANS[plan] : null;
     setForm((prev) => ({
       ...prev,
-      assigned_plan: plan,
-      ee_simulations_quota: cfg.eeQuota,
-      eo_simulations_quota: cfg.eoQuota,
-      expires_at: addDays(cfg.days),
+      assigned_plan_ee: nextPlan,
+      ee_simulations_quota: cfg?.eeQuota ?? 0,
+      expires_at: longerExpiry(nextPlan, prev.assigned_plan_eo),
+    }));
+  }
+
+  function handleEoPlanChange(plan: string) {
+    if (mode !== "create") {
+      set("assigned_plan_eo", plan || null);
+      return;
+    }
+    const nextPlan = plan || null;
+    const cfg = plan ? ALL_EO_PLANS[plan] : null;
+    setForm((prev) => ({
+      ...prev,
+      assigned_plan_eo: nextPlan,
+      eo_simulations_quota: cfg?.eoQuota ?? 0,
+      expires_at: longerExpiry(prev.assigned_plan_ee, nextPlan),
     }));
   }
 
@@ -336,17 +382,27 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
             </p>
           ) : (
             <>
-              <Field label="Plan de tarification">
+              <Field label="Pack Expression Écrite">
                 <PlanDropdown
-                  value={form.assigned_plan ?? ""}
-                  onChange={handlePlanChange}
+                  value={form.assigned_plan_ee ?? NONE_VALUE}
+                  onChange={handleEePlanChange}
+                  noneLabel="Aucun pack EE"
                   groups={[
                     ...(mode === "create"
-                      ? [{ label: "Plans spéciaux (EE)", options: Object.entries(ADMIN_ONLY_PLANS) }]
+                      ? [{ label: "Plans spéciaux", options: Object.entries(ADMIN_ONLY_PLANS) }]
                       : []),
                     { label: "Expression Écrite", options: Object.entries(PLAN_CONFIG) },
+                  ]}
+                />
+              </Field>
+
+              <Field label="Pack Expression Orale">
+                <PlanDropdown
+                  value={form.assigned_plan_eo ?? NONE_VALUE}
+                  onChange={handleEoPlanChange}
+                  noneLabel="Aucun pack EO"
+                  groups={[
                     { label: "Expression Orale", options: Object.entries(EO_PLANS) },
-                    { label: "Mix (EE + EO)", options: Object.entries(MIX_PLANS) },
                   ]}
                 />
               </Field>

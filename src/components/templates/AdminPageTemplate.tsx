@@ -5,15 +5,21 @@ interface AdminPageTemplateProps {
   children: React.ReactNode;
   currentUserName: string;
   currentUserRole: UserRole;
+  openTicketCount?: number;
 }
 
 export function AdminPageTemplate({
   children,
   currentUserName,
   currentUserRole,
+  openTicketCount = 0,
 }: AdminPageTemplateProps) {
   return (
-    <AdminShell currentUserName={currentUserName} currentUserRole={currentUserRole}>
+    <AdminShell
+      currentUserName={currentUserName}
+      currentUserRole={currentUserRole}
+      openTicketCount={openTicketCount}
+    >
       {children}
     </AdminShell>
   );

@@ -9,22 +9,26 @@ export const UserSearchParamsSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 });
 
-const ASSIGNED_PLAN_VALUES = [
+const ASSIGNED_PLAN_EE_VALUES = [
   "PLAN_2000", "PLAN_3000", "PLAN_5000", "PLAN_10000", "PLAN_30000",
+] as const;
+const ASSIGNED_PLAN_EO_VALUES = [
   "PLAN_EO_2000", "PLAN_EO_3000", "PLAN_EO_5000", "PLAN_EO_10000",
-  "PLAN_MIX_4000", "PLAN_MIX_5000", "PLAN_MIX_10000", "PLAN_MIX_20000",
 ] as const;
 
-// assigned_plan/ee_simulations_quota/eo_simulations_quota/expires_at are nullable because
-// staff accounts (admin/super_admin) have no subscription plan; the .refine() below keeps
-// them required for students, matching the DB-level chk_students_require_plan constraint.
+// assigned_plan_ee/assigned_plan_eo/ee_simulations_quota/eo_simulations_quota/expires_at are
+// nullable because staff accounts (admin/super_admin) have no subscription plan; the .refine()
+// below keeps them required for students, matching the DB-level chk_students_require_plan
+// constraint. EE and EO packs are picked independently — a student can have either or both,
+// no more single joint "Mix" plan.
 export const CreateUserSchema = z
   .object({
     email: z.string().email(),
     full_name: z.string().min(2).max(255),
     password: z.string().min(8),
     role: z.enum(["student", "admin", "super_admin"]).default("student"),
-    assigned_plan: z.enum(ASSIGNED_PLAN_VALUES).nullable().optional(),
+    assigned_plan_ee: z.enum(ASSIGNED_PLAN_EE_VALUES).nullable().optional(),
+    assigned_plan_eo: z.enum(ASSIGNED_PLAN_EO_VALUES).nullable().optional(),
     ee_simulations_quota: z.number().int().min(0).max(500).nullable().optional(),
     eo_simulations_quota: z.number().int().min(0).max(500).nullable().optional(),
     ai_corrections_enabled: z.boolean().default(false),
@@ -34,13 +38,13 @@ export const CreateUserSchema = z
   .refine(
     (data) =>
       data.role !== "student" ||
-      (data.assigned_plan != null &&
+      ((data.assigned_plan_ee != null || data.assigned_plan_eo != null) &&
         data.ee_simulations_quota != null &&
         data.eo_simulations_quota != null &&
         data.expires_at != null),
     {
-      message: "Un compte étudiant doit avoir un plan, un quota (EE et EO) et une date d'expiration.",
-      path: ["assigned_plan"],
+      message: "Un compte étudiant doit avoir au moins un pack (EE ou EO), un quota et une date d'expiration.",
+      path: ["assigned_plan_ee"],
     }
   );
 
@@ -48,7 +52,8 @@ export const UpdateUserSchema = z.object({
   email: z.string().email().optional(),
   full_name: z.string().min(2).max(255).optional(),
   role: z.enum(["student", "admin", "super_admin"]).optional(),
-  assigned_plan: z.enum(ASSIGNED_PLAN_VALUES).nullable().optional(),
+  assigned_plan_ee: z.enum(ASSIGNED_PLAN_EE_VALUES).nullable().optional(),
+  assigned_plan_eo: z.enum(ASSIGNED_PLAN_EO_VALUES).nullable().optional(),
   ee_simulations_quota: z.number().int().min(0).max(500).nullable().optional(),
   ee_simulations_remaining: z.number().int().min(0).nullable().optional(),
   eo_simulations_quota: z.number().int().min(0).max(500).nullable().optional(),

@@ -146,7 +146,10 @@ export function UserManagementTable({
                     </span>
                   </AdminTableCell>
                   <AdminTableCell>
-                    {u.assigned_plan ? getPlanMeta(u.assigned_plan).label : "—"}
+                    <span className="flex flex-col gap-0.5">
+                      <span>{u.assigned_plan_ee ? getPlanMeta(u.assigned_plan_ee).label : "EE : —"}</span>
+                      <span>{u.assigned_plan_eo ? getPlanMeta(u.assigned_plan_eo).label : "EO : —"}</span>
+                    </span>
                   </AdminTableCell>
                   <AdminTableCell>
                     {u.ee_simulations_quota == null && u.eo_simulations_quota == null ? (

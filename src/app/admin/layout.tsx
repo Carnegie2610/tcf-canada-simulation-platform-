@@ -25,10 +25,16 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
+  const { count: openTicketCount } = await supabase
+    .from("support_tickets")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "open");
+
   return (
     <AdminPageTemplate
       currentUserName={profile.full_name ?? user.email ?? "Admin"}
       currentUserRole={profile.role as UserRole}
+      openTicketCount={openTicketCount ?? 0}
     >
       {children}
     </AdminPageTemplate>
