@@ -149,7 +149,7 @@ export function StudentTopHeader({
         <nav className="hidden items-center gap-1 lg:flex">
           {navItems.map((item) => (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               className="rounded-md px-3 py-1.5 text-xs font-medium text-[var(--slate-400)] hover:bg-[var(--slate-800)] hover:text-[var(--brand-white)] transition-colors"
             >
@@ -241,7 +241,7 @@ export function StudentTopHeader({
             >
               {navItems.map((item) => (
                 <Link
-                  key={item.href}
+                  key={item.label}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center px-3 py-2 text-xs text-[var(--slate-400)] hover:bg-[var(--slate-800)] hover:text-[var(--brand-white)] transition-colors"
