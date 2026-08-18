@@ -104,7 +104,7 @@ export function CompletedCombinationCard({
         </div>
       )}
 
-      <div className="group relative rounded-2xl border border-[var(--slate-800)]/80 bg-[var(--slate-900)]/60 p-6 transition-all duration-300 ease-out hover:-translate-y-2 hover:border-blue-500/40 hover:bg-[var(--slate-900)]/90 hover:shadow-[0_20px_50px_rgba(59,130,246,0.12)]">
+      <div className="group relative rounded-2xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)]/60 p-6 shadow-md shadow-black/20 transition-all duration-300 ease-out hover:-translate-y-2 hover:border-blue-500/40 hover:bg-[var(--slate-900)]/90 hover:shadow-[0_20px_50px_rgba(59,130,246,0.12)]">
         {/* 1. Header badges */}
         <div className="flex items-center justify-between mb-4">
           <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--accent-teal-text)]">

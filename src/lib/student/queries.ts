@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeStudentAnalytics } from "@/lib/admin/analytics";
+import { mapCombinationSubmission, mapOralSubmission } from "@/lib/admin/queries";
 import type {
   AdminProfile,
   Combination,
@@ -107,7 +108,53 @@ export async function getStudentData(
     })
   );
 
-  const analytics = computeStudentAnalytics(submissions, []);
+  // Analytics (CEFR trajectory, completed/in-progress counts) must reflect ALL simulation
+  // types, not just standalone single-exam attempts — most students only ever use the
+  // combination (EE) and oral (EO) flows, so folding only `submissions` in here left the
+  // trajectory chart and stats permanently empty for them. The row list below (`submissions`,
+  // returned as-is) stays single-exam-only since its detail links only resolve for that type;
+  // combo/oral attempts already have their own card sections higher up the history page.
+  const [{ data: rawCombinationSubmissions }, { data: rawOralSubmissions }] = await Promise.all([
+    supabase
+      .from("combination_submissions")
+      .select(
+        `
+        id, user_id, combination_id, draft_task_1, draft_task_2, draft_task_3,
+        word_count_1, word_count_2, word_count_3, is_completed, completed_at, created_at,
+        combination:combinations ( id, title, exam_type ),
+        evaluation:combination_evaluations (
+          id, submission_id, global_score, cefr_level, appreciation,
+          task_1_evaluation, task_2_evaluation, task_3_evaluation, created_at
+        )
+      `
+      )
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("oral_submissions")
+      .select(
+        `
+        id, user_id, oral_combination_id, is_completed, completed_at, created_at,
+        combination:oral_combinations ( id, title, exam_type ),
+        evaluation:oral_evaluations (
+          id, submission_id, global_score, cefr_level, appreciation,
+          task_1_evaluation, task_2_evaluation, task_3_evaluation, created_at
+        )
+      `
+      )
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const combinationSubmissions: SubmissionWithEvaluation[] = (
+    rawCombinationSubmissions ?? []
+  ).map(mapCombinationSubmission);
+  const oralSubmissions: SubmissionWithEvaluation[] = (rawOralSubmissions ?? []).map(
+    mapOralSubmission
+  );
+
+  const allForAnalytics = [...submissions, ...combinationSubmissions, ...oralSubmissions];
+  const analytics = computeStudentAnalytics(allForAnalytics, []);
 
   return { profile: profile as AdminProfile, submissions, analytics };
 }

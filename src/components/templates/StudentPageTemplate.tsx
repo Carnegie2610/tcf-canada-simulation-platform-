@@ -4,8 +4,10 @@ interface StudentPageTemplateProps {
   children: React.ReactNode;
   userId: string;
   currentUserName: string;
-  simulationsUsed: number;
-  simulationsTotal: number;
+  eeUsed: number;
+  eeTotal: number;
+  eoUsed: number;
+  eoTotal: number;
   expiresAt: string;
 }
 
@@ -13,8 +15,10 @@ export function StudentPageTemplate({
   children,
   userId,
   currentUserName,
-  simulationsUsed,
-  simulationsTotal,
+  eeUsed,
+  eeTotal,
+  eoUsed,
+  eoTotal,
   expiresAt,
 }: StudentPageTemplateProps) {
   return (
@@ -22,8 +26,10 @@ export function StudentPageTemplate({
       <StudentTopHeader
         userId={userId}
         currentUserName={currentUserName}
-        simulationsUsed={simulationsUsed}
-        simulationsTotal={simulationsTotal}
+        eeUsed={eeUsed}
+        eeTotal={eeTotal}
+        eoUsed={eoUsed}
+        eoTotal={eoTotal}
         expiresAt={expiresAt}
       />
       <main className="pt-14">{children}</main>

@@ -4,6 +4,10 @@ import type { StudentAuditData, CefrLevel } from "@/lib/admin/types";
 
 interface HistoryPanelProps {
   data: StudentAuditData;
+  // Count of completed EE/EO combination attempts, shown in their own card sections
+  // higher up the history page — used to avoid claiming "no simulations" here when the
+  // student's only activity was combinations rather than standalone single exams.
+  otherAttemptsCount?: number;
 }
 
 const CEFR_LEVELS: CefrLevel[] = ["A2", "B1", "B2", "C1", "C2"];
@@ -63,7 +67,7 @@ function CefrTargetStrip({ currentLevel }: { currentLevel: CefrLevel | null }) {
   );
 }
 
-export function HistoryPanel({ data }: HistoryPanelProps) {
+export function HistoryPanel({ data, otherAttemptsCount = 0 }: HistoryPanelProps) {
   const { submissions, analytics } = data;
   const hasEvaluated = analytics.completedCount > 0;
 
@@ -103,25 +107,32 @@ export function HistoryPanel({ data }: HistoryPanelProps) {
       {/* CEFR Target Strip */}
       <CefrTargetStrip currentLevel={currentLevel} />
 
-      {/* Submission list */}
-      <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-          Toutes les tentatives
-        </h2>
-        {submissions.length === 0 ? (
-          <div className="flex h-32 items-center justify-center rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]">
-            <p className="text-sm text-[var(--slate-500)]">
-              Aucune simulation soumise pour le moment.
-            </p>
-          </div>
-        ) : (
+      {/* Single-exam submission list — combinations (EE/EO) have their own card
+          sections higher up the page, so an empty list here isn't necessarily "no
+          activity" if the student's history is otherwise all combination-based. */}
+      {submissions.length > 0 ? (
+        <section>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            Tentatives individuelles
+          </h2>
           <div className="space-y-2">
             {submissions.map((sub) => (
               <SubmissionHistoryRow key={sub.id} submission={sub} />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      ) : otherAttemptsCount === 0 ? (
+        <section>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            Toutes les tentatives
+          </h2>
+          <div className="flex h-32 items-center justify-center rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]">
+            <p className="text-sm text-[var(--slate-500)]">
+              Aucune simulation soumise pour le moment.
+            </p>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

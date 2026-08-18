@@ -28,17 +28,14 @@ export default async function DashboardLayout({
     redirect("/admin");
   }
 
-  // Site-wide header badge shows the combined EE + EO pool; individual skill pages
-  // (combinations, exams, expression-orale) gate access on their own skill's quota.
-  const quotaTotal = profile.ee_simulations_quota + profile.eo_simulations_quota;
-  const quotaRemaining = profile.ee_simulations_remaining + profile.eo_simulations_remaining;
-
   return (
     <StudentPageTemplate
       userId={user.id}
       currentUserName={profile.full_name ?? user.email ?? "Étudiant"}
-      simulationsUsed={quotaTotal - quotaRemaining}
-      simulationsTotal={quotaTotal}
+      eeUsed={profile.ee_simulations_quota - profile.ee_simulations_remaining}
+      eeTotal={profile.ee_simulations_quota}
+      eoUsed={profile.eo_simulations_quota - profile.eo_simulations_remaining}
+      eoTotal={profile.eo_simulations_quota}
       expiresAt={profile.expires_at}
     >
       {children}

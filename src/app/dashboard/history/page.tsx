@@ -144,7 +144,12 @@ export default async function HistoryPage({ searchParams }: Props) {
       )}
 
       {/* Single-exam (EE) analytics + attempt list — EE-only data, hidden under the EO filter */}
-      {showEe && <HistoryPanel data={data} />}
+      {showEe && (
+        <HistoryPanel
+          data={data}
+          otherAttemptsCount={completedCombinations.length + completedOralCombinations.length}
+        />
+      )}
     </div>
   );
 }

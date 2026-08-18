@@ -65,14 +65,14 @@ function parseTaskEvalScore(scoreStr: string): number {
   return isNaN(n) ? 0 : n;
 }
 
-// Combination task scores are marked out of different maxima (4 / 7 / 9) while the audit
+// Combination/oral task scores are marked out of different maxima (4 / 7 / 9) while the audit
 // UI's ScorePill always renders grammar/lexical/coherence out of 20 — rescale onto /20.
 function taskScoreOn20(scoreStr: string, maxScore: number): number {
   const raw = parseTaskEvalScore(scoreStr);
   return Math.round((raw / maxScore) * 20 * 10) / 10;
 }
 
-function mapCombinationSubmission(row: Record<string, unknown>): SubmissionWithEvaluation {
+export function mapCombinationSubmission(row: Record<string, unknown>): SubmissionWithEvaluation {
   const rawCombination = row.combination as
     | { id: string; title: string; exam_type: ExamType }
     | { id: string; title: string; exam_type: ExamType }[]
@@ -147,6 +147,57 @@ function mapCombinationSubmission(row: Record<string, unknown>): SubmissionWithE
   };
 }
 
+// Oral evaluations have no per-error orthographic corrections or model-answer text
+// (that's a written-only concept) — those fields are left empty for the merged shape.
+export function mapOralSubmission(row: Record<string, unknown>): SubmissionWithEvaluation {
+  const rawCombination = row.combination as
+    | { id: string; title: string; exam_type: ExamType }
+    | { id: string; title: string; exam_type: ExamType }[]
+    | null;
+  const combination = Array.isArray(rawCombination) ? rawCombination[0] : rawCombination;
+
+  const rawEvaluation = row.evaluation as Record<string, unknown> | Record<string, unknown>[] | null;
+  const evalRow = Array.isArray(rawEvaluation) ? (rawEvaluation[0] ?? null) : rawEvaluation;
+
+  let evaluation: Evaluation | null = null;
+  if (evalRow) {
+    const task1 = evalRow.task_1_evaluation as Record<string, unknown>;
+    const task2 = evalRow.task_2_evaluation as Record<string, unknown>;
+    const task3 = evalRow.task_3_evaluation as Record<string, unknown>;
+
+    evaluation = {
+      id: evalRow.id as string,
+      submission_id: evalRow.submission_id as string,
+      cefr_level: toBaseCefrLevel(evalRow.cefr_level as string),
+      global_score: (evalRow.global_score as number) * 5, // 0-20 oral scale -> 0-100
+      grammar_score: taskScoreOn20(task1.score as string, 4),
+      lexical_score: taskScoreOn20(task2.score as string, 7),
+      coherence_score: taskScoreOn20(task3.score as string, 9),
+      json_feedback: { corrections: [] },
+      model_answer_c2: "",
+      created_at: evalRow.created_at as string,
+    };
+  }
+
+  return {
+    id: row.id as string,
+    user_id: row.user_id as string,
+    exam_id: combination?.id ?? (row.oral_combination_id as string),
+    user_draft: "",
+    word_count: 0,
+    is_completed: row.is_completed as boolean,
+    completed_at: row.completed_at as string | null,
+    created_at: row.created_at as string,
+    exam: {
+      id: combination?.id ?? (row.oral_combination_id as string),
+      title: combination?.title ?? "Combinaison orale inconnue",
+      section: "COMBINE",
+      exam_type: combination?.exam_type ?? "TCF",
+    },
+    evaluation,
+  };
+}
+
 export async function getStudentAuditData(
   supabase: SupabaseClient,
   studentId: string
@@ -212,7 +263,26 @@ export async function getStudentAuditData(
     rawCombinationSubmissions ?? []
   ).map(mapCombinationSubmission);
 
-  const allSubmissions = [...submissions, ...combinationSubmissions].sort(
+  const { data: rawOralSubmissions } = await supabase
+    .from("oral_submissions")
+    .select(
+      `
+      id, user_id, oral_combination_id, is_completed, completed_at, created_at,
+      combination:oral_combinations ( id, title, exam_type ),
+      evaluation:oral_evaluations (
+        id, submission_id, global_score, cefr_level, appreciation,
+        task_1_evaluation, task_2_evaluation, task_3_evaluation, created_at
+      )
+    `
+    )
+    .eq("user_id", studentId)
+    .order("created_at", { ascending: false });
+
+  const oralSubmissions: SubmissionWithEvaluation[] = (
+    rawOralSubmissions ?? []
+  ).map(mapOralSubmission);
+
+  const allSubmissions = [...submissions, ...combinationSubmissions, ...oralSubmissions].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 

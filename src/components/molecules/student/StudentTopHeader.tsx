@@ -9,8 +9,10 @@ import { ThemeToggle } from "@/components/atoms/ThemeToggle";
 interface StudentTopHeaderProps {
   userId: string;
   currentUserName: string;
-  simulationsUsed: number;
-  simulationsTotal: number;
+  eeUsed: number;
+  eeTotal: number;
+  eoUsed: number;
+  eoTotal: number;
   expiresAt: string;
 }
 
@@ -45,13 +47,17 @@ function formatExpiryFull(expiresAt: string): string {
 export function StudentTopHeader({
   userId,
   currentUserName,
-  simulationsUsed: initialUsed,
-  simulationsTotal: initialTotal,
+  eeUsed: initialEeUsed,
+  eeTotal: initialEeTotal,
+  eoUsed: initialEoUsed,
+  eoTotal: initialEoTotal,
   expiresAt,
 }: StudentTopHeaderProps) {
   const router = useRouter();
-  const [used, setUsed] = useState(initialUsed);
-  const [total, setTotal] = useState(initialTotal);
+  const [eeUsed, setEeUsed] = useState(initialEeUsed);
+  const [eeTotal, setEeTotal] = useState(initialEeTotal);
+  const [eoUsed, setEoUsed] = useState(initialEoUsed);
+  const [eoTotal, setEoTotal] = useState(initialEoTotal);
   const [daysLeft, setDaysLeft] = useState(() => computeDaysLeft(expiresAt));
   const [expiryStr, setExpiryStr] = useState(expiresAt);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -87,10 +93,10 @@ export function StudentTopHeader({
             eo_simulations_remaining: number;
             expires_at: string;
           };
-          const quotaTotal = row.ee_simulations_quota + row.eo_simulations_quota;
-          const quotaRemaining = row.ee_simulations_remaining + row.eo_simulations_remaining;
-          setTotal(quotaTotal);
-          setUsed(quotaTotal - quotaRemaining);
+          setEeTotal(row.ee_simulations_quota);
+          setEeUsed(row.ee_simulations_quota - row.ee_simulations_remaining);
+          setEoTotal(row.eo_simulations_quota);
+          setEoUsed(row.eo_simulations_quota - row.eo_simulations_remaining);
           setExpiryStr(row.expires_at);
           setDaysLeft(computeDaysLeft(row.expires_at));
         }
@@ -124,13 +130,16 @@ export function StudentTopHeader({
   }
 
   // Badge colour helpers
-  const usageRatio = total > 0 ? used / total : 0;
-  const simulationsBadgeClass =
-    usageRatio >= 1
+  function quotaBadgeClass(used: number, total: number): string {
+    const usageRatio = total > 0 ? used / total : 0;
+    return usageRatio >= 1
       ? "bg-red-500/20 text-red-400 border-red-500/30"
       : usageRatio >= 0.95
         ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
         : "bg-blue-600/20 text-blue-400 border-blue-500/30";
+  }
+  const eeBadgeClass = quotaBadgeClass(eeUsed, eeTotal);
+  const eoBadgeClass = quotaBadgeClass(eoUsed, eoTotal);
 
   const daysBadgeClass =
     daysLeft === 0
@@ -174,12 +183,18 @@ export function StudentTopHeader({
           <span className="lg:hidden">{daysLeft}&nbsp;j. restants</span>
         </span>
 
-        {/* Simulations counter badge */}
+        {/* Simulations counter badges — EE and EO tracked independently */}
         <span
-          className={`rounded border px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 ${simulationsBadgeClass}`}
+          className={`rounded border px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 ${eeBadgeClass}`}
+          title="Simulations Expression Écrite"
         >
-          {used}&thinsp;/&thinsp;{total}
-          <span className="hidden sm:inline"> simulations</span>
+          EE {eeUsed}&thinsp;/&thinsp;{eeTotal}
+        </span>
+        <span
+          className={`rounded border px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 ${eoBadgeClass}`}
+          title="Simulations Expression Orale"
+        >
+          EO {eoUsed}&thinsp;/&thinsp;{eoTotal}
         </span>
 
         <ThemeToggle />

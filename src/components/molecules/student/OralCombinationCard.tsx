@@ -106,10 +106,10 @@ export function OralCombinationCard({
       )}
 
       <div
-        className={`group relative rounded-2xl border p-6 transition-all duration-300 ease-out transform translate-y-0 ${
+        className={`group relative rounded-2xl border-2 p-6 shadow-md shadow-black/20 transition-all duration-300 ease-out transform translate-y-0 ${
           isSubmitted || isLocked
-            ? "border-[var(--slate-800)]/80 bg-[var(--slate-900)]/40 opacity-70"
-            : "border-[var(--slate-800)]/80 bg-[var(--slate-900)]/60 hover:-translate-y-2 hover:border-blue-500/40 hover:bg-[var(--slate-900)]/90 hover:shadow-[0_20px_50px_rgba(59,130,246,0.12)] cursor-pointer"
+            ? "border-[var(--slate-700)] bg-[var(--slate-900)]/40 opacity-70"
+            : "border-[var(--slate-700)] bg-[var(--slate-900)]/60 hover:-translate-y-2 hover:border-blue-500/40 hover:bg-[var(--slate-900)]/90 hover:shadow-[0_20px_50px_rgba(59,130,246,0.12)] cursor-pointer"
         }`}
       >
         {/* 1. Header Badges */}
