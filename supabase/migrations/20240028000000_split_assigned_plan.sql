@@ -8,10 +8,7 @@ ALTER TABLE public.profiles
   ADD COLUMN assigned_plan_ee VARCHAR(50),
   ADD COLUMN assigned_plan_eo VARCHAR(50);
 
--- 2. Backfill from the old single column. Legacy PLAN_MIX_* rows have no clean
--- 1:1 split into an equivalent single EE/EO pack key, so they're left NULL here
--- — their quotas are already correct and independent, only the display label
--- is affected, not functionality.
+-- 2. Backfill from the old single column.
 UPDATE public.profiles
 SET assigned_plan_ee = assigned_plan
 WHERE assigned_plan IN ('PLAN_2000', 'PLAN_3000', 'PLAN_5000', 'PLAN_10000', 'PLAN_30000');
@@ -19,6 +16,24 @@ WHERE assigned_plan IN ('PLAN_2000', 'PLAN_3000', 'PLAN_5000', 'PLAN_10000', 'PL
 UPDATE public.profiles
 SET assigned_plan_eo = assigned_plan
 WHERE assigned_plan IN ('PLAN_EO_2000', 'PLAN_EO_3000', 'PLAN_EO_5000', 'PLAN_EO_10000');
+
+-- Legacy PLAN_MIX_* rows map to the equivalent pair of individual EE+EO packs
+-- (same price/quota, just split into two keys instead of one joint one).
+UPDATE public.profiles
+SET assigned_plan_ee = 'PLAN_2000', assigned_plan_eo = 'PLAN_EO_2000'
+WHERE assigned_plan = 'PLAN_MIX_4000';
+
+UPDATE public.profiles
+SET assigned_plan_ee = 'PLAN_3000', assigned_plan_eo = 'PLAN_EO_3000'
+WHERE assigned_plan = 'PLAN_MIX_5000';
+
+UPDATE public.profiles
+SET assigned_plan_ee = 'PLAN_5000', assigned_plan_eo = 'PLAN_EO_5000'
+WHERE assigned_plan = 'PLAN_MIX_10000';
+
+UPDATE public.profiles
+SET assigned_plan_ee = 'PLAN_10000', assigned_plan_eo = 'PLAN_EO_10000'
+WHERE assigned_plan = 'PLAN_MIX_20000';
 
 -- 3. Drop the old column and its constraints
 ALTER TABLE public.profiles
