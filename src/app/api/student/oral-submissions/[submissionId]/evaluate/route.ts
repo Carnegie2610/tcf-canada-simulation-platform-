@@ -119,6 +119,47 @@ function missingTaskResult(taskNumber: TaskNumber, combination: OralCombination)
   };
 }
 
+/**
+ * Synthetic zero-score result for a task whose audio was recorded and uploaded but
+ * transcribed to nothing — a silent/inaudible take (mic muted, student never spoke,
+ * recording stopped instantly). Distinct from missingTaskResult so the student can
+ * tell "you didn't record this" apart from "we got your file but heard nothing".
+ *
+ * Deliberately NOT an error: a single inaudible take used to throw, exhaust the
+ * retry pass, and abort the whole submission — costing the student their other
+ * (perfectly good) tasks and their quota. Scoring just this task zero lets the rest
+ * of the evaluation complete and reach them.
+ */
+function emptyTranscriptResult(taskNumber: TaskNumber, combination: OralCombination): OralTaskEval {
+  const meta = TASK_META[taskNumber];
+  const task = combination.tasks[meta.key];
+  const notice = "Non évalué : aucun son exploitable détecté dans l'enregistrement.";
+  return {
+    score: `0/${meta.maxScore}`,
+    consigne: task.question,
+    transcript: "",
+    comprehension_du_sujet: notice,
+    respect_de_methodologie: notice,
+    niveau_linguistique: notice,
+    fluidite: notice,
+    prononciation_et_intonation: notice,
+    appreciation_generale:
+      "Votre enregistrement a bien été reçu, mais aucune parole n'a pu y être détectée. " +
+      "Vérifiez que votre microphone est activé et audible, puis refaites cette tâche lors d'une prochaine tentative.",
+    pertinence_verdict: "",
+    points_forts: [],
+    priorites_a_travailler: [
+      "Vérifier le micro (autorisation du navigateur, volume, micro non coupé) avant de démarrer.",
+      "Après l'enregistrement, réécouter l'extrait proposé pour confirmer que votre voix est audible.",
+    ],
+    erreurs_recurrentes: [],
+    registre_et_tonalite: "",
+    connecteurs_logiques: { utilises: [], manquants: [] },
+    exercice_recommande: "",
+    comparaison_niveau_vise: "",
+  };
+}
+
 async function evaluateTask(
   taskNumber: TaskNumber,
   systemPrompt: string,
@@ -144,8 +185,25 @@ async function evaluateTask(
   const transcription = await callTranscription(audioBlob, filename);
   const transcript = transcription.text.trim();
 
+  // A silent take transcribes to "" deterministically (HTTP 200, empty text), so
+  // retrying it would just burn another STT call for the same empty answer — score
+  // it zero here and let the other tasks finish instead of failing the submission.
   if (transcript.length === 0) {
-    throw new Error(`task_${taskNumber}_empty_transcript`);
+    console.warn(
+      `[evaluate-oral] task ${taskNumber} produced an empty transcript — scoring 0`,
+      { submissionId: sub.id, audioPath, audioBytes: audioBlob.size }
+    );
+    return {
+      taskNumber,
+      transcriptionResult: {
+        provider: transcription.provider,
+        model: transcription.model,
+        durationMs: transcription.durationMs,
+      },
+      // No LLM call is made — there is nothing to score.
+      aiResult: { provider: "none", model: "none", durationMs: 0, text: "" },
+      data: emptyTranscriptResult(taskNumber, combination),
+    };
   }
 
   const userPrompt = buildTaskUserPrompt(taskNumber, combination, transcript);
@@ -233,13 +291,17 @@ async function logAiApiCalls(
         success: true,
         duration_ms: result.value.transcriptionResult.durationMs,
       });
-      rows.push({
-        submission_type: "oral",
-        provider: result.value.aiResult.provider,
-        model: result.value.aiResult.model,
-        success: true,
-        duration_ms: result.value.aiResult.durationMs,
-      });
+      // Provider "none" marks a stage that was deliberately skipped (e.g. no LLM
+      // scoring call for an inaudible take) — not a real API call to bill or chart.
+      if (result.value.aiResult.provider !== "none") {
+        rows.push({
+          submission_type: "oral",
+          provider: result.value.aiResult.provider,
+          model: result.value.aiResult.model,
+          success: true,
+          duration_ms: result.value.aiResult.durationMs,
+        });
+      }
     }
   }
 
