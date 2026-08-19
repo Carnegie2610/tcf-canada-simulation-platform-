@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { StudentPageTemplate } from "@/components/templates/StudentPageTemplate";
 import { WhatsNewModal } from "@/components/organisms/student/WhatsNewModal";
-import { shouldShowWhatsNew } from "@/lib/whats-new";
+import { shouldShowWhatsNew, WHATS_NEW_MAX_VIEWS } from "@/lib/whats-new";
 
 export default async function DashboardLayout({
   children,
@@ -19,7 +19,7 @@ export default async function DashboardLayout({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "full_name, role, ee_simulations_quota, ee_simulations_remaining, eo_simulations_quota, eo_simulations_remaining, expires_at, whats_new_seen_at"
+      "full_name, role, ee_simulations_quota, ee_simulations_remaining, eo_simulations_quota, eo_simulations_remaining, expires_at"
     )
     .eq("id", user.id)
     .single();
@@ -29,6 +29,21 @@ export default async function DashboardLayout({
   if (profile.role === "admin" || profile.role === "super_admin") {
     redirect("/admin");
   }
+
+  // Looked up separately from the profile query above, and never allowed to fail
+  // the page: this is cosmetic, while the guard above redirects to /login on a
+  // null result. Folding it into that query means any problem with this column
+  // (missing migration, transient error) reads as "no profile" and silently
+  // logs the student out — which is exactly what happened once already.
+  const { data: whatsNew } = await supabase
+    .from("profiles")
+    .select("whats_new_seen_count")
+    .eq("id", user.id)
+    .single();
+
+  const showWhatsNew = shouldShowWhatsNew(
+    whatsNew?.whats_new_seen_count ?? WHATS_NEW_MAX_VIEWS
+  );
 
   return (
     <StudentPageTemplate
@@ -40,7 +55,7 @@ export default async function DashboardLayout({
       eoTotal={profile.eo_simulations_quota}
       expiresAt={profile.expires_at}
     >
-      {shouldShowWhatsNew(profile.whats_new_seen_at) && <WhatsNewModal />}
+      {showWhatsNew && <WhatsNewModal />}
       {children}
     </StudentPageTemplate>
   );

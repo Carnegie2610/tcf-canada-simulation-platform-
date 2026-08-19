@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   WHATS_NEW_INTRO,
   WHATS_NEW_ITEMS,
@@ -8,27 +8,40 @@ import {
 } from "@/lib/whats-new";
 
 /**
- * One-time announcement of recently shipped features. Rendered only when the
- * server has already determined this student hasn't acknowledged the current
- * release (see shouldShowWhatsNew), so it opens immediately on mount.
+ * Marks this browser session as having already displayed the announcement. The
+ * dashboard layout is a server component that re-runs on every navigation, so
+ * without this the modal would reappear on each page change and spend the whole
+ * multi-login budget in a single sitting.
+ */
+const SESSION_KEY = "objectif4c2:whats-new-shown";
+
+/**
+ * One-time-per-session announcement of recently shipped features. Rendered only
+ * when the server has determined this student still has views remaining
+ * (see shouldShowWhatsNew); this component decides whether *this particular
+ * session* has already used one.
  */
 export function WhatsNewModal() {
-  const [open, setOpen] = useState(true);
-  const [dismissing, setDismissing] = useState(false);
+  // Starts closed so nothing flashes before the session check below runs.
+  const [open, setOpen] = useState(false);
 
-  async function handleDismiss() {
-    if (dismissing) return;
-    setDismissing(true);
-    // Close straight away — the student shouldn't wait on a network round-trip to
-    // reach their dashboard. If the call fails the modal simply reappears next
-    // visit, which is a far better failure mode than blocking the UI.
-    setOpen(false);
+  useEffect(() => {
+    let alreadyShown = false;
     try {
-      await fetch("/api/student/whats-new", { method: "POST" });
+      alreadyShown = sessionStorage.getItem(SESSION_KEY) !== null;
+      sessionStorage.setItem(SESSION_KEY, "1");
     } catch {
-      // Non-blocking by design (see above).
+      // Private browsing / storage disabled: fall through and show it. Worst
+      // case the student sees it on a navigation, which beats never seeing it.
     }
-  }
+    if (alreadyShown) return;
+
+    setOpen(true);
+    // Spend one view now, on display, rather than on dismissal — see the API route.
+    void fetch("/api/student/whats-new", { method: "POST" }).catch(() => {
+      // Non-blocking: a failed count just means they may see it once more.
+    });
+  }, []);
 
   if (!open) return null;
 
@@ -38,7 +51,7 @@ export function WhatsNewModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="whats-new-title"
-      onClick={handleDismiss}
+      onClick={() => setOpen(false)}
     >
       <div
         className="w-full max-w-lg rounded-2xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)] shadow-2xl"
@@ -78,7 +91,7 @@ export function WhatsNewModal() {
         <div className="border-t border-[var(--slate-800)] px-6 py-4">
           <button
             type="button"
-            onClick={handleDismiss}
+            onClick={() => setOpen(false)}
             className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 text-sm font-semibold text-white shadow transition-opacity hover:opacity-90"
           >
             J&apos;ai compris, commencer

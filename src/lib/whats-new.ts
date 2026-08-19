@@ -1,9 +1,9 @@
 /**
- * Content and release marker for the student-facing "Nouveautés" modal.
+ * Content and display rules for the student-facing "Nouveautés" modal.
  *
- * To announce a future batch of features: replace WHATS_NEW_ITEMS and bump
- * WHATS_NEW_RELEASED_AT. Every student whose profiles.whats_new_seen_at is older
- * than that date (or NULL) will be shown the modal once more.
+ * To announce a future batch of features: replace WHATS_NEW_ITEMS and reset
+ * profiles.whats_new_seen_count to 0 (`UPDATE public.profiles SET
+ * whats_new_seen_count = 0;`), which re-runs the campaign for everyone.
  */
 
 export interface WhatsNewItem {
@@ -12,8 +12,12 @@ export interface WhatsNewItem {
   description: string;
 }
 
-/** Bump this when publishing a new announcement. ISO 8601, UTC. */
-export const WHATS_NEW_RELEASED_AT = "2026-08-19T00:00:00.000Z";
+/**
+ * How many separate logins the modal keeps appearing for before it stops for
+ * good. Counted per session (see WhatsNewModal), not per page view, so browsing
+ * around the dashboard never burns through the allowance.
+ */
+export const WHATS_NEW_MAX_VIEWS = 3;
 
 export const WHATS_NEW_TITLE = "Quoi de neuf sur Objectif 4C2";
 
@@ -60,11 +64,12 @@ export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
 ];
 
 /**
- * True when this student has not yet acknowledged the current announcement.
- * `seenAt` is profiles.whats_new_seen_at (NULL for students who have never
- * dismissed one, including newly created accounts).
+ * True while this student still has views left on the current announcement.
+ *
+ * Callers pass profiles.whats_new_seen_count. On any doubt — a failed lookup, a
+ * column that isn't there yet — pass WHATS_NEW_MAX_VIEWS so the modal stays
+ * hidden: a missing announcement is harmless, a broken dashboard is not.
  */
-export function shouldShowWhatsNew(seenAt: string | null): boolean {
-  if (!seenAt) return true;
-  return new Date(seenAt).getTime() < new Date(WHATS_NEW_RELEASED_AT).getTime();
+export function shouldShowWhatsNew(seenCount: number): boolean {
+  return seenCount < WHATS_NEW_MAX_VIEWS;
 }
