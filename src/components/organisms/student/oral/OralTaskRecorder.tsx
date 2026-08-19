@@ -25,13 +25,6 @@ interface OralTaskRecorderProps {
 
 type Phase = "idle" | "prep" | "recording" | "review";
 
-// Even when a task has 0s of configured prep time, always show the "get ready"
-// screen for at least this long — otherwise the prep phase expires on the very
-// first render (before React even paints it) and recording starts invisibly,
-// with no cue for the student that they should start speaking. This was the
-// root cause of empty-transcript submissions on 0-prep tasks.
-const MIN_PREP_SECONDS = 3;
-
 // Below this, a take is very likely silence/near-silence that will fail STT
 // transcription at evaluation time — warn the student immediately instead of
 // letting them find out only after submitting.
@@ -91,8 +84,7 @@ export function OralTaskRecorder({
   const recorder = useAudioRecorder();
   // Real state (not a ref) so clicking "Commencer" re-renders immediately into the
   // prep screen — a ref mutation alone left the click invisible until some other,
-  // unrelated re-render happened to occur (see MIN_PREP_SECONDS above for why that
-  // mattered).
+  // unrelated re-render happened to occur.
   const [manualPhase, setManualPhase] = useState<"idle" | "prep">("idle");
   const hasStartedRecordingRef = useRef(false);
 
@@ -243,7 +235,7 @@ export function OralTaskRecorder({
   if (phase === "prep") {
     return (
       <PrepCountdown
-        prepTimeSeconds={Math.max(task.prepTimeSeconds, MIN_PREP_SECONDS)}
+        prepTimeSeconds={task.prepTimeSeconds}
         question={task.question}
         onComplete={handlePrepComplete}
       />
