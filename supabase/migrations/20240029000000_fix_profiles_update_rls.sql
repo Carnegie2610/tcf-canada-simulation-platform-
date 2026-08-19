@@ -1,0 +1,27 @@
+-- SECURITY FIX: remove the over-permissive self-update policy on profiles.
+--
+-- The original policy (20240003000000_add_rls_policies.sql) was:
+--
+--   CREATE POLICY "Users update own profile"
+--     ON public.profiles FOR UPDATE
+--     USING (auth.uid() = id);
+--
+-- With no WITH CHECK and no column restriction, Postgres reuses the USING
+-- expression to validate the new row — so a student could not change their own
+-- `id`, but could freely rewrite every other column on their row, including:
+--
+--   * ee_simulations_remaining / eo_simulations_remaining  -> unlimited free simulations
+--   * expires_at                                           -> self-extended subscription
+--   * role                                                 -> escalation to super_admin
+--
+-- Nothing in the application relies on a student updating their own profile:
+-- the only write path to this table is updateUser() in src/lib/admin/queries.ts,
+-- which runs admin-side behind the admin API routes (service-role client), and
+-- is unaffected by this policy. Dropping it therefore closes the hole with no
+-- functional loss.
+--
+-- Any future legitimate self-service field must NOT reinstate a blanket policy —
+-- it should go through a server-side route that writes only that one column
+-- (see /api/student/whats-new for the pattern).
+
+DROP POLICY IF EXISTS "Users update own profile" ON public.profiles;

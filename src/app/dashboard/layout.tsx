@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { StudentPageTemplate } from "@/components/templates/StudentPageTemplate";
+import { WhatsNewModal } from "@/components/organisms/student/WhatsNewModal";
+import { shouldShowWhatsNew } from "@/lib/whats-new";
 
 export default async function DashboardLayout({
   children,
@@ -17,7 +19,7 @@ export default async function DashboardLayout({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "full_name, role, ee_simulations_quota, ee_simulations_remaining, eo_simulations_quota, eo_simulations_remaining, expires_at"
+      "full_name, role, ee_simulations_quota, ee_simulations_remaining, eo_simulations_quota, eo_simulations_remaining, expires_at, whats_new_seen_at"
     )
     .eq("id", user.id)
     .single();
@@ -38,6 +40,7 @@ export default async function DashboardLayout({
       eoTotal={profile.eo_simulations_quota}
       expiresAt={profile.expires_at}
     >
+      {shouldShowWhatsNew(profile.whats_new_seen_at) && <WhatsNewModal />}
       {children}
     </StudentPageTemplate>
   );
