@@ -16,12 +16,14 @@ import {
 import { DayPicker, DateRange } from "react-day-picker";
 import "react-day-picker/src/style.css";
 
+import { EE_SECONDARY_RATE, EO_SECONDARY_RATE } from "@/lib/admin/commissions";
+
 interface LedgerRow {
   id: string;
   created_at: string;
   student_name: string;
   student_email: string;
-  plan_label: string;
+  plan_labels: string[];
   plan_price: number;
   commission: number;
 }
@@ -220,6 +222,14 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
   const totalPages = Math.max(1, Math.ceil(data.ledgerTotal / 15));
   const now = Date.now();
 
+  // Secondary shares are derived from revenue (the principal share is stored per
+  // payment), so they're computed once here and reused by both the per-skill cards
+  // and the combined totals below.
+  const eoSecondary = data.totalRevenueEo * EO_SECONDARY_RATE;
+  const eeSecondary = data.totalRevenueEe * EE_SECONDARY_RATE;
+  const totalPrincipaux = data.totalCommissionEo + data.totalCommissionEe;
+  const totalSecondaires = eoSecondary + eeSecondary;
+
   const customLabel = customDates
     ? `${fmtDate(customDates.from)} → ${fmtDate(customDates.to)}`
     : "Plage personnalisée";
@@ -333,13 +343,13 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
           {deltaBadge(data.totalCommissionEo, data.previousDayCommissionEo)}
         </div>
 
-        {/* Revenus EO Secondaires (60%) */}
+        {/* Revenus EO Secondaires (70%) */}
         <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-            Revenus EO Secondaires (60%)
+            Revenus EO Secondaires (70%)
           </p>
-          <p className="text-2xl font-extrabold" style={{ color: EO_COLOR }}>{fmt(data.totalRevenueEo * 0.6)}</p>
-          {deltaBadge(data.totalRevenueEo * 0.6, data.previousDayRevenueEo * 0.6)}
+          <p className="text-2xl font-extrabold" style={{ color: EO_COLOR }}>{fmt(eoSecondary)}</p>
+          {deltaBadge(eoSecondary, data.previousDayRevenueEo * EO_SECONDARY_RATE)}
         </div>
 
         {/* Revenus EE Principaux (35%) */}
@@ -356,8 +366,32 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
           <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Revenus EE Secondaires (65%)
           </p>
-          <p className="text-2xl font-extrabold" style={{ color: EE_COLOR }}>{fmt(data.totalRevenueEe * 0.65)}</p>
-          {deltaBadge(data.totalRevenueEe * 0.65, data.previousDayRevenueEe * 0.65)}
+          <p className="text-2xl font-extrabold" style={{ color: EE_COLOR }}>{fmt(eeSecondary)}</p>
+          {deltaBadge(eeSecondary, data.previousDayRevenueEe * EE_SECONDARY_RATE)}
+        </div>
+
+        {/* Combined totals across both skills */}
+        <div className="rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)] p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            Total Revenus Principaux (EO + EE)
+          </p>
+          <p className="text-2xl font-extrabold text-[var(--slate-200)]">{fmt(totalPrincipaux)}</p>
+          {deltaBadge(
+            totalPrincipaux,
+            data.previousDayCommissionEo + data.previousDayCommissionEe
+          )}
+        </div>
+
+        <div className="rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)] p-5 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+            Total Revenus Secondaires (EO + EE)
+          </p>
+          <p className="text-2xl font-extrabold text-[var(--slate-200)]">{fmt(totalSecondaires)}</p>
+          {deltaBadge(
+            totalSecondaires,
+            data.previousDayRevenueEo * EO_SECONDARY_RATE +
+              data.previousDayRevenueEe * EE_SECONDARY_RATE
+          )}
         </div>
 
         {/* Merged summary: registrations + grand total revenue */}
@@ -543,7 +577,18 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
                         <p className="text-xs font-medium text-[var(--slate-200)]">{row.student_name}</p>
                         <p className="text-[10px] text-[var(--slate-500)]">{row.student_email}</p>
                       </td>
-                      <td className="px-5 py-3 text-xs text-[var(--slate-200)]">{row.plan_label}</td>
+                      <td className="px-5 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {row.plan_labels.map((label) => (
+                            <span
+                              key={label}
+                              className="whitespace-nowrap rounded-md border border-[var(--slate-700)] bg-[var(--slate-800)] px-2 py-0.5 text-[11px] text-[var(--slate-200)]"
+                            >
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
                       <td className="px-5 py-3 text-right text-xs font-semibold text-emerald-400">
                         {fmt(row.commission)}
                       </td>
