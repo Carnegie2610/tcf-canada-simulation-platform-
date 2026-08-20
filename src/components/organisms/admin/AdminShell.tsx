@@ -1,6 +1,7 @@
 import { SignOutButton } from "@/components/molecules/student/SignOutButton";
 import { ThemeToggle } from "@/components/atoms/ThemeToggle";
 import { AdminNavLink } from "@/components/molecules/admin/AdminNavLink";
+import { AdminNavGroup } from "@/components/molecules/admin/AdminNavGroup";
 import type { UserRole } from "@/lib/admin/types";
 
 interface AdminShellProps {
@@ -11,14 +12,22 @@ interface AdminShellProps {
   pendingSignupCount?: number;
 }
 
+// The four question banks are collapsed under one "Questions" group — they share a
+// purpose and were crowding the top of an otherwise flat 14-item sidebar.
+const questionItems = [
+  { label: "Expression Écrite", href: "/admin/exams", icon: "✎" },
+  { label: "Compréhension Orale", href: "/admin/oral-comprehension", icon: "🎧" },
+  { label: "Expression Orale", href: "/admin/oral", icon: "🎙️" },
+  { label: "Compréhension Écrite", href: "/admin/reading-comprehension", icon: "📖" },
+];
+
+/** Rendered above the Questions group, in their existing order. */
+const PRE_QUESTIONS = ["/admin", "/admin/audit", "/admin/users"];
+
 const navItems = [
   { label: "Tableau de bord", href: "/admin", icon: "⊞", superAdminOnly: false },
   { label: "Auditor", href: "/admin/audit", icon: "◎", superAdminOnly: false },
   { label: "Utilisateurs", href: "/admin/users", icon: "◻", superAdminOnly: false },
-  { label: "Question EE", href: "/admin/exams", icon: "✎", superAdminOnly: false },
-  { label: "Question CO", href: "/admin/oral-comprehension", icon: "🎧", superAdminOnly: false },
-  { label: "Question EO", href: "/admin/oral", icon: "🎙️", superAdminOnly: false },
-  { label: "Question CE", href: "/admin/reading-comprehension", icon: "📖", superAdminOnly: false },
   { label: "Demandes d'inscription", href: "/admin/signup-requests", icon: "🙋", superAdminOnly: false },
   { label: "Annonces", href: "/admin/announcements", icon: "📢", superAdminOnly: false },
   { label: "Ressources PDF", href: "/admin/resources", icon: "📕", superAdminOnly: false },
@@ -61,6 +70,16 @@ export function AdminShell({
         {/* Nav */}
         <nav className="flex-1 space-y-1 px-3 py-4">
           {navItems
+            .filter((item) => !item.superAdminOnly || currentUserRole === "super_admin")
+            .filter((item) => PRE_QUESTIONS.includes(item.href))
+            .map((item) => (
+              <AdminNavLink key={item.href} href={item.href} icon={item.icon} label={item.label} />
+            ))}
+
+          <AdminNavGroup label="Questions" icon="📚" items={questionItems} />
+
+          {navItems
+            .filter((item) => !PRE_QUESTIONS.includes(item.href))
             .filter((item) => !item.superAdminOnly || currentUserRole === "super_admin")
             .map((item) => (
               <AdminNavLink
