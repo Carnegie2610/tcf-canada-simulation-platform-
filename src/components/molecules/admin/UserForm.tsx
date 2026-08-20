@@ -15,6 +15,9 @@ const NONE_VALUE = "";
 interface UserFormProps {
   mode: "create" | "edit";
   initial?: AdminProfile;
+  /** Seed values for a brand-new account — used when approving a signup request
+   *  so the admin doesn't retype what the student already submitted. */
+  prefill?: { full_name?: string; email?: string };
   currentUserRole?: UserRole;
   onSuccess: (profile: AdminProfile) => void;
   onCancel: () => void;
@@ -160,7 +163,7 @@ function PlanDropdown({
   );
 }
 
-export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }: UserFormProps) {
+export function UserForm({ mode, initial, prefill, currentUserRole, onSuccess, onCancel }: UserFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
@@ -191,8 +194,8 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
     cohort_tag: string;
     bill_plan_change: boolean;
   }>({
-    email: initial?.email ?? "",
-    full_name: initial?.full_name ?? "",
+    email: initial?.email ?? prefill?.email ?? "",
+    full_name: initial?.full_name ?? prefill?.full_name ?? "",
     password: "",
     role: initial?.role ?? "student",
     assigned_plan_ee: initialIsStaff ? null : defaultPlanEe,

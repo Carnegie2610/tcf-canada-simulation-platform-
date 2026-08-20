@@ -61,7 +61,7 @@ export function NavBar({ navItems }: NavBarProps) {
         <Button variant="secondary" size="sm" href="/login">
           Connexion
         </Button>
-        <Button variant="primary" size="sm" href="/#tarifs" className="btn-glow">
+        <Button variant="primary" size="sm" href="/inscription" className="btn-glow">
           S&apos;inscrire
         </Button>
 
