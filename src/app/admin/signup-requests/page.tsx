@@ -134,42 +134,25 @@ export default function SignupRequestsPage() {
           visible.map((r) => (
             <div
               key={r.id}
-              className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-5"
+              className="overflow-hidden rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)]"
             >
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-bold text-[var(--brand-white)]">{r.full_name}</p>
-                    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_STYLE[r.status]}`}>
-                      {STATUS_LABEL[r.status]}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-[var(--slate-400)]">{r.email}</p>
-                  {r.phone && (
-                    <p className="text-sm text-[var(--slate-400)]">📞 {r.phone}</p>
-                  )}
-                  {(r.desired_plan_ee || r.desired_plan_eo) && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {r.desired_plan_ee && (
-                        <span className="rounded-md border border-blue-500/40 bg-blue-600/10 px-2 py-0.5 text-[11px] text-[var(--accent-blue-text)]">
-                          EE souhaité : {getPlanMeta(r.desired_plan_ee).label}
-                        </span>
-                      )}
-                      {r.desired_plan_eo && (
-                        <span className="rounded-md border border-emerald-500/40 bg-emerald-600/10 px-2 py-0.5 text-[11px] text-emerald-400">
-                          EO souhaité : {getPlanMeta(r.desired_plan_eo).label}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {r.message && (
-                    <p className="mt-2 whitespace-pre-wrap rounded-lg border border-[var(--slate-800)] bg-[var(--slate-800)]/40 px-3 py-2 text-xs leading-relaxed text-[var(--slate-400)]">
-                      {r.message}
+              {/* Header: who, and what you can do about it */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--slate-800)] bg-[var(--slate-800)]/30 px-5 py-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--slate-700)] text-sm font-bold text-[var(--slate-200)]">
+                    {r.full_name.trim().charAt(0).toUpperCase()}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-[var(--brand-white)]">
+                      {r.full_name}
                     </p>
-                  )}
-                  <p className="mt-2 text-[11px] text-[var(--slate-500)]">
-                    Reçue le {new Date(r.created_at).toLocaleString("fr-FR")}
-                  </p>
+                    <p className="text-[11px] text-[var(--slate-500)]">
+                      Reçue le {new Date(r.created_at).toLocaleString("fr-FR")}
+                    </p>
+                  </div>
+                  <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${STATUS_STYLE[r.status]}`}>
+                    {STATUS_LABEL[r.status]}
+                  </span>
                 </div>
 
                 <div className="flex shrink-0 flex-wrap gap-2">
@@ -178,7 +161,7 @@ export default function SignupRequestsPage() {
                       href={whatsappHref(r.phone, r.full_name)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-lg border border-emerald-500/40 bg-emerald-600/10 px-3 py-2 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-600/20"
+                      className="rounded-lg border border-emerald-500/40 bg-emerald-600/10 px-3 py-1.5 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-600/20"
                     >
                       💬 WhatsApp
                     </a>
@@ -187,19 +170,70 @@ export default function SignupRequestsPage() {
                     <>
                       <button
                         onClick={() => setApproving(r)}
-                        className="rounded-lg bg-[var(--blue-600)] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[var(--blue-500)]"
+                        className="rounded-lg bg-[var(--blue-600)] px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--blue-500)]"
                       >
                         ✓ Approuver
                       </button>
                       <button
                         onClick={() => void handleReject(r)}
-                        className="rounded-lg border border-red-500/30 px-3 py-2 text-xs text-red-400 transition-colors hover:bg-red-500/10"
+                        className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/10"
                       >
                         Refuser
                       </button>
                     </>
                   )}
                 </div>
+              </div>
+
+              {/* Body: labelled fields rather than a flat stack of values */}
+              <div className="px-5 py-4">
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+                  <Detail label="Adresse e-mail">
+                    <a href={`mailto:${r.email}`} className="text-[var(--accent-blue-text)] hover:underline">
+                      {r.email}
+                    </a>
+                  </Detail>
+
+                  <Detail label="Téléphone">
+                    {r.phone ? (
+                      <span className="text-[var(--slate-200)]">{r.phone}</span>
+                    ) : (
+                      <span className="text-[var(--slate-500)]">Non renseigné</span>
+                    )}
+                  </Detail>
+
+                  <div className="sm:col-span-2">
+                    <Detail label="Formules souhaitées">
+                      {r.desired_plan_ee || r.desired_plan_eo ? (
+                        <span className="flex flex-wrap gap-1.5">
+                          {r.desired_plan_ee && (
+                            <span className="rounded-md border border-blue-500/40 bg-blue-600/10 px-2 py-0.5 text-[11px] text-[var(--accent-blue-text)]">
+                              EE · {getPlanMeta(r.desired_plan_ee).label}
+                            </span>
+                          )}
+                          {r.desired_plan_eo && (
+                            <span className="rounded-md border border-emerald-500/40 bg-emerald-600/10 px-2 py-0.5 text-[11px] text-emerald-400">
+                              EO · {getPlanMeta(r.desired_plan_eo).label}
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-[var(--slate-500)]">Aucune préférence indiquée</span>
+                      )}
+                    </Detail>
+                  </div>
+                </dl>
+
+                {r.message && (
+                  <div className="mt-4">
+                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+                      Son objectif
+                    </p>
+                    <p className="whitespace-pre-wrap rounded-lg border-l-2 border-[var(--slate-600)] bg-[var(--slate-800)]/40 px-4 py-3 text-sm leading-relaxed text-[var(--slate-300)]">
+                      {r.message}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ))
@@ -224,6 +258,17 @@ export default function SignupRequestsPage() {
           onCancel={() => setApproving(null)}
         />
       )}
+    </div>
+  );
+}
+
+function Detail({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <dt className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+        {label}
+      </dt>
+      <dd className="mt-0.5 text-sm">{children}</dd>
     </div>
   );
 }
