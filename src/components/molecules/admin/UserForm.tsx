@@ -17,7 +17,12 @@ interface UserFormProps {
   initial?: AdminProfile;
   /** Seed values for a brand-new account — used when approving a signup request
    *  so the admin doesn't retype what the student already submitted. */
-  prefill?: { full_name?: string; email?: string };
+  prefill?: {
+    full_name?: string;
+    email?: string;
+    assigned_plan_ee?: string | null;
+    assigned_plan_eo?: string | null;
+  };
   currentUserRole?: UserRole;
   onSuccess: (profile: AdminProfile) => void;
   onCancel: () => void;
@@ -171,7 +176,12 @@ export function UserForm({ mode, initial, prefill, currentUserRole, onSuccess, o
   // On create, pre-select a sensible starter pack. On edit, always mirror what the
   // student actually has — defaulting to a plan here silently granted an EE pack to
   // students who only ever bought an EO one.
-  const defaultPlanEe = mode === "create" ? "PLAN_5000" : (initial?.assigned_plan_ee ?? null);
+  // On create, honour an approved applicant's stated preference before falling
+  // back to the default starter pack.
+  const defaultPlanEe =
+    mode === "create"
+      ? (prefill?.assigned_plan_ee ?? "PLAN_5000")
+      : (initial?.assigned_plan_ee ?? null);
   const defaultCfg = defaultPlanEe ? ALL_EE_PLANS[defaultPlanEe] : null;
   // Staff (admin/super_admin) accounts have no subscription plan — the plan/quota/
   // expiry fields are hidden and kept null for them, matching the DB constraint
@@ -199,9 +209,14 @@ export function UserForm({ mode, initial, prefill, currentUserRole, onSuccess, o
     password: "",
     role: initial?.role ?? "student",
     assigned_plan_ee: initialIsStaff ? null : defaultPlanEe,
-    assigned_plan_eo: initialIsStaff ? null : (initial?.assigned_plan_eo ?? null),
+    assigned_plan_eo: initialIsStaff
+      ? null
+      : (initial?.assigned_plan_eo ?? prefill?.assigned_plan_eo ?? null),
     ee_simulations_quota: initialIsStaff ? null : (initial?.ee_simulations_quota ?? defaultCfg?.eeQuota ?? 0),
-    eo_simulations_quota: initialIsStaff ? null : (initial?.eo_simulations_quota ?? 0),
+    eo_simulations_quota: initialIsStaff
+      ? null
+      : (initial?.eo_simulations_quota ??
+         (prefill?.assigned_plan_eo ? ALL_EO_PLANS[prefill.assigned_plan_eo]?.eoQuota ?? 0 : 0)),
     ee_simulations_remaining: initialIsStaff ? null : (initial?.ee_simulations_remaining ?? defaultCfg?.eeQuota ?? 0),
     eo_simulations_remaining: initialIsStaff ? null : (initial?.eo_simulations_remaining ?? 0),
     ai_corrections_enabled: initial?.ai_corrections_enabled ?? true,
