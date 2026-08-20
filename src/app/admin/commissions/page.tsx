@@ -36,6 +36,8 @@ export default async function CommissionsAdminPage() {
   // See the API route: payments vs. distinct people are tracked separately.
   const totalRegistrations = rows.length;
   const totalStudents = new Set(rows.map((r) => r.user_id as string)).size;
+  const eoPacksSold = rows.filter((r) => isEoPlan(r.plan as string)).length;
+  const eePacksSold = rows.filter((r) => !isEoPlan(r.plan as string)).length;
   const lifetimeRevenue = totalRevenue;
   const eoRows = rows.filter((r) => isEoPlan(r.plan as string));
   const totalCommissionEo = eoRows.reduce((s, r) => s + Number(r.commission), 0);
@@ -112,6 +114,8 @@ export default async function CommissionsAdminPage() {
     totalRevenue,
     totalRegistrations,
     totalStudents,
+    eePacksSold,
+    eoPacksSold,
     previousDayCommission,
     previousDayRevenue,
     previousDayRegistrations,

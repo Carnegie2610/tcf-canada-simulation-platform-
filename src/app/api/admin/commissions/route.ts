@@ -96,6 +96,9 @@ export async function GET(request: NextRequest) {
   // while `totalStudents` counts the people behind them.
   const totalRegistrations = kpiCount ?? 0;
   const totalStudents = new Set((kpiRows ?? []).map((r) => r.user_id)).size;
+  // Packs sold per skill, scoped to the selected period (planDistribution is all-time).
+  const eoPacksSold = (kpiRows ?? []).filter((r) => isEoPlan(r.plan)).length;
+  const eePacksSold = (kpiRows ?? []).filter((r) => !isEoPlan(r.plan)).length;
   const eoKpiRows = (kpiRows ?? []).filter((r) => isEoPlan(r.plan));
   const totalCommissionEo = eoKpiRows.reduce((s, r) => s + Number(r.commission), 0);
   const totalRevenueEo = eoKpiRows.reduce((s, r) => s + Number(r.plan_price), 0);
@@ -197,6 +200,8 @@ export async function GET(request: NextRequest) {
     totalRevenue,
     totalRegistrations,
     totalStudents,
+    eePacksSold,
+    eoPacksSold,
     previousDayCommission,
     previousDayRevenue,
     previousDayRegistrations,

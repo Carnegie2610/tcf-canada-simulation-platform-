@@ -36,6 +36,8 @@ interface CommissionsData {
   totalRevenue: number;
   totalRegistrations: number;
   totalStudents: number;
+  eePacksSold: number;
+  eoPacksSold: number;
   previousDayCommission: number;
   previousDayRevenue: number;
   previousDayRegistrations: number;
@@ -333,97 +335,109 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
         )}
       </div>
 
-      {/* KPI grid — EO first, then EE, then a merged registrations+total summary card */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* KPI grid. Label/value sizes are deliberately larger than the rest of the
+          admin UI — this is the page's headline data and was previously set in 10px
+          micro-type that was hard to read at a glance. */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Revenus EO Principaux (30%) */}
-        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-6 space-y-1.5">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--slate-400)]">
             Revenus EO Principaux (30%)
           </p>
-          <p className="text-2xl font-extrabold" style={{ color: EO_COLOR }}>{fmt(data.totalCommissionEo)}</p>
+          <p className="text-4xl font-extrabold" style={{ color: EO_COLOR }}>{fmt(data.totalCommissionEo)}</p>
           {deltaBadge(data.totalCommissionEo, data.previousDayCommissionEo)}
         </div>
 
         {/* Revenus EO Secondaires (70%) */}
-        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-6 space-y-1.5">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--slate-400)]">
             Revenus EO Secondaires (70%)
           </p>
-          <p className="text-2xl font-extrabold" style={{ color: EO_COLOR }}>{fmt(eoSecondary)}</p>
+          <p className="text-4xl font-extrabold" style={{ color: EO_COLOR }}>{fmt(eoSecondary)}</p>
           {deltaBadge(eoSecondary, data.previousDayRevenueEo * EO_SECONDARY_RATE)}
         </div>
 
         {/* Revenus EE Principaux (35%) */}
-        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-6 space-y-1.5">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--slate-400)]">
             Revenus EE Principaux (35%)
           </p>
-          <p className="text-2xl font-extrabold" style={{ color: EE_COLOR }}>{fmt(data.totalCommissionEe)}</p>
+          <p className="text-4xl font-extrabold" style={{ color: EE_COLOR }}>{fmt(data.totalCommissionEe)}</p>
           {deltaBadge(data.totalCommissionEe, data.previousDayCommissionEe)}
         </div>
 
         {/* Revenus EE Secondaires (65%) */}
-        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-6 space-y-1.5">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--slate-400)]">
             Revenus EE Secondaires (65%)
           </p>
-          <p className="text-2xl font-extrabold" style={{ color: EE_COLOR }}>{fmt(eeSecondary)}</p>
+          <p className="text-4xl font-extrabold" style={{ color: EE_COLOR }}>{fmt(eeSecondary)}</p>
           {deltaBadge(eeSecondary, data.previousDayRevenueEe * EE_SECONDARY_RATE)}
         </div>
 
         {/* Combined totals across both skills */}
-        <div className="rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)] p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+        <div className="rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)] p-6 space-y-1.5">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--slate-400)]">
             Total Revenus Principaux (EO + EE)
           </p>
-          <p className="text-2xl font-extrabold text-[var(--slate-200)]">{fmt(totalPrincipaux)}</p>
+          <p className="text-4xl font-extrabold text-[var(--slate-200)]">{fmt(totalPrincipaux)}</p>
           {deltaBadge(
             totalPrincipaux,
             data.previousDayCommissionEo + data.previousDayCommissionEe
           )}
         </div>
 
-        <div className="rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)] p-5 space-y-1">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+        <div className="rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)] p-6 space-y-1.5">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--slate-400)]">
             Total Revenus Secondaires (EO + EE)
           </p>
-          <p className="text-2xl font-extrabold text-[var(--slate-200)]">{fmt(totalSecondaires)}</p>
+          <p className="text-4xl font-extrabold text-[var(--slate-200)]">{fmt(totalSecondaires)}</p>
           {deltaBadge(
             totalSecondaires,
             data.previousDayRevenueEo * EO_SECONDARY_RATE +
               data.previousDayRevenueEe * EE_SECONDARY_RATE
           )}
         </div>
+      </div>
 
-        {/* Merged summary: registrations + grand total revenue */}
-        <div className="col-span-2 rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-5">
-          <div className="flex flex-wrap items-center justify-between gap-6">
-            <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-                Étudiants · Transactions
-              </p>
-              <p className="text-2xl font-extrabold text-[var(--slate-200)]">
-                {data.totalStudents}
-                <span className="mx-1.5 text-[var(--slate-600)]">·</span>
-                <span className="text-[var(--slate-400)]">{data.totalRegistrations}</span>
-              </p>
-              <p className="text-[11px] text-[var(--slate-500)]">
-                {data.totalStudents} étudiant{data.totalStudents > 1 ? "s" : ""} pour{" "}
-                {data.totalRegistrations} paiement{data.totalRegistrations > 1 ? "s" : ""}
-              </p>
-              {deltaBadge(data.totalRegistrations, data.previousDayRegistrations, true)}
-            </div>
-            <div className="space-y-1 text-right">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-                Chiffre d&apos;Affaires Total
-              </p>
-              <p className="text-2xl font-extrabold text-[var(--slate-200)]">{fmt(data.totalRevenue)}</p>
-              <span className="text-[11px] text-[var(--slate-500)]">
-                {period === "all" ? "Cumul depuis le lancement" : "Sur la période sélectionnée"}
-              </span>
-            </div>
-          </div>
+      {/* Volume sold, per skill — counts of packs rather than money */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-6 space-y-1.5">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--slate-400)]">
+            Forfaits EE vendus
+          </p>
+          <p className="text-4xl font-extrabold" style={{ color: EE_COLOR }}>{data.eePacksSold}</p>
+          <p className="text-xs text-[var(--slate-500)]">Expression Écrite</p>
         </div>
+
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-6 space-y-1.5">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--slate-400)]">
+            Forfaits EO vendus
+          </p>
+          <p className="text-4xl font-extrabold" style={{ color: EO_COLOR }}>{data.eoPacksSold}</p>
+          <p className="text-xs text-[var(--slate-500)]">Expression Orale</p>
+        </div>
+
+        <div className="rounded-xl border border-[var(--slate-800)] bg-[var(--slate-900)] p-6 space-y-1.5">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--slate-400)]">
+            Étudiants
+          </p>
+          <p className="text-4xl font-extrabold text-[var(--slate-200)]">{data.totalStudents}</p>
+          <p className="text-xs text-[var(--slate-500)]">
+            {data.totalStudents > 1 ? "étudiants distincts" : "étudiant distinct"}
+          </p>
+        </div>
+      </div>
+
+      {/* Headline figure — full width, largest type on the page */}
+      <div className="rounded-xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)] p-6">
+        <p className="text-sm font-semibold uppercase tracking-wide text-[var(--slate-400)]">
+          Chiffre d&apos;Affaires Total
+        </p>
+        <p className="mt-1.5 text-5xl font-extrabold text-[var(--slate-200)]">{fmt(data.totalRevenue)}</p>
+        <p className="mt-1.5 text-xs text-[var(--slate-500)]">
+          {period === "all" ? "Cumul depuis le lancement" : "Sur la période sélectionnée"}
+        </p>
       </div>
 
       {/* Charts */}
