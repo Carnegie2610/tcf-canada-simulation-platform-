@@ -20,6 +20,18 @@ export interface LedgerPaymentRow {
   commission: number;
 }
 
+/** One pack within a transaction, kept itemised so the ledger can show how each
+ *  commission was arrived at rather than only the merged total. */
+export interface LedgerPack {
+  plan: string;
+  label: string;
+  price: number;
+  commission: number;
+  /** Commission share of the price — 0.35 for EE packs, 0.30 for EO ones. */
+  rate: number;
+  skill: "ee" | "eo";
+}
+
 export interface LedgerEntry {
   id: string;
   created_at: string;
@@ -27,6 +39,7 @@ export interface LedgerEntry {
   student_email: string;
   /** One label per pack bought in the same transaction (e.g. an EE and an EO pack). */
   plan_labels: string[];
+  packs: LedgerPack[];
   plan_price: number;
   commission: number;
 }
@@ -48,10 +61,23 @@ export function groupLedgerRows(rows: LedgerPaymentRow[]): LedgerEntry[] {
     const existing = groups.get(key);
     const label = getPlanMeta(row.plan).label;
 
+    const meta = getPlanMeta(row.plan);
+    const price = Number(row.plan_price);
+    const commission = Number(row.commission);
+    const pack: LedgerPack = {
+      plan: row.plan,
+      label,
+      price,
+      commission,
+      rate: price > 0 ? commission / price : 0,
+      skill: meta.skillType === "eo" ? "eo" : "ee",
+    };
+
     if (existing) {
       if (!existing.plan_labels.includes(label)) existing.plan_labels.push(label);
-      existing.plan_price += Number(row.plan_price);
-      existing.commission += Number(row.commission);
+      existing.packs.push(pack);
+      existing.plan_price += price;
+      existing.commission += commission;
       // Keep the earliest id/date stable so React keys don't churn between refetches.
       if (row.created_at < existing.created_at) existing.created_at = row.created_at;
     } else {
@@ -61,8 +87,9 @@ export function groupLedgerRows(rows: LedgerPaymentRow[]): LedgerEntry[] {
         student_name: row.student_name,
         student_email: row.student_email,
         plan_labels: [label],
-        plan_price: Number(row.plan_price),
-        commission: Number(row.commission),
+        packs: [pack],
+        plan_price: price,
+        commission,
       });
     }
   }

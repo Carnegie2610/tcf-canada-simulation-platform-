@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { Fragment, useState, useCallback, useEffect, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -24,6 +24,14 @@ interface LedgerRow {
   student_name: string;
   student_email: string;
   plan_labels: string[];
+  packs: {
+    plan: string;
+    label: string;
+    price: number;
+    commission: number;
+    rate: number;
+    skill: "ee" | "eo";
+  }[];
   plan_price: number;
   commission: number;
 }
@@ -220,6 +228,17 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
     } else {
       void fetchData(period, pg, search);
     }
+  }
+
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  function toggleRow(id: string) {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
 
   const totalPages = Math.max(1, Math.ceil(data.ledgerTotal / 15));
@@ -556,6 +575,7 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--slate-800)]">
+                <th className="w-12 px-3 py-3" />
                 <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
                   Date d&apos;inscription
                 </th>
@@ -566,27 +586,41 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
                   Formule Choisie
                 </th>
                 <th className="px-5 py-3 text-right text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-                  Ma Commission
+                  Montant payé
                 </th>
               </tr>
             </thead>
             <tbody>
               {data.ledger.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-5 py-8 text-center text-sm text-[var(--slate-500)]">
+                  <td colSpan={5} className="px-5 py-8 text-center text-sm text-[var(--slate-500)]">
                     Aucune transaction trouvée
                   </td>
                 </tr>
               ) : (
                 data.ledger.map((row) => {
                   const isNew = now - new Date(row.created_at).getTime() < 30_000;
+                  const isOpen = expandedRows.has(row.id);
                   return (
+                    <Fragment key={row.id}>
                     <tr
-                      key={row.id}
-                      className={`border-b border-[var(--slate-800)]/50 transition-colors hover:bg-[var(--slate-800)]/40 ${
+                      onClick={() => toggleRow(row.id)}
+                      className={`cursor-pointer border-b border-[var(--slate-800)]/50 transition-colors hover:bg-[var(--slate-800)]/40 ${
                         isNew ? "animate-pulse bg-emerald-900/20" : ""
-                      }`}
+                      } ${isOpen ? "bg-[var(--slate-800)]/30" : ""}`}
                     >
+                      <td className="px-3 py-3">
+                        <span
+                          className={`flex h-7 w-7 items-center justify-center rounded-full border text-base font-bold transition-all ${
+                            isOpen
+                              ? "rotate-180 border-blue-500 bg-blue-600 text-white"
+                              : "border-blue-600/50 bg-blue-600/15 text-blue-400"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          ▾
+                        </span>
+                      </td>
                       <td className="px-5 py-3 text-xs text-[var(--slate-400)]">
                         {new Date(row.created_at).toLocaleString("fr-FR", {
                           day: "2-digit",
@@ -612,10 +646,95 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
                           ))}
                         </div>
                       </td>
-                      <td className="px-5 py-3 text-right text-xs font-semibold text-emerald-400">
-                        {fmt(row.commission)}
+                      <td className="px-5 py-3 text-right text-xs font-semibold text-[var(--slate-200)]">
+                        {fmt(row.plan_price)}
                       </td>
                     </tr>
+
+                    {isOpen && (
+                      <tr className="border-b border-[var(--slate-800)]/50 bg-[var(--slate-950)]/40">
+                        <td colSpan={5} className="px-5 py-4">
+                          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+                            Détail des forfaits
+                          </p>
+                          <div className="space-y-1.5">
+                            {row.packs.map((pack, i) => (
+                              <div
+                                key={`${pack.plan}-${i}`}
+                                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--slate-800)] bg-[var(--slate-900)] px-3 py-2"
+                              >
+                                <span className="flex items-center gap-2">
+                                  <span
+                                    className="rounded px-1.5 py-0.5 text-[10px] font-bold text-white"
+                                    style={{ backgroundColor: pack.skill === "eo" ? EO_COLOR : EE_COLOR }}
+                                  >
+                                    {pack.skill.toUpperCase()}
+                                  </span>
+                                  <span className="text-xs text-[var(--slate-200)]">{pack.label}</span>
+                                </span>
+                                <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                                  <span className="text-[var(--slate-400)]">
+                                    Payé{" "}
+                                    <span className="font-semibold text-[var(--slate-200)]">
+                                      {fmt(pack.price)}
+                                    </span>
+                                  </span>
+                                  <span className="text-[var(--slate-400)]">
+                                    Principal {Math.round(pack.rate * 100)}%{" "}
+                                    <span className="font-semibold text-emerald-400">
+                                      {fmt(pack.commission)}
+                                    </span>
+                                  </span>
+                                  <span className="text-[var(--slate-400)]">
+                                    Secondaire{" "}
+                                    {Math.round(
+                                      (pack.skill === "eo" ? EO_SECONDARY_RATE : EE_SECONDARY_RATE) * 100
+                                    )}
+                                    %{" "}
+                                    <span className="font-semibold text-amber-400">
+                                      {fmt(
+                                        pack.price *
+                                          (pack.skill === "eo" ? EO_SECONDARY_RATE : EE_SECONDARY_RATE)
+                                      )}
+                                    </span>
+                                  </span>
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap justify-end gap-6 border-t border-[var(--slate-800)] pt-3 text-xs">
+                            <span className="text-[var(--slate-400)]">
+                              Total payé{" "}
+                              <span className="font-bold text-[var(--slate-200)]">
+                                {fmt(row.plan_price)}
+                              </span>
+                            </span>
+                            <span className="text-[var(--slate-400)]">
+                              Total principal{" "}
+                              <span className="font-bold text-emerald-400">
+                                {fmt(row.commission)}
+                              </span>
+                            </span>
+                            <span className="text-[var(--slate-400)]">
+                              Total secondaire{" "}
+                              <span className="font-bold text-amber-400">
+                                {fmt(
+                                  row.packs.reduce(
+                                    (sum, pk) =>
+                                      sum +
+                                      pk.price *
+                                        (pk.skill === "eo" ? EO_SECONDARY_RATE : EE_SECONDARY_RATE),
+                                    0
+                                  )
+                                )}
+                              </span>
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   );
                 })
               )}
