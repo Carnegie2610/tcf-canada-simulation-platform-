@@ -7,6 +7,8 @@ const SignupRequestSchema = z.object({
   email: z.string().email().max(255),
   phone: z.string().max(50).optional(),
   message: z.string().max(2000).optional(),
+  desired_plan_ee: z.string().max(50).nullable().optional(),
+  desired_plan_eo: z.string().max(50).nullable().optional(),
 });
 
 /**
@@ -43,6 +45,8 @@ export async function POST(request: NextRequest) {
     email,
     phone: parsed.data.phone?.trim() || null,
     message: parsed.data.message?.trim() || null,
+    desired_plan_ee: parsed.data.desired_plan_ee || null,
+    desired_plan_eo: parsed.data.desired_plan_eo || null,
   });
 
   if (error) {
