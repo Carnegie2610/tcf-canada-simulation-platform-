@@ -532,7 +532,19 @@ export async function POST(
     .single();
 
   if (evalError || !evaluation) {
-    console.error("[evaluate-oral] DB insert failed:", evalError);
+    console.error("[evaluate-oral] DB insert failed:", evalError, {
+      submissionId,
+      cefrLevel,
+      scoreNum,
+    });
+    // Record the failure rather than leaving the row at "processing" forever —
+    // the audio and is_completed are untouched, so this stays retryable, and an
+    // admin can tell a genuinely stuck submission from one still in flight.
+    await adminClient
+      .from("oral_submissions")
+      .update({ pipeline_status: "failed" })
+      .eq("id", submissionId);
+
     return NextResponse.json({ error: "save_failed" }, { status: 500 });
   }
 
