@@ -185,25 +185,33 @@ export default function SignupRequestsPage() {
                 </div>
               </div>
 
-              {/* Body: labelled fields rather than a flat stack of values */}
-              <div className="px-5 py-4">
-                <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-                  <Detail label="Adresse e-mail">
-                    <a href={`mailto:${r.email}`} className="text-[var(--accent-blue-text)] hover:underline">
-                      {r.email}
-                    </a>
-                  </Detail>
+              {/* Body: a plain label/value table — scans faster than a grid when
+                  comparing several requests down the page. */}
+              <table className="w-full text-sm">
+                <tbody>
+                  <tr className="border-b border-[var(--slate-800)]/60">
+                    <th scope="row" className={thCls}>Adresse e-mail</th>
+                    <td className={tdCls}>
+                      <a href={`mailto:${r.email}`} className="text-[var(--accent-blue-text)] hover:underline">
+                        {r.email}
+                      </a>
+                    </td>
+                  </tr>
 
-                  <Detail label="Téléphone">
-                    {r.phone ? (
-                      <span className="text-[var(--slate-200)]">{r.phone}</span>
-                    ) : (
-                      <span className="text-[var(--slate-500)]">Non renseigné</span>
-                    )}
-                  </Detail>
+                  <tr className="border-b border-[var(--slate-800)]/60">
+                    <th scope="row" className={thCls}>Téléphone</th>
+                    <td className={tdCls}>
+                      {r.phone ? (
+                        <span className="text-[var(--slate-200)]">{r.phone}</span>
+                      ) : (
+                        <span className="text-[var(--slate-500)]">Non renseigné</span>
+                      )}
+                    </td>
+                  </tr>
 
-                  <div className="sm:col-span-2">
-                    <Detail label="Formules souhaitées">
+                  <tr className={r.message ? "border-b border-[var(--slate-800)]/60" : ""}>
+                    <th scope="row" className={thCls}>Formules souhaitées</th>
+                    <td className={tdCls}>
                       {r.desired_plan_ee || r.desired_plan_eo ? (
                         <span className="flex flex-wrap gap-1.5">
                           {r.desired_plan_ee && (
@@ -220,21 +228,19 @@ export default function SignupRequestsPage() {
                       ) : (
                         <span className="text-[var(--slate-500)]">Aucune préférence indiquée</span>
                       )}
-                    </Detail>
-                  </div>
-                </dl>
+                    </td>
+                  </tr>
 
-                {r.message && (
-                  <div className="mt-4">
-                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-                      Son objectif
-                    </p>
-                    <p className="whitespace-pre-wrap rounded-lg border-l-2 border-[var(--slate-600)] bg-[var(--slate-800)]/40 px-4 py-3 text-sm leading-relaxed text-[var(--slate-300)]">
-                      {r.message}
-                    </p>
-                  </div>
-                )}
-              </div>
+                  {r.message && (
+                    <tr>
+                      <th scope="row" className={thCls}>Son objectif</th>
+                      <td className={`${tdCls} whitespace-pre-wrap leading-relaxed`}>
+                        {r.message}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           ))
         )}
@@ -262,13 +268,7 @@ export default function SignupRequestsPage() {
   );
 }
 
-function Detail({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-        {label}
-      </dt>
-      <dd className="mt-0.5 text-sm">{children}</dd>
-    </div>
-  );
-}
+const thCls =
+  "w-44 border-r border-[var(--slate-800)]/60 bg-[var(--slate-800)]/20 px-5 py-2.5 text-left align-top text-[11px] font-semibold uppercase tracking-wider text-[var(--slate-500)]";
+
+const tdCls = "px-5 py-2.5 align-top text-[var(--slate-200)]";
