@@ -10,19 +10,15 @@ interface Announcement {
   created_at: string;
 }
 
-// Deliberately a fixed set rather than free text: students recognise a small,
-// consistent vocabulary far faster than arbitrary emoji, and it keeps the
-// notification list visually coherent.
-const ICONS = [
-  { emoji: "📢", label: "Annonce" },
-  { emoji: "⚠️", label: "Important" },
-  { emoji: "📅", label: "Date / session" },
-  { emoji: "🎉", label: "Bonne nouvelle" },
-  { emoji: "📝", label: "Examen" },
-  { emoji: "🎓", label: "Conseil" },
-  { emoji: "💡", label: "Astuce" },
-  { emoji: "🔧", label: "Maintenance" },
-];
+interface AnnouncementType {
+  id: string;
+  label: string;
+  icon: string;
+}
+
+// Quick-pick suggestions for the "add a type" form — free entry is still allowed,
+// these just save hunting for an emoji keyboard.
+const ICON_SUGGESTIONS = ["📢", "⚠️", "📅", "🎉", "📝", "🎓", "💡", "🔧", "🔔", "✅", "🚀", "❗"];
 
 const DEFAULT_ICON = "📢";
 
@@ -31,6 +27,36 @@ export default function AnnouncementsPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [icon, setIcon] = useState(DEFAULT_ICON);
+  const [types, setTypes] = useState<AnnouncementType[]>([]);
+  const [showTypeForm, setShowTypeForm] = useState(false);
+  const [newTypeLabel, setNewTypeLabel] = useState("");
+  const [newTypeIcon, setNewTypeIcon] = useState(ICON_SUGGESTIONS[0]);
+
+  async function loadTypes() {
+    const res = await fetch("/api/admin/announcement-types");
+    const json = (await res.json()) as { data?: AnnouncementType[] };
+    setTypes(json.data ?? []);
+  }
+
+  async function handleAddType(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTypeLabel.trim() || !newTypeIcon.trim()) return;
+    await fetch("/api/admin/announcement-types", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ label: newTypeLabel.trim(), icon: newTypeIcon.trim() }),
+    });
+    setNewTypeLabel("");
+    setNewTypeIcon(ICON_SUGGESTIONS[0]);
+    setShowTypeForm(false);
+    await loadTypes();
+  }
+
+  async function handleDeleteType(t: AnnouncementType) {
+    if (!window.confirm(`Supprimer le type « ${t.label} » ? Les annonces déjà publiées gardent leur icône.`)) return;
+    await fetch(`/api/admin/announcement-types/${t.id}`, { method: "DELETE" });
+    await loadTypes();
+  }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +68,8 @@ export default function AnnouncementsPage() {
 
   useEffect(() => {
     void load();
+    void loadTypes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleCreate(e: React.FormEvent) {
@@ -90,26 +118,98 @@ export default function AnnouncementsPage() {
         className="mt-6 space-y-3 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-5"
       >
         <div className="space-y-2">
-          <p className="text-xs font-medium text-[var(--slate-400)]">Icône de l&apos;annonce</p>
-          <div className="flex flex-wrap gap-2">
-            {ICONS.map((opt) => (
-              <button
-                key={opt.emoji}
-                type="button"
-                onClick={() => setIcon(opt.emoji)}
-                title={opt.label}
-                aria-pressed={icon === opt.emoji}
-                className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                  icon === opt.emoji
-                    ? "border-blue-500 bg-blue-600/20 text-blue-300"
-                    : "border-[var(--slate-700)] text-[var(--slate-400)] hover:bg-[var(--slate-800)]"
-                }`}
-              >
-                <span className="text-base">{opt.emoji}</span>
-                <span className="text-xs">{opt.label}</span>
-              </button>
-            ))}
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium text-[var(--slate-400)]">Type d&apos;annonce</p>
+            <button
+              type="button"
+              onClick={() => setShowTypeForm((v) => !v)}
+              className="rounded-lg border border-blue-500/40 bg-blue-600/10 px-2.5 py-1 text-xs font-medium text-[var(--accent-blue-text)] transition-colors hover:bg-blue-600/20"
+            >
+              {showTypeForm ? "✕ Annuler" : "＋ Ajouter un type"}
+            </button>
           </div>
+
+          {showTypeForm && (
+            <div className="space-y-2 rounded-lg border border-[var(--slate-700)] bg-[var(--slate-950)]/60 p-3">
+              <div className="flex flex-wrap gap-1.5">
+                {ICON_SUGGESTIONS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    onClick={() => setNewTypeIcon(e)}
+                    className={`rounded-md border px-2 py-1 text-base transition-colors ${
+                      newTypeIcon === e
+                        ? "border-blue-500 bg-blue-600/20"
+                        : "border-[var(--slate-700)] hover:bg-[var(--slate-800)]"
+                    }`}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={newTypeIcon}
+                  onChange={(e) => setNewTypeIcon(e.target.value)}
+                  maxLength={10}
+                  placeholder="Icône"
+                  className={`${inputCls} w-20 text-center`}
+                />
+                <input
+                  value={newTypeLabel}
+                  onChange={(e) => setNewTypeLabel(e.target.value)}
+                  maxLength={100}
+                  placeholder="Nom du type — ex : Résultats"
+                  className={inputCls}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddType}
+                  className="shrink-0 rounded-lg bg-[var(--blue-600)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--blue-500)]"
+                >
+                  Créer
+                </button>
+              </div>
+            </div>
+          )}
+
+          {types.length === 0 ? (
+            <p className="text-xs text-[var(--slate-500)]">
+              Aucun type défini — ajoutez-en un pour catégoriser vos annonces.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {types.map((t) => (
+                <span
+                  key={t.id}
+                  className={`group flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                    icon === t.icon
+                      ? "border-blue-500 bg-blue-600/20 text-blue-300"
+                      : "border-[var(--slate-700)] text-[var(--slate-400)] hover:bg-[var(--slate-800)]"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setIcon(t.icon)}
+                    aria-pressed={icon === t.icon}
+                    className="flex items-center gap-1.5"
+                  >
+                    <span className="text-base">{t.icon}</span>
+                    <span className="text-xs">{t.label}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleDeleteType(t)}
+                    aria-label={`Supprimer le type ${t.label}`}
+                    title="Supprimer ce type"
+                    className="ml-0.5 text-[var(--slate-600)] transition-colors hover:text-red-400"
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <input
@@ -187,3 +287,6 @@ export default function AnnouncementsPage() {
     </div>
   );
 }
+
+const inputCls =
+  "w-full rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-2 text-sm text-[var(--brand-white)] placeholder:text-[var(--slate-500)] focus:border-[var(--blue-500)] focus:outline-none";

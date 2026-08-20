@@ -97,13 +97,13 @@ export default async function HistoryPage({ searchParams }: Props) {
         eoCount={completedOralCombinations.length}
       />
 
-      {/* Single-exam (EE) analytics + attempt list — EE-only data, hidden under the EO filter */}
-      {showEe && (
-        <HistoryPanel
-          data={data}
-          otherAttemptsCount={completedCombinations.length + completedOralCombinations.length}
-        />
-      )}
+      {/* Rendered for every filter, scoped to that filter's skill so the figures
+          always match the simulations listed below them. */}
+      <HistoryPanel
+        data={data}
+        skill={skill === "EE" ? "ee" : skill === "EO" ? "eo" : "all"}
+        otherAttemptsCount={completedCombinations.length + completedOralCombinations.length}
+      />
 
       {/* Completed EE combination cards */}
       {showEe && completedCombinations.length > 0 && (

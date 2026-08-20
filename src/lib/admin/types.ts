@@ -114,6 +114,10 @@ export interface StudentAuditData {
   profile: AdminProfile;
   submissions: SubmissionWithEvaluation[];
   analytics: StudentAnalytics;
+  /** Per-skill breakdowns, present only where the caller computes them (the
+   *  student history view). Admin audit uses the combined `analytics` alone. */
+  analyticsEe?: StudentAnalytics;
+  analyticsEo?: StudentAnalytics;
 }
 
 export interface AdminUserListResponse {

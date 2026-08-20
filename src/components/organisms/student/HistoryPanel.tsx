@@ -4,6 +4,8 @@ import type { StudentAuditData, CefrLevel } from "@/lib/admin/types";
 
 interface HistoryPanelProps {
   data: StudentAuditData;
+  /** Which skill's figures to show. "all" uses the combined analytics. */
+  skill?: "all" | "ee" | "eo";
   // Count of completed EE/EO combination attempts, shown in their own card sections
   // higher up the history page — used to avoid claiming "no simulations" here when the
   // student's only activity was combinations rather than standalone single exams.
@@ -67,8 +69,23 @@ function CefrTargetStrip({ currentLevel }: { currentLevel: CefrLevel | null }) {
   );
 }
 
-export function HistoryPanel({ data, otherAttemptsCount = 0 }: HistoryPanelProps) {
-  const { submissions, analytics } = data;
+/**
+ * Scores are stored on a 0-100 scale internally (the oldest exam type used it, so
+ * every source is normalised to it). Students only ever see /20 on their actual
+ * corrections, so convert back before displaying rather than showing two scales.
+ */
+function toTwenty(scoreOn100: number): number {
+  return scoreOn100 / 5;
+}
+
+export function HistoryPanel({ data, skill = "all", otherAttemptsCount = 0 }: HistoryPanelProps) {
+  const { submissions } = data;
+  const analytics =
+    skill === "ee"
+      ? (data.analyticsEe ?? data.analytics)
+      : skill === "eo"
+        ? (data.analyticsEo ?? data.analytics)
+        : data.analytics;
   const hasEvaluated = analytics.completedCount > 0;
 
   const currentLevel: CefrLevel | null =
@@ -81,7 +98,14 @@ export function HistoryPanel({ data, otherAttemptsCount = 0 }: HistoryPanelProps
       {/* Analytics summary */}
       {hasEvaluated && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <StatCard label="Score moyen" value={analytics.averageGlobalScore !== null ? `${analytics.averageGlobalScore.toFixed(1)}/100` : "—"} />
+          <StatCard
+            label="Score moyen"
+            value={
+              analytics.averageGlobalScore !== null
+                ? `${toTwenty(analytics.averageGlobalScore).toFixed(1)}/20`
+                : "—"
+            }
+          />
           <StatCard label="Simulations terminées" value={String(analytics.completedCount)} />
           <StatCard label="En cours" value={String(analytics.inProgressCount)} />
           {analytics.scoreDelta !== null && (
@@ -110,7 +134,7 @@ export function HistoryPanel({ data, otherAttemptsCount = 0 }: HistoryPanelProps
       {/* Single-exam submission list — combinations (EE/EO) have their own card
           sections higher up the page, so an empty list here isn't necessarily "no
           activity" if the student's history is otherwise all combination-based. */}
-      {submissions.length > 0 ? (
+      {skill !== "eo" && submissions.length > 0 ? (
         <section>
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Tentatives individuelles
@@ -121,7 +145,7 @@ export function HistoryPanel({ data, otherAttemptsCount = 0 }: HistoryPanelProps
             ))}
           </div>
         </section>
-      ) : otherAttemptsCount === 0 ? (
+      ) : skill !== "eo" && otherAttemptsCount === 0 ? (
         <section>
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
             Toutes les tentatives

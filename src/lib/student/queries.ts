@@ -153,10 +153,23 @@ export async function getStudentData(
     mapOralSubmission
   );
 
-  const allForAnalytics = [...submissions, ...combinationSubmissions, ...oralSubmissions];
-  const analytics = computeStudentAnalytics(allForAnalytics, []);
+  // Three views of the same data: combined for the "Tout" filter, and one per
+  // skill so each filter shows figures that actually match what it's listing —
+  // previously the Expression Écrite filter silently included oral results.
+  const eeForAnalytics = [...submissions, ...combinationSubmissions];
+  const allForAnalytics = [...eeForAnalytics, ...oralSubmissions];
 
-  return { profile: profile as AdminProfile, submissions, analytics };
+  const analytics = computeStudentAnalytics(allForAnalytics, []);
+  const analyticsEe = computeStudentAnalytics(eeForAnalytics, []);
+  const analyticsEo = computeStudentAnalytics(oralSubmissions, []);
+
+  return {
+    profile: profile as AdminProfile,
+    submissions,
+    analytics,
+    analyticsEe,
+    analyticsEo,
+  };
 }
 
 export async function getSubmissionDetail(
