@@ -2,6 +2,7 @@
 
 import { DiagnosticTabView } from "@/components/molecules/admin/DiagnosticTabView";
 import type { SubmissionWithEvaluation } from "@/lib/admin/types";
+import { AdminPdfDownloadButton } from "@/components/molecules/admin/AdminPdfDownloadButton";
 
 interface SubmissionDrawerProps {
   submission: SubmissionWithEvaluation | null;
@@ -45,13 +46,16 @@ export function SubmissionDrawer({ submission, aiEnabled, onClose }: SubmissionD
               </div>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="ml-4 shrink-0 rounded-lg p-2 text-[var(--slate-400)] hover:bg-[var(--slate-800)] hover:text-[var(--brand-white)] transition-colors"
-            aria-label="Fermer"
-          >
-            ✕
-          </button>
+          <div className="ml-4 flex shrink-0 items-center gap-2">
+            <AdminPdfDownloadButton submission={submission} />
+            <button
+              onClick={onClose}
+              className="rounded-lg p-2 text-[var(--slate-400)] hover:bg-[var(--slate-800)] hover:text-[var(--brand-white)] transition-colors"
+              aria-label="Fermer"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Body: side-by-side */}

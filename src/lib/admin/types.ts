@@ -63,6 +63,10 @@ export interface Submission {
   completed_at: string | null;
   created_at: string;
   exam: Pick<Exam, "id" | "title" | "exam_type"> & { section: ExamSection | "COMBINE" };
+  /** Which table this came from. Written combinations and oral attempts both
+   *  normalise to section "COMBINE", so this is the only way to tell them apart
+   *  once mapped — needed to fetch the right raw data for a PDF export. */
+  sourceType?: "exam" | "combination" | "oral";
 }
 
 export interface FeedbackCorrection {

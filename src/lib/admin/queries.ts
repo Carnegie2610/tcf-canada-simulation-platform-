@@ -144,6 +144,7 @@ export function mapCombinationSubmission(row: Record<string, unknown>): Submissi
       section: "COMBINE",
       exam_type: combination?.exam_type ?? "TCF",
     },
+    sourceType: "combination",
     evaluation,
   };
 }
@@ -195,6 +196,7 @@ export function mapOralSubmission(row: Record<string, unknown>): SubmissionWithE
       section: "COMBINE",
       exam_type: combination?.exam_type ?? "TCF",
     },
+    sourceType: "oral",
     evaluation,
   };
 }
