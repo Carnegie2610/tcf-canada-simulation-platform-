@@ -8,6 +8,7 @@ interface AdminShellProps {
   currentUserName: string;
   currentUserRole: UserRole;
   openTicketCount?: number;
+  pendingSignupCount?: number;
 }
 
 const navItems = [
@@ -33,7 +34,13 @@ const roleLabel: Record<UserRole, string> = {
   super_admin: "Super Admin",
 };
 
-export function AdminShell({ children, currentUserName, currentUserRole, openTicketCount = 0 }: AdminShellProps) {
+export function AdminShell({
+  children,
+  currentUserName,
+  currentUserRole,
+  openTicketCount = 0,
+  pendingSignupCount = 0,
+}: AdminShellProps) {
   return (
     <div className="flex min-h-screen bg-[var(--slate-950)]">
       {/* Sidebar */}
@@ -61,7 +68,13 @@ export function AdminShell({ children, currentUserName, currentUserRole, openTic
                 href={item.href}
                 icon={item.icon}
                 label={item.label}
-                badgeCount={item.href === "/admin/tickets" ? openTicketCount : undefined}
+                badgeCount={
+                  item.href === "/admin/tickets"
+                    ? openTicketCount
+                    : item.href === "/admin/signup-requests"
+                      ? pendingSignupCount
+                      : undefined
+                }
               />
             ))}
         </nav>
