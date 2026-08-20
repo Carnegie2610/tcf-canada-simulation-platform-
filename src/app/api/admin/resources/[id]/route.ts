@@ -16,6 +16,47 @@ async function requireAdmin(supabase: Awaited<ReturnType<typeof createSupabaseSe
   return { user };
 }
 
+/**
+ * Signed URL so an admin can read back a document they published — same mechanism
+ * students get, so the preview is exactly what they will see rather than an
+ * approximation.
+ */
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const supabase = await createSupabaseServerClient();
+  const auth = await requireAdmin(supabase);
+  if (auth.error) return auth.error;
+
+  const { id } = await params;
+  if (!z.string().uuid().safeParse(id).success) {
+    return NextResponse.json({ error: "Invalid resource ID" }, { status: 400 });
+  }
+
+  const { data: resource } = await supabase
+    .from("resources")
+    .select("storage_path, title")
+    .eq("id", id)
+    .single();
+
+  if (!resource) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { data: signed, error } = await admin.storage
+    .from(RESOURCES_BUCKET)
+    .createSignedUrl(resource.storage_path as string, 60 * 60);
+
+  if (error || !signed) {
+    console.error("[resources] admin preview URL failed:", error);
+    return NextResponse.json({ error: "signing_failed" }, { status: 500 });
+  }
+
+  return NextResponse.json({ url: signed.signedUrl, title: resource.title });
+}
+
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

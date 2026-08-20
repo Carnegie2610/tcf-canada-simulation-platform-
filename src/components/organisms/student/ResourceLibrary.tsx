@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PdfViewerModal } from "@/components/molecules/PdfViewerModal";
 
 export interface StudentResource {
   id: string;
@@ -74,35 +75,13 @@ export function ResourceLibrary({ resources }: { resources: StudentResource[] })
       </div>
 
       {openDoc && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col bg-black/80 backdrop-blur-sm"
-          onClick={() => setOpenDoc(null)}
-        >
-          <div
-            className="mx-auto flex h-full w-full max-w-5xl flex-col p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between rounded-t-xl border-2 border-b-0 border-[var(--slate-700)] bg-[var(--slate-900)] px-4 py-3">
-              <p className="truncate text-sm font-bold text-[var(--brand-white)]">
-                📕 {openDoc.title}
-              </p>
-              <button
-                onClick={() => setOpenDoc(null)}
-                className="shrink-0 rounded-lg border border-[var(--slate-700)] px-3 py-1.5 text-xs font-medium text-[var(--slate-400)] transition-colors hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)]"
-              >
-                ✕ Fermer
-              </button>
-            </div>
-            {/* Not wrapped in secure-canvas-wrapper: that sets pointer-events:none,
-                which would stop the reader scrolling the document at all. */}
-            <iframe
-              src={openDoc.url}
-              title={openDoc.title}
-              className="h-full w-full rounded-b-xl border-2 border-t-0 border-[var(--slate-700)] bg-white"
-            />
-          </div>
-        </div>
+        <PdfViewerModal
+          url={openDoc.url}
+          title={openDoc.title}
+          onClose={() => setOpenDoc(null)}
+        />
       )}
+
     </section>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { PdfViewerModal } from "@/components/molecules/PdfViewerModal";
 
 const RESOURCES_BUCKET = "resources";
 const MAX_MB = 50;
@@ -27,6 +28,23 @@ export default function AdminResourcesPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ url: string; title: string } | null>(null);
+  const [previewingId, setPreviewingId] = useState<string | null>(null);
+
+  async function handlePreview(id: string) {
+    setPreviewingId(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/resources/${id}`);
+      if (!res.ok) throw new Error("failed");
+      const { url, title } = (await res.json()) as { url: string; title: string };
+      setPreview({ url, title });
+    } catch {
+      setError("Impossible d'ouvrir l'aperçu de ce document.");
+    } finally {
+      setPreviewingId(null);
+    }
+  }
 
   async function load() {
     const res = await fetch("/api/admin/resources");
@@ -175,16 +193,32 @@ export default function AdminResourcesPage() {
                   {new Date(r.created_at).toLocaleDateString("fr-FR")}
                 </p>
               </div>
-              <button
-                onClick={() => handleDelete(r.id)}
-                className="shrink-0 rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/10"
-              >
-                Supprimer
-              </button>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  onClick={() => void handlePreview(r.id)}
+                  disabled={previewingId === r.id}
+                  className="rounded-lg border border-blue-500/40 bg-blue-600/10 px-3 py-1.5 text-xs font-medium text-[var(--accent-blue-text)] transition-colors hover:bg-blue-600/20 disabled:opacity-50"
+                >
+                  {previewingId === r.id ? "Ouverture…" : "👁 Aperçu"}
+                </button>
+                <button
+                  onClick={() => handleDelete(r.id)}
+                  className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/10"
+                >
+                  Supprimer
+                </button>
+              </div>
             </div>
           ))
         )}
       </div>
+      {preview && (
+        <PdfViewerModal
+          url={preview.url}
+          title={preview.title}
+          onClose={() => setPreview(null)}
+        />
+      )}
     </div>
   );
 }
