@@ -1,5 +1,7 @@
 import { LibraryCanvas } from "@/components/organisms/student/LibraryCanvas";
 import { BackButton } from "@/components/atoms/BackButton";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ResourceLibrary, type StudentResource } from "@/components/organisms/student/ResourceLibrary";
 
 const RESOURCES = [
   {
@@ -92,7 +94,24 @@ Conclure et ouvrir
   },
 ];
 
-export default function LibraryPage() {
+export const dynamic = "force-dynamic";
+
+export default async function LibraryPage() {
+  const supabase = await createSupabaseServerClient();
+
+  // Admin-uploaded PDFs. Failure-tolerant: the built-in written guides below are
+  // the core of this page and must still render if the catalogue is unavailable.
+  let resources: StudentResource[] = [];
+  try {
+    const { data } = await supabase
+      .from("resources")
+      .select("id, title, description, file_size")
+      .order("created_at", { ascending: false });
+    resources = (data ?? []) as StudentResource[];
+  } catch (err) {
+    console.error("[library] resource catalogue unavailable:", err);
+  }
+
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <div>
@@ -111,6 +130,8 @@ export default function LibraryPage() {
           Ces ressources sont fournies à titre exclusivement personnel. Toute copie ou redistribution est strictement interdite.
         </p>
       </div>
+
+      <ResourceLibrary resources={resources} />
 
       <LibraryCanvas>
         <div className="space-y-4">
