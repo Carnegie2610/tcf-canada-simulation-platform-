@@ -324,7 +324,7 @@ export async function listUsers(
   supabase: SupabaseClient,
   params: UserSearchParams
 ): Promise<AdminUserListResponse> {
-  const { page, pageSize, search } = params;
+  const { page, pageSize, search, status, role, cohort_tag } = params;
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
@@ -336,6 +336,31 @@ export async function listUsers(
 
   if (search) {
     query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
+  }
+
+  if (role) {
+    query = query.eq("role", role);
+  }
+
+  if (cohort_tag) {
+    query = query.eq("cohort_tag", cohort_tag);
+  }
+
+  // Status filters use plain comparisons rather than .or() — supabase-js only
+  // supports one top-level or() per query, and `search` above already claims it.
+  if (status) {
+    const now = new Date().toISOString();
+    if (status === "expired") {
+      query = query.lt("expires_at", now);
+    } else if (status === "active") {
+      query = query.gte("expires_at", now);
+    } else if (status === "expiring") {
+      const in7Days = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      query = query.gte("expires_at", now).lte("expires_at", in7Days);
+    } else if (status === "exhausted") {
+      // Nothing left on either skill — an expiry date alone doesn't qualify.
+      query = query.eq("ee_simulations_remaining", 0).eq("eo_simulations_remaining", 0);
+    }
   }
 
   const { data, count } = await query;
@@ -417,11 +442,29 @@ export async function createUser(
 export async function updateUser(
   supabase: SupabaseClient,
   userId: string,
-  data: UpdateUserInput
+  data: UpdateUserInput,
+  /**
+   * Service-role client, used only to log a sale when a pack changes. Required
+   * because `payments` is RLS-restricted to super_admins — without it a regular
+   * admin's upgrade would update the profile but silently record no revenue.
+   */
+  adminSupabase?: SupabaseClient
 ): Promise<AdminProfile> {
+  // `bill_plan_change` is a UI signal, not a column — strip it before the update.
+  const { bill_plan_change: billPlanChange, ...profileFields } = data;
+
+  // Read the packs as they stand *before* writing, so a sale is logged only when a
+  // pack genuinely changes. Trusting the client's idea of the old value would let a
+  // stale form double-bill a student.
+  const { data: before } = await supabase
+    .from("profiles")
+    .select("assigned_plan_ee, assigned_plan_eo")
+    .eq("id", userId)
+    .single();
+
   const { data: profile, error } = await supabase
     .from("profiles")
-    .update(data)
+    .update(profileFields)
     .eq("id", userId)
     .select()
     .single();
@@ -430,7 +473,49 @@ export async function updateUser(
     throw new Error(error?.message ?? "Failed to update user");
   }
 
-  return profile as AdminProfile;
+  const updated = profile as AdminProfile;
+
+  if (billPlanChange && before) {
+    // One row per pack that actually changed, at that pack's own full price and
+    // commission — so the dashboard's EE (35%) / EO (30%) split stays correct
+    // without the rate ever being written out here.
+    const changed: AssignedPlan[] = [];
+    if (updated.assigned_plan_ee && updated.assigned_plan_ee !== before.assigned_plan_ee) {
+      changed.push(updated.assigned_plan_ee);
+    }
+    if (updated.assigned_plan_eo && updated.assigned_plan_eo !== before.assigned_plan_eo) {
+      changed.push(updated.assigned_plan_eo);
+    }
+
+    if (changed.length > 0) {
+      const rows = changed.map((plan) => {
+        const meta = getPlanMeta(plan);
+        return {
+          user_id: userId,
+          student_name: updated.full_name,
+          student_email: updated.email,
+          plan,
+          plan_price: meta.price,
+          commission: meta.commission,
+          payment_status: "confirmed",
+        };
+      });
+
+      // Never let a failed sale log undo a successful profile update — the quota
+      // change is what the student is waiting on. Surface it in the logs instead.
+      const { error: payError } = await (adminSupabase ?? supabase)
+        .from("payments")
+        .insert(rows);
+      if (payError) {
+        console.error("[updateUser] plan change not recorded in payments:", payError, {
+          userId,
+          plans: changed,
+        });
+      }
+    }
+  }
+
+  return updated;
 }
 
 export async function deleteUser(

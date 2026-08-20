@@ -10,17 +10,29 @@ import type { AdminProfile, AdminUserListResponse } from "@/lib/admin/types";
 
 const PAGE_SIZE = 20;
 
+const selectCls =
+  "rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-2 text-sm text-[var(--brand-white)] focus:border-[var(--blue-500)] focus:outline-none";
+
 export default function UsersPage() {
   const router = useRouter();
   const [data, setData] = useState<AdminUserListResponse | null>(null);
   const [currentUser, setCurrentUser] = useState<{ id: string; role: string } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
   const [page, setPage] = useState(1);
 
-  async function fetchUsers(q?: string, p = page) {
+  async function fetchUsers(
+    q?: string,
+    p = page,
+    st: string = status,
+    rl: string = roleFilter
+  ) {
     const params = new URLSearchParams({ pageSize: String(PAGE_SIZE), page: String(p) });
     if (q) params.set("search", q);
+    if (st) params.set("status", st);
+    if (rl) params.set("role", rl);
     const res = await fetch(`/api/admin/users?${params}`);
     const json = (await res.json()) as { data: AdminUserListResponse };
     setData(json.data);
@@ -63,6 +75,28 @@ export default function UsersPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
+  function handleStatusChange(next: string) {
+    setStatus(next);
+    setPage(1);
+    void fetchUsers(search || undefined, 1, next, roleFilter);
+  }
+
+  function handleRoleChange(next: string) {
+    setRoleFilter(next);
+    setPage(1);
+    void fetchUsers(search || undefined, 1, status, next);
+  }
+
+  function resetFilters() {
+    setSearch("");
+    setStatus("");
+    setRoleFilter("");
+    setPage(1);
+    void fetchUsers(undefined, 1, "", "");
+  }
+
+  const hasFilters = search !== "" || status !== "" || roleFilter !== "";
+
   function handlePageChange(p: number) {
     setPage(p);
     void fetchUsers(search || undefined, p);
@@ -87,15 +121,55 @@ export default function UsersPage() {
         )}
       </div>
 
-      {/* Live search — refetches automatically as you type */}
-      <div className="mt-6">
+      {/* Search is debounced as you type; the dropdowns refetch immediately since
+          there's nothing to wait for. All filtering happens server-side so the
+          pagination and total count stay correct. */}
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher par nom ou e-mail..."
-          className="w-80 rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-2 text-sm text-[var(--brand-white)] placeholder:text-[var(--slate-500)] focus:border-[var(--blue-500)] focus:outline-none"
+          className="w-72 rounded-lg border border-[var(--slate-700)] bg-[var(--slate-800)] px-3 py-2 text-sm text-[var(--brand-white)] placeholder:text-[var(--slate-500)] focus:border-[var(--blue-500)] focus:outline-none"
         />
+
+        <select
+          value={status}
+          onChange={(e) => handleStatusChange(e.target.value)}
+          className={selectCls}
+        >
+          <option value="">Tous les statuts</option>
+          <option value="active">Actifs</option>
+          <option value="expiring">Expire sous 7 jours</option>
+          <option value="expired">Expirés</option>
+          <option value="exhausted">Simulations épuisées</option>
+        </select>
+
+        <select
+          value={roleFilter}
+          onChange={(e) => handleRoleChange(e.target.value)}
+          className={selectCls}
+        >
+          <option value="">Tous les rôles</option>
+          <option value="student">Étudiants</option>
+          <option value="admin">Admins</option>
+          <option value="super_admin">Super Admins</option>
+        </select>
+
+        {hasFilters && (
+          <button
+            onClick={resetFilters}
+            className="rounded-lg border border-[var(--slate-700)] px-3 py-2 text-sm text-[var(--slate-400)] transition-colors hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)]"
+          >
+            ✕ Réinitialiser
+          </button>
+        )}
+
+        {data !== null && (
+          <span className="text-sm text-[var(--slate-500)]">
+            {data.total} résultat{data.total > 1 ? "s" : ""}
+          </span>
+        )}
       </div>
 
       <div className="mt-6">

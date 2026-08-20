@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CommissionsPage } from "@/components/organisms/admin/CommissionsPage";
 import { getPlanMeta } from "@/lib/plans";
+import { groupLedgerRows, type LedgerPaymentRow } from "@/lib/admin/commissions";
 
 function isEoPlan(plan: string): boolean {
   return getPlanMeta(plan).skillType === "eo";
@@ -26,13 +27,17 @@ export default async function CommissionsAdminPage() {
   // KPI all-time
   const { data: allPayments } = await adminClient
     .from("payments")
-    .select("commission, plan_price, plan, created_at")
+    .select("commission, plan_price, plan, created_at, user_id")
     .eq("payment_status", "confirmed");
 
   const rows = allPayments ?? [];
   const totalCommission = rows.reduce((s, r) => s + Number(r.commission), 0);
   const totalRevenue = rows.reduce((s, r) => s + Number(r.plan_price), 0);
+  // See the API route: payments vs. distinct people are tracked separately.
   const totalRegistrations = rows.length;
+  const totalStudents = new Set(rows.map((r) => r.user_id as string)).size;
+  const eoPacksSold = rows.filter((r) => isEoPlan(r.plan as string)).length;
+  const eePacksSold = rows.filter((r) => !isEoPlan(r.plan as string)).length;
   const lifetimeRevenue = totalRevenue;
   const eoRows = rows.filter((r) => isEoPlan(r.plan as string));
   const totalCommissionEo = eoRows.reduce((s, r) => s + Number(r.commission), 0);
@@ -93,27 +98,24 @@ export default async function CommissionsAdminPage() {
   ];
 
   // Ledger first page
-  const { data: ledgerRows, count: ledgerTotal } = await adminClient
+  const { data: ledgerRows } = await adminClient
     .from("payments")
-    .select("id, created_at, student_name, student_email, plan, plan_price, commission", { count: "exact" })
+    .select("id, user_id, created_at, student_name, student_email, plan, plan_price, commission")
     .eq("payment_status", "confirmed")
-    .order("created_at", { ascending: false })
-    .range(0, 14);
+    .order("created_at", { ascending: false });
 
-  const ledger = (ledgerRows ?? []).map((r) => ({
-    id: r.id as string,
-    created_at: r.created_at as string,
-    student_name: r.student_name as string,
-    student_email: r.student_email as string,
-    plan_label: getPlanMeta(r.plan as string).label,
-    plan_price: Number(r.plan_price),
-    commission: Number(r.commission),
-  }));
+  // Grouped before slicing so one sign-up's EE + EO packs count as a single entry —
+  // must match the API route's paging exactly, hence the shared helper.
+  const groupedLedger = groupLedgerRows((ledgerRows ?? []) as unknown as LedgerPaymentRow[]);
+  const ledger = groupedLedger.slice(0, 15);
 
   const initialData = {
     totalCommission,
     totalRevenue,
     totalRegistrations,
+    totalStudents,
+    eePacksSold,
+    eoPacksSold,
     previousDayCommission,
     previousDayRevenue,
     previousDayRegistrations,
@@ -121,7 +123,7 @@ export default async function CommissionsAdminPage() {
     monthlyTrend,
     planDistribution,
     ledger,
-    ledgerTotal: ledgerTotal ?? 0,
+    ledgerTotal: groupedLedger.length,
     totalCommissionEo,
     totalRevenueEo,
     previousDayCommissionEo,

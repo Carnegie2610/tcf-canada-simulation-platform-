@@ -1,9 +1,12 @@
 import { StudentTopHeader } from "@/components/molecules/student/StudentTopHeader";
+import type { StudentNotification } from "@/lib/student/notifications";
 
 interface StudentPageTemplateProps {
   children: React.ReactNode;
   userId: string;
   currentUserName: string;
+  notifications: StudentNotification[];
+  unreadCount: number;
   eeUsed: number;
   eeTotal: number;
   eoUsed: number;
@@ -15,6 +18,8 @@ export function StudentPageTemplate({
   children,
   userId,
   currentUserName,
+  notifications,
+  unreadCount,
   eeUsed,
   eeTotal,
   eoUsed,
@@ -26,6 +31,8 @@ export function StudentPageTemplate({
       <StudentTopHeader
         userId={userId}
         currentUserName={currentUserName}
+        notifications={notifications}
+        unreadCount={unreadCount}
         eeUsed={eeUsed}
         eeTotal={eeTotal}
         eoUsed={eoUsed}

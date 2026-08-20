@@ -5,9 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/atoms/ThemeToggle";
+import { NotificationBell } from "@/components/molecules/student/NotificationBell";
+import type { StudentNotification } from "@/lib/student/notifications";
 
 interface StudentTopHeaderProps {
   userId: string;
+  notifications: StudentNotification[];
+  unreadCount: number;
   currentUserName: string;
   eeUsed: number;
   eeTotal: number;
@@ -46,6 +50,8 @@ function formatExpiryFull(expiresAt: string): string {
 
 export function StudentTopHeader({
   userId,
+  notifications,
+  unreadCount,
   currentUserName,
   eeUsed: initialEeUsed,
   eeTotal: initialEeTotal,
@@ -196,6 +202,8 @@ export function StudentTopHeader({
         >
           EO {eoUsed}&thinsp;/&thinsp;{eoTotal}
         </span>
+
+        <NotificationBell initialItems={notifications} initialUnread={unreadCount} />
 
         <ThemeToggle />
 

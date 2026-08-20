@@ -15,6 +15,14 @@ const NONE_VALUE = "";
 interface UserFormProps {
   mode: "create" | "edit";
   initial?: AdminProfile;
+  /** Seed values for a brand-new account — used when approving a signup request
+   *  so the admin doesn't retype what the student already submitted. */
+  prefill?: {
+    full_name?: string;
+    email?: string;
+    assigned_plan_ee?: string | null;
+    assigned_plan_eo?: string | null;
+  };
   currentUserRole?: UserRole;
   onSuccess: (profile: AdminProfile) => void;
   onCancel: () => void;
@@ -33,6 +41,9 @@ function buildPlanOptions(source: typeof PLANS) {
         k,
         {
           label: `${v.label} (${v.price.toLocaleString("fr-FR")} CFA — ${simLabel})`,
+          name: v.label,
+          price: v.price,
+          commission: v.commission,
           eeQuota: v.eeQuota,
           eoQuota: v.eoQuota,
           days: v.days,
@@ -157,13 +168,21 @@ function PlanDropdown({
   );
 }
 
-export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }: UserFormProps) {
+export function UserForm({ mode, initial, prefill, currentUserRole, onSuccess, onCancel }: UserFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
 
-  const defaultPlanEe = initial?.assigned_plan_ee ?? "PLAN_5000";
-  const defaultCfg = ALL_EE_PLANS[defaultPlanEe];
+  // On create, pre-select a sensible starter pack. On edit, always mirror what the
+  // student actually has — defaulting to a plan here silently granted an EE pack to
+  // students who only ever bought an EO one.
+  // On create, honour an approved applicant's stated preference before falling
+  // back to the default starter pack.
+  const defaultPlanEe =
+    mode === "create"
+      ? (prefill?.assigned_plan_ee ?? "PLAN_5000")
+      : (initial?.assigned_plan_ee ?? null);
+  const defaultCfg = defaultPlanEe ? ALL_EE_PLANS[defaultPlanEe] : null;
   // Staff (admin/super_admin) accounts have no subscription plan — the plan/quota/
   // expiry fields are hidden and kept null for them, matching the DB constraint
   // that only students are required to have a plan.
@@ -178,28 +197,53 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
     assigned_plan_eo: string | null;
     ee_simulations_quota: number | null;
     eo_simulations_quota: number | null;
+    ee_simulations_remaining: number | null;
+    eo_simulations_remaining: number | null;
     ai_corrections_enabled: boolean;
     expires_at: string | null;
     cohort_tag: string;
+    bill_plan_change: boolean;
   }>({
-    email: initial?.email ?? "",
-    full_name: initial?.full_name ?? "",
+    email: initial?.email ?? prefill?.email ?? "",
+    full_name: initial?.full_name ?? prefill?.full_name ?? "",
     password: "",
     role: initial?.role ?? "student",
     assigned_plan_ee: initialIsStaff ? null : defaultPlanEe,
-    assigned_plan_eo: initialIsStaff ? null : (initial?.assigned_plan_eo ?? null),
-    ee_simulations_quota: initialIsStaff ? null : (initial?.ee_simulations_quota ?? defaultCfg.eeQuota),
-    eo_simulations_quota: initialIsStaff ? null : (initial?.eo_simulations_quota ?? 0),
+    assigned_plan_eo: initialIsStaff
+      ? null
+      : (initial?.assigned_plan_eo ?? prefill?.assigned_plan_eo ?? null),
+    ee_simulations_quota: initialIsStaff ? null : (initial?.ee_simulations_quota ?? defaultCfg?.eeQuota ?? 0),
+    eo_simulations_quota: initialIsStaff
+      ? null
+      : (initial?.eo_simulations_quota ??
+         (prefill?.assigned_plan_eo ? ALL_EO_PLANS[prefill.assigned_plan_eo]?.eoQuota ?? 0 : 0)),
+    ee_simulations_remaining: initialIsStaff ? null : (initial?.ee_simulations_remaining ?? defaultCfg?.eeQuota ?? 0),
+    eo_simulations_remaining: initialIsStaff ? null : (initial?.eo_simulations_remaining ?? 0),
     ai_corrections_enabled: initial?.ai_corrections_enabled ?? true,
     expires_at: initialIsStaff
       ? null
       : initial?.expires_at
         ? initial.expires_at.substring(0, 10)
-        : addDays(defaultCfg.days),
+        : addDays(defaultCfg?.days ?? 0),
     cohort_tag: initial?.cohort_tag ?? "",
+    // Default on: changing a pack is normally a purchase. Unticked for corrections.
+    bill_plan_change: true,
   });
 
   const isStaffRole = form.role !== "student";
+
+  // Only meaningful on edit: has the admin actually moved this student onto a
+  // different pack? Drives the "was this paid?" prompt below.
+  const eePlanChanged =
+    mode === "edit" && form.assigned_plan_ee !== (initial?.assigned_plan_ee ?? null);
+  const eoPlanChanged =
+    mode === "edit" && form.assigned_plan_eo !== (initial?.assigned_plan_eo ?? null);
+  const planChanged = (eePlanChanged || eoPlanChanged) && !isStaffRole;
+
+  const billedPlans = [
+    eePlanChanged && form.assigned_plan_ee ? ALL_EE_PLANS[form.assigned_plan_ee] : null,
+    eoPlanChanged && form.assigned_plan_eo ? ALL_EO_PLANS[form.assigned_plan_eo] : null,
+  ].filter((p): p is NonNullable<typeof p> => p != null);
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -212,8 +256,10 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
         ...prev,
         role: nextRole,
         assigned_plan_ee: prev.assigned_plan_ee ?? defaultPlanEe,
-        ee_simulations_quota: prev.ee_simulations_quota ?? defaultCfg.eeQuota,
-        expires_at: prev.expires_at ?? addDays(defaultCfg.days),
+        ee_simulations_quota: prev.ee_simulations_quota ?? defaultCfg?.eeQuota ?? 0,
+        ee_simulations_remaining: prev.ee_simulations_remaining ?? defaultCfg?.eeQuota ?? 0,
+        eo_simulations_remaining: prev.eo_simulations_remaining ?? 0,
+        expires_at: prev.expires_at ?? addDays(defaultCfg?.days ?? 0),
       }));
     } else {
       setForm((prev) => ({
@@ -223,6 +269,8 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
         assigned_plan_eo: null,
         ee_simulations_quota: null,
         eo_simulations_quota: null,
+        ee_simulations_remaining: null,
+        eo_simulations_remaining: null,
         expires_at: null,
       }));
     }
@@ -237,34 +285,52 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
     return addDays(Math.max(eeDays, eoDays));
   }
 
+  // Applies on edit as well as create: previously the edit path only swapped the
+  // label and left the quota untouched, so "move this student from 2000 to 5000"
+  // renamed their pack without ever granting the simulations they paid for.
+  //
+  // Changing the pack means a new purchase, so `remaining` is reset to the new
+  // pack's full allowance — matching createUser(), and keeping remaining <= quota,
+  // which the chk_ee_quota_bounds / chk_eo_quota_bounds constraints require.
   function handleEePlanChange(plan: string) {
-    if (mode !== "create") {
-      set("assigned_plan_ee", plan || null);
-      return;
-    }
     const nextPlan = plan || null;
     const cfg = plan ? ALL_EE_PLANS[plan] : null;
+    const quota = cfg?.eeQuota ?? 0;
     setForm((prev) => ({
       ...prev,
       assigned_plan_ee: nextPlan,
-      ee_simulations_quota: cfg?.eeQuota ?? 0,
+      ee_simulations_quota: quota,
+      ee_simulations_remaining: quota,
       expires_at: longerExpiry(nextPlan, prev.assigned_plan_eo),
     }));
   }
 
   function handleEoPlanChange(plan: string) {
-    if (mode !== "create") {
-      set("assigned_plan_eo", plan || null);
-      return;
-    }
     const nextPlan = plan || null;
     const cfg = plan ? ALL_EO_PLANS[plan] : null;
+    const quota = cfg?.eoQuota ?? 0;
     setForm((prev) => ({
       ...prev,
       assigned_plan_eo: nextPlan,
-      eo_simulations_quota: cfg?.eoQuota ?? 0,
+      eo_simulations_quota: quota,
+      eo_simulations_remaining: quota,
       expires_at: longerExpiry(prev.assigned_plan_ee, nextPlan),
     }));
+  }
+
+  // A manually typed quota must not leave `remaining` above it, or the DB rejects
+  // the whole save with a raw check-constraint error.
+  function setQuota(skill: "ee" | "eo", raw: number) {
+    const quota = Number.isFinite(raw) ? Math.max(0, raw) : 0;
+    setForm((prev) => {
+      const remainingKey = skill === "ee" ? "ee_simulations_remaining" : "eo_simulations_remaining";
+      const quotaKey = skill === "ee" ? "ee_simulations_quota" : "eo_simulations_quota";
+      return {
+        ...prev,
+        [quotaKey]: quota,
+        [remainingKey]: Math.min(prev[remainingKey] ?? quota, quota),
+      };
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -301,7 +367,7 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
 
       const json = (await res.json()) as { data?: AdminProfile; error?: string };
       if (!res.ok) {
-        setError(json.error ?? "Erreur serveur");
+        setError(friendlyError(json.error));
         return;
       }
       onSuccess(json.data!);
@@ -388,9 +454,9 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
                   onChange={handleEePlanChange}
                   noneLabel="Aucun pack EE"
                   groups={[
-                    ...(mode === "create"
-                      ? [{ label: "Plans spéciaux", options: Object.entries(ADMIN_ONLY_PLANS) }]
-                      : []),
+                    // Offered on edit as well as create — hiding them made it
+                    // impossible to represent (or restore) a student already on one.
+                    { label: "Plans spéciaux", options: Object.entries(ADMIN_ONLY_PLANS) },
                     { label: "Expression Écrite", options: Object.entries(PLAN_CONFIG) },
                   ]}
                 />
@@ -415,9 +481,14 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
                     max={500}
                     required
                     value={form.ee_simulations_quota ?? ""}
-                    onChange={(e) => set("ee_simulations_quota", Number(e.target.value))}
+                    onChange={(e) => setQuota("ee", Number(e.target.value))}
                     className={inputCls}
                   />
+                  {mode === "edit" && (
+                    <p className="mt-1 text-[11px] text-[var(--slate-500)]">
+                      Restantes : {form.ee_simulations_remaining ?? 0}
+                    </p>
+                  )}
                 </Field>
                 <Field label="Quota EO (Expression Orale)">
                   <input
@@ -426,9 +497,14 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
                     max={500}
                     required
                     value={form.eo_simulations_quota ?? ""}
-                    onChange={(e) => set("eo_simulations_quota", Number(e.target.value))}
+                    onChange={(e) => setQuota("eo", Number(e.target.value))}
                     className={inputCls}
                   />
+                  {mode === "edit" && (
+                    <p className="mt-1 text-[11px] text-[var(--slate-500)]">
+                      Restantes : {form.eo_simulations_remaining ?? 0}
+                    </p>
+                  )}
                 </Field>
               </div>
 
@@ -441,6 +517,49 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
                   className={inputCls}
                 />
               </Field>
+
+              {/* Shown only when a pack actually changed — a pack change is normally a
+                  sale, but corrections and test accounts must not inflate revenue, so
+                  it is confirmed rather than assumed. */}
+              {planChanged && (
+                <div className="space-y-2 rounded-lg border border-amber-700/50 bg-amber-950/20 px-4 py-3">
+                  <label className="flex cursor-pointer items-start gap-2">
+                    <input
+                      type="checkbox"
+                      checked={form.bill_plan_change}
+                      onChange={(e) => set("bill_plan_change", e.target.checked)}
+                      className="mt-0.5 rounded border-[var(--slate-600)] bg-[var(--slate-800)]"
+                    />
+                    <span className="text-sm text-[var(--slate-200)]">
+                      L&apos;étudiant a payé pour ce changement de pack
+                    </span>
+                  </label>
+
+                  {form.bill_plan_change ? (
+                    <div className="space-y-1 pl-6">
+                      {billedPlans.map((plan) => (
+                        <p key={plan.name} className="text-xs text-[var(--slate-400)]">
+                          {plan.name} — encaissé{" "}
+                          <span className="font-semibold text-[var(--slate-200)]">
+                            {plan.price.toLocaleString("fr-FR")} F
+                          </span>
+                          , commission{" "}
+                          <span className="font-semibold text-emerald-400">
+                            {plan.commission.toLocaleString("fr-FR")} F
+                          </span>
+                        </p>
+                      ))}
+                      <p className="text-[11px] text-[var(--slate-500)]">
+                        Sera enregistré dans la page Commissions.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="pl-6 text-[11px] text-[var(--slate-500)]">
+                      Aucun revenu ne sera enregistré (correction, test ou geste commercial).
+                    </p>
+                  )}
+                </div>
+              )}
             </>
           )}
 
@@ -513,6 +632,28 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
       </div>
     </div>
   );
+}
+
+/**
+ * Postgres check-constraint failures arrive as raw SQL text
+ * ("new row for relation \"profiles\" violates check constraint ..."), which is
+ * meaningless to an admin. Translate the ones we can actually cause.
+ */
+function friendlyError(raw: string | undefined): string {
+  if (!raw) return "Erreur serveur";
+  if (raw.includes("chk_ee_quota_bounds")) {
+    return "Le quota EE ne peut pas être inférieur au nombre de simulations EE déjà restantes.";
+  }
+  if (raw.includes("chk_eo_quota_bounds")) {
+    return "Le quota EO ne peut pas être inférieur au nombre de simulations EO déjà restantes.";
+  }
+  if (raw.includes("chk_students_require_plan")) {
+    return "Un compte étudiant doit avoir au moins un pack (EE ou EO), un quota et une date d'expiration.";
+  }
+  if (raw.includes("profiles_assigned_plan_ee_check") || raw.includes("profiles_assigned_plan_eo_check")) {
+    return "Le pack sélectionné n'est pas valide pour cette compétence.";
+  }
+  return raw;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

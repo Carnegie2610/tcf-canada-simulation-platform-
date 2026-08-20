@@ -25,6 +25,11 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
+  const { count: pendingSignupCount } = await supabase
+    .from("signup_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
   const { count: openTicketCount } = await supabase
     .from("support_tickets")
     .select("id", { count: "exact", head: true })
@@ -35,6 +40,7 @@ export default async function AdminLayout({
       currentUserName={profile.full_name ?? user.email ?? "Admin"}
       currentUserRole={profile.role as UserRole}
       openTicketCount={openTicketCount ?? 0}
+      pendingSignupCount={pendingSignupCount ?? 0}
     >
       {children}
     </AdminPageTemplate>

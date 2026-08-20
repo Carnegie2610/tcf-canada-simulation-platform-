@@ -8,6 +8,7 @@ interface AdminShellProps {
   currentUserName: string;
   currentUserRole: UserRole;
   openTicketCount?: number;
+  pendingSignupCount?: number;
 }
 
 const navItems = [
@@ -18,6 +19,9 @@ const navItems = [
   { label: "Question CO", href: "/admin/oral-comprehension", icon: "🎧", superAdminOnly: false },
   { label: "Question EO", href: "/admin/oral", icon: "🎙️", superAdminOnly: false },
   { label: "Question CE", href: "/admin/reading-comprehension", icon: "📖", superAdminOnly: false },
+  { label: "Demandes d'inscription", href: "/admin/signup-requests", icon: "🙋", superAdminOnly: false },
+  { label: "Annonces", href: "/admin/announcements", icon: "📢", superAdminOnly: false },
+  { label: "Ressources PDF", href: "/admin/resources", icon: "📕", superAdminOnly: false },
   { label: "Clés API", href: "/admin/api-keys", icon: "🔑", superAdminOnly: false },
   { label: "Tickets Support", href: "/admin/tickets", icon: "🎫", superAdminOnly: false },
   { label: "Prompts IA", href: "/admin/prompts", icon: "⌘", superAdminOnly: true },
@@ -30,7 +34,13 @@ const roleLabel: Record<UserRole, string> = {
   super_admin: "Super Admin",
 };
 
-export function AdminShell({ children, currentUserName, currentUserRole, openTicketCount = 0 }: AdminShellProps) {
+export function AdminShell({
+  children,
+  currentUserName,
+  currentUserRole,
+  openTicketCount = 0,
+  pendingSignupCount = 0,
+}: AdminShellProps) {
   return (
     <div className="flex min-h-screen bg-[var(--slate-950)]">
       {/* Sidebar */}
@@ -58,7 +68,13 @@ export function AdminShell({ children, currentUserName, currentUserRole, openTic
                 href={item.href}
                 icon={item.icon}
                 label={item.label}
-                badgeCount={item.href === "/admin/tickets" ? openTicketCount : undefined}
+                badgeCount={
+                  item.href === "/admin/tickets"
+                    ? openTicketCount
+                    : item.href === "/admin/signup-requests"
+                      ? pendingSignupCount
+                      : undefined
+                }
               />
             ))}
         </nav>

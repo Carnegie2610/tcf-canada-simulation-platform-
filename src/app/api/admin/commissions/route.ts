@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getPlanMeta } from "@/lib/plans";
+import { groupLedgerRows, type LedgerPaymentRow } from "@/lib/admin/commissions";
 
 function isEoPlan(plan: string): boolean {
   return getPlanMeta(plan).skillType === "eo";
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
   // Period-scoped KPIs
   let kpiQuery = adminClient
     .from("payments")
-    .select("commission, plan_price, plan", { count: "exact" })
+    .select("commission, plan_price, plan, user_id", { count: "exact" })
     .eq("payment_status", "confirmed");
   if (start) kpiQuery = kpiQuery.gte("created_at", start);
   if (end) kpiQuery = kpiQuery.lte("created_at", end);
@@ -90,7 +91,14 @@ export async function GET(request: NextRequest) {
 
   const totalCommission = (kpiRows ?? []).reduce((s, r) => s + Number(r.commission), 0);
   const totalRevenue = (kpiRows ?? []).reduce((s, r) => s + Number(r.plan_price), 0);
+  // Two different figures, deliberately: `totalRegistrations` counts payments (a
+  // student buying an EE and an EO pack, or later upgrading, produces several),
+  // while `totalStudents` counts the people behind them.
   const totalRegistrations = kpiCount ?? 0;
+  const totalStudents = new Set((kpiRows ?? []).map((r) => r.user_id)).size;
+  // Packs sold per skill, scoped to the selected period (planDistribution is all-time).
+  const eoPacksSold = (kpiRows ?? []).filter((r) => isEoPlan(r.plan)).length;
+  const eePacksSold = (kpiRows ?? []).filter((r) => !isEoPlan(r.plan)).length;
   const eoKpiRows = (kpiRows ?? []).filter((r) => isEoPlan(r.plan));
   const totalCommissionEo = eoKpiRows.reduce((s, r) => s + Number(r.commission), 0);
   const totalRevenueEo = eoKpiRows.reduce((s, r) => s + Number(r.plan_price), 0);
@@ -102,7 +110,7 @@ export async function GET(request: NextRequest) {
   const prev = getPreviousDayRange();
   const { data: prevRows, count: prevCount } = await adminClient
     .from("payments")
-    .select("commission, plan_price, plan", { count: "exact" })
+    .select("commission, plan_price, plan, user_id", { count: "exact" })
     .eq("payment_status", "confirmed")
     .gte("created_at", prev.start)
     .lte("created_at", prev.end);
@@ -164,10 +172,12 @@ export async function GET(request: NextRequest) {
     { skillType: "ee" as const, label: "Expression Écrite (+ Mix)", count: eeDistCount },
   ];
 
-  // Ledger with period + search + pagination
+  // Ledger with period + search. Fetched unpaginated, then grouped so a student's
+  // EE and EO packs from one sign-up become a single line — paginating first would
+  // slice the DB rows before merging and leave pages with inconsistent counts.
   let ledgerQuery = adminClient
     .from("payments")
-    .select("id, created_at, student_name, student_email, plan, plan_price, commission", { count: "exact" })
+    .select("id, user_id, created_at, student_name, student_email, plan, plan_price, commission")
     .eq("payment_status", "confirmed")
     .order("created_at", { ascending: false });
 
@@ -179,23 +189,19 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  ledgerQuery = ledgerQuery.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
-  const { data: ledgerRows, count: ledgerTotal } = await ledgerQuery;
+  const { data: ledgerRows } = await ledgerQuery;
 
-  const ledger = (ledgerRows ?? []).map((r) => ({
-    id: r.id as string,
-    created_at: r.created_at as string,
-    student_name: r.student_name as string,
-    student_email: r.student_email as string,
-    plan_label: getPlanMeta(r.plan as string).label,
-    plan_price: Number(r.plan_price),
-    commission: Number(r.commission),
-  }));
+  const groupedLedger = groupLedgerRows((ledgerRows ?? []) as unknown as LedgerPaymentRow[]);
+  const ledgerTotal = groupedLedger.length;
+  const ledger = groupedLedger.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return NextResponse.json({
     totalCommission,
     totalRevenue,
     totalRegistrations,
+    totalStudents,
+    eePacksSold,
+    eoPacksSold,
     previousDayCommission,
     previousDayRevenue,
     previousDayRegistrations,
@@ -203,7 +209,7 @@ export async function GET(request: NextRequest) {
     monthlyTrend,
     planDistribution,
     ledger,
-    ledgerTotal: ledgerTotal ?? 0,
+    ledgerTotal,
     totalCommissionEo,
     totalRevenueEo,
     previousDayCommissionEo,

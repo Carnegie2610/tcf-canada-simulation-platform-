@@ -2,6 +2,10 @@ import { z } from "zod";
 
 export const UserSearchParamsSchema = z.object({
   search: z.string().max(100).optional(),
+  /** Subscription state, derived from expires_at / remaining simulations. */
+  status: z.enum(["active", "expiring", "expired", "exhausted"]).optional(),
+  role: z.enum(["student", "admin", "super_admin"]).optional(),
+  cohort_tag: z.string().max(100).optional(),
   exam_type: z.enum(["TEF", "TCF"]).optional(),
   date_from: z.string().datetime().optional(),
   date_to: z.string().datetime().optional(),
@@ -61,6 +65,9 @@ export const UpdateUserSchema = z.object({
   ai_corrections_enabled: z.boolean().optional(),
   expires_at: z.string().datetime().nullable().optional(),
   cohort_tag: z.string().max(100).nullable().optional(),
+  // Not a profiles column — tells updateUser() whether a pack change was an actual
+  // sale (record it in `payments`) or just a correction (record nothing).
+  bill_plan_change: z.boolean().optional(),
 });
 
 export const ExamSearchParamsSchema = z.object({

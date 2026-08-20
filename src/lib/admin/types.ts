@@ -141,6 +141,9 @@ export interface ApiError {
 
 export interface UserSearchParams {
   search?: string;
+  status?: "active" | "expiring" | "expired" | "exhausted";
+  role?: UserRole;
+  cohort_tag?: string;
   exam_type?: ExamType;
   date_from?: string;
   date_to?: string;
@@ -182,6 +185,8 @@ export interface UpdateUserInput {
   eo_simulations_quota?: number | null;
   eo_simulations_remaining?: number | null;
   ai_corrections_enabled?: boolean;
+  /** Transient flag (not persisted): bill a pack change as a new sale. */
+  bill_plan_change?: boolean;
   expires_at?: string | null;
   cohort_tag?: string | null;
 }
