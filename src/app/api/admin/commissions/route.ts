@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
   // Period-scoped KPIs
   let kpiQuery = adminClient
     .from("payments")
-    .select("commission, plan_price, plan", { count: "exact" })
+    .select("commission, plan_price, plan, user_id", { count: "exact" })
     .eq("payment_status", "confirmed");
   if (start) kpiQuery = kpiQuery.gte("created_at", start);
   if (end) kpiQuery = kpiQuery.lte("created_at", end);
@@ -91,7 +91,11 @@ export async function GET(request: NextRequest) {
 
   const totalCommission = (kpiRows ?? []).reduce((s, r) => s + Number(r.commission), 0);
   const totalRevenue = (kpiRows ?? []).reduce((s, r) => s + Number(r.plan_price), 0);
+  // Two different figures, deliberately: `totalRegistrations` counts payments (a
+  // student buying an EE and an EO pack, or later upgrading, produces several),
+  // while `totalStudents` counts the people behind them.
   const totalRegistrations = kpiCount ?? 0;
+  const totalStudents = new Set((kpiRows ?? []).map((r) => r.user_id)).size;
   const eoKpiRows = (kpiRows ?? []).filter((r) => isEoPlan(r.plan));
   const totalCommissionEo = eoKpiRows.reduce((s, r) => s + Number(r.commission), 0);
   const totalRevenueEo = eoKpiRows.reduce((s, r) => s + Number(r.plan_price), 0);
@@ -103,7 +107,7 @@ export async function GET(request: NextRequest) {
   const prev = getPreviousDayRange();
   const { data: prevRows, count: prevCount } = await adminClient
     .from("payments")
-    .select("commission, plan_price, plan", { count: "exact" })
+    .select("commission, plan_price, plan, user_id", { count: "exact" })
     .eq("payment_status", "confirmed")
     .gte("created_at", prev.start)
     .lte("created_at", prev.end);
@@ -192,6 +196,7 @@ export async function GET(request: NextRequest) {
     totalCommission,
     totalRevenue,
     totalRegistrations,
+    totalStudents,
     previousDayCommission,
     previousDayRevenue,
     previousDayRegistrations,

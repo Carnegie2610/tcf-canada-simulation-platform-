@@ -33,6 +33,9 @@ function buildPlanOptions(source: typeof PLANS) {
         k,
         {
           label: `${v.label} (${v.price.toLocaleString("fr-FR")} CFA — ${simLabel})`,
+          name: v.label,
+          price: v.price,
+          commission: v.commission,
           eeQuota: v.eeQuota,
           eoQuota: v.eoQuota,
           days: v.days,
@@ -186,6 +189,7 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
     ai_corrections_enabled: boolean;
     expires_at: string | null;
     cohort_tag: string;
+    bill_plan_change: boolean;
   }>({
     email: initial?.email ?? "",
     full_name: initial?.full_name ?? "",
@@ -204,9 +208,24 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
         ? initial.expires_at.substring(0, 10)
         : addDays(defaultCfg?.days ?? 0),
     cohort_tag: initial?.cohort_tag ?? "",
+    // Default on: changing a pack is normally a purchase. Unticked for corrections.
+    bill_plan_change: true,
   });
 
   const isStaffRole = form.role !== "student";
+
+  // Only meaningful on edit: has the admin actually moved this student onto a
+  // different pack? Drives the "was this paid?" prompt below.
+  const eePlanChanged =
+    mode === "edit" && form.assigned_plan_ee !== (initial?.assigned_plan_ee ?? null);
+  const eoPlanChanged =
+    mode === "edit" && form.assigned_plan_eo !== (initial?.assigned_plan_eo ?? null);
+  const planChanged = (eePlanChanged || eoPlanChanged) && !isStaffRole;
+
+  const billedPlans = [
+    eePlanChanged && form.assigned_plan_ee ? ALL_EE_PLANS[form.assigned_plan_ee] : null,
+    eoPlanChanged && form.assigned_plan_eo ? ALL_EO_PLANS[form.assigned_plan_eo] : null,
+  ].filter((p): p is NonNullable<typeof p> => p != null);
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -480,6 +499,49 @@ export function UserForm({ mode, initial, currentUserRole, onSuccess, onCancel }
                   className={inputCls}
                 />
               </Field>
+
+              {/* Shown only when a pack actually changed — a pack change is normally a
+                  sale, but corrections and test accounts must not inflate revenue, so
+                  it is confirmed rather than assumed. */}
+              {planChanged && (
+                <div className="space-y-2 rounded-lg border border-amber-700/50 bg-amber-950/20 px-4 py-3">
+                  <label className="flex cursor-pointer items-start gap-2">
+                    <input
+                      type="checkbox"
+                      checked={form.bill_plan_change}
+                      onChange={(e) => set("bill_plan_change", e.target.checked)}
+                      className="mt-0.5 rounded border-[var(--slate-600)] bg-[var(--slate-800)]"
+                    />
+                    <span className="text-sm text-[var(--slate-200)]">
+                      L&apos;étudiant a payé pour ce changement de pack
+                    </span>
+                  </label>
+
+                  {form.bill_plan_change ? (
+                    <div className="space-y-1 pl-6">
+                      {billedPlans.map((plan) => (
+                        <p key={plan.name} className="text-xs text-[var(--slate-400)]">
+                          {plan.name} — encaissé{" "}
+                          <span className="font-semibold text-[var(--slate-200)]">
+                            {plan.price.toLocaleString("fr-FR")} F
+                          </span>
+                          , commission{" "}
+                          <span className="font-semibold text-emerald-400">
+                            {plan.commission.toLocaleString("fr-FR")} F
+                          </span>
+                        </p>
+                      ))}
+                      <p className="text-[11px] text-[var(--slate-500)]">
+                        Sera enregistré dans la page Commissions.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="pl-6 text-[11px] text-[var(--slate-500)]">
+                      Aucun revenu ne sera enregistré (correction, test ou geste commercial).
+                    </p>
+                  )}
+                </div>
+              )}
             </>
           )}
 

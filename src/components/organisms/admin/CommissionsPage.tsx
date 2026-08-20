@@ -35,6 +35,7 @@ interface CommissionsData {
   totalCommission: number;
   totalRevenue: number;
   totalRegistrations: number;
+  totalStudents: number;
   previousDayCommission: number;
   previousDayRevenue: number;
   previousDayRegistrations: number;
@@ -399,9 +400,17 @@ export function CommissionsPage({ initialData }: CommissionsPageProps) {
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className="space-y-1">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-                Inscriptions Payées
+                Étudiants · Transactions
               </p>
-              <p className="text-2xl font-extrabold text-[var(--slate-200)]">{data.totalRegistrations}</p>
+              <p className="text-2xl font-extrabold text-[var(--slate-200)]">
+                {data.totalStudents}
+                <span className="mx-1.5 text-[var(--slate-600)]">·</span>
+                <span className="text-[var(--slate-400)]">{data.totalRegistrations}</span>
+              </p>
+              <p className="text-[11px] text-[var(--slate-500)]">
+                {data.totalStudents} étudiant{data.totalStudents > 1 ? "s" : ""} pour{" "}
+                {data.totalRegistrations} paiement{data.totalRegistrations > 1 ? "s" : ""}
+              </p>
               {deltaBadge(data.totalRegistrations, data.previousDayRegistrations, true)}
             </div>
             <div className="space-y-1 text-right">

@@ -108,7 +108,7 @@ export function UserManagementTable({
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-[var(--slate-800)]">
-              {["Nom", "Email", "Rôle", "Plan", "Quota", "Expire", ""].map((h) => (
+              {["Nom", "Email", "Rôle", "Plan", "Quota", "Créé le", "Expire", ""].map((h) => (
                 <th
                   key={h}
                   className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--slate-400)]"
@@ -122,7 +122,7 @@ export function UserManagementTable({
             {localUsers.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="px-4 py-8 text-center text-sm text-[var(--slate-500)]"
                 >
                   Aucun utilisateur trouvé.
@@ -164,6 +164,14 @@ export function UserManagementTable({
                         </span>
                       </span>
                     )}
+                  </AdminTableCell>
+                  <AdminTableCell>
+                    <span
+                      className="text-xs text-[var(--slate-400)]"
+                      title={new Date(u.created_at).toLocaleString("fr-FR")}
+                    >
+                      {new Date(u.created_at).toLocaleDateString("fr-CA")}
+                    </span>
                   </AdminTableCell>
                   <AdminTableCell>
                     {u.expires_at == null ? (

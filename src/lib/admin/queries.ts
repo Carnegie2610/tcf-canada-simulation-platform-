@@ -417,11 +417,29 @@ export async function createUser(
 export async function updateUser(
   supabase: SupabaseClient,
   userId: string,
-  data: UpdateUserInput
+  data: UpdateUserInput,
+  /**
+   * Service-role client, used only to log a sale when a pack changes. Required
+   * because `payments` is RLS-restricted to super_admins — without it a regular
+   * admin's upgrade would update the profile but silently record no revenue.
+   */
+  adminSupabase?: SupabaseClient
 ): Promise<AdminProfile> {
+  // `bill_plan_change` is a UI signal, not a column — strip it before the update.
+  const { bill_plan_change: billPlanChange, ...profileFields } = data;
+
+  // Read the packs as they stand *before* writing, so a sale is logged only when a
+  // pack genuinely changes. Trusting the client's idea of the old value would let a
+  // stale form double-bill a student.
+  const { data: before } = await supabase
+    .from("profiles")
+    .select("assigned_plan_ee, assigned_plan_eo")
+    .eq("id", userId)
+    .single();
+
   const { data: profile, error } = await supabase
     .from("profiles")
-    .update(data)
+    .update(profileFields)
     .eq("id", userId)
     .select()
     .single();
@@ -430,7 +448,49 @@ export async function updateUser(
     throw new Error(error?.message ?? "Failed to update user");
   }
 
-  return profile as AdminProfile;
+  const updated = profile as AdminProfile;
+
+  if (billPlanChange && before) {
+    // One row per pack that actually changed, at that pack's own full price and
+    // commission — so the dashboard's EE (35%) / EO (30%) split stays correct
+    // without the rate ever being written out here.
+    const changed: AssignedPlan[] = [];
+    if (updated.assigned_plan_ee && updated.assigned_plan_ee !== before.assigned_plan_ee) {
+      changed.push(updated.assigned_plan_ee);
+    }
+    if (updated.assigned_plan_eo && updated.assigned_plan_eo !== before.assigned_plan_eo) {
+      changed.push(updated.assigned_plan_eo);
+    }
+
+    if (changed.length > 0) {
+      const rows = changed.map((plan) => {
+        const meta = getPlanMeta(plan);
+        return {
+          user_id: userId,
+          student_name: updated.full_name,
+          student_email: updated.email,
+          plan,
+          plan_price: meta.price,
+          commission: meta.commission,
+          payment_status: "confirmed",
+        };
+      });
+
+      // Never let a failed sale log undo a successful profile update — the quota
+      // change is what the student is waiting on. Surface it in the logs instead.
+      const { error: payError } = await (adminSupabase ?? supabase)
+        .from("payments")
+        .insert(rows);
+      if (payError) {
+        console.error("[updateUser] plan change not recorded in payments:", payError, {
+          userId,
+          plans: changed,
+        });
+      }
+    }
+  }
+
+  return updated;
 }
 
 export async function deleteUser(

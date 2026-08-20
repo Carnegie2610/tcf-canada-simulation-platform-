@@ -27,13 +27,15 @@ export default async function CommissionsAdminPage() {
   // KPI all-time
   const { data: allPayments } = await adminClient
     .from("payments")
-    .select("commission, plan_price, plan, created_at")
+    .select("commission, plan_price, plan, created_at, user_id")
     .eq("payment_status", "confirmed");
 
   const rows = allPayments ?? [];
   const totalCommission = rows.reduce((s, r) => s + Number(r.commission), 0);
   const totalRevenue = rows.reduce((s, r) => s + Number(r.plan_price), 0);
+  // See the API route: payments vs. distinct people are tracked separately.
   const totalRegistrations = rows.length;
+  const totalStudents = new Set(rows.map((r) => r.user_id as string)).size;
   const lifetimeRevenue = totalRevenue;
   const eoRows = rows.filter((r) => isEoPlan(r.plan as string));
   const totalCommissionEo = eoRows.reduce((s, r) => s + Number(r.commission), 0);
@@ -109,6 +111,7 @@ export default async function CommissionsAdminPage() {
     totalCommission,
     totalRevenue,
     totalRegistrations,
+    totalStudents,
     previousDayCommission,
     previousDayRevenue,
     previousDayRegistrations,

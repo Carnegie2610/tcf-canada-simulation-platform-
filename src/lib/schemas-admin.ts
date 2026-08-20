@@ -61,6 +61,9 @@ export const UpdateUserSchema = z.object({
   ai_corrections_enabled: z.boolean().optional(),
   expires_at: z.string().datetime().nullable().optional(),
   cohort_tag: z.string().max(100).nullable().optional(),
+  // Not a profiles column — tells updateUser() whether a pack change was an actual
+  // sale (record it in `payments`) or just a correction (record nothing).
+  bill_plan_change: z.boolean().optional(),
 });
 
 export const ExamSearchParamsSchema = z.object({

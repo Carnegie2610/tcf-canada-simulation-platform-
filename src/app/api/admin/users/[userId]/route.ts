@@ -42,7 +42,9 @@ export async function PATCH(
   }
 
   try {
-    const profile = await updateUser(supabase, userId, parsed.data);
+    // Service-role client passed through so a pack change can be logged to
+    // `payments`, which RLS otherwise restricts to super_admins.
+    const profile = await updateUser(supabase, userId, parsed.data, createSupabaseAdminClient());
     return NextResponse.json({ data: profile });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Internal server error";

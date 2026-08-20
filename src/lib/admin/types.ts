@@ -182,6 +182,8 @@ export interface UpdateUserInput {
   eo_simulations_quota?: number | null;
   eo_simulations_remaining?: number | null;
   ai_corrections_enabled?: boolean;
+  /** Transient flag (not persisted): bill a pack change as a new sale. */
+  bill_plan_change?: boolean;
   expires_at?: string | null;
   cohort_tag?: string | null;
 }
