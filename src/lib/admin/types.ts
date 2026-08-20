@@ -141,6 +141,9 @@ export interface ApiError {
 
 export interface UserSearchParams {
   search?: string;
+  status?: "active" | "expiring" | "expired" | "exhausted";
+  role?: UserRole;
+  cohort_tag?: string;
   exam_type?: ExamType;
   date_from?: string;
   date_to?: string;

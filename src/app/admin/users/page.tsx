@@ -16,11 +16,20 @@ export default function UsersPage() {
   const [currentUser, setCurrentUser] = useState<{ id: string; role: string } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
   const [page, setPage] = useState(1);
 
-  async function fetchUsers(q?: string, p = page) {
+  async function fetchUsers(
+    q?: string,
+    p = page,
+    st: string = status,
+    rl: string = roleFilter
+  ) {
     const params = new URLSearchParams({ pageSize: String(PAGE_SIZE), page: String(p) });
     if (q) params.set("search", q);
+    if (st) params.set("status", st);
+    if (rl) params.set("role", rl);
     const res = await fetch(`/api/admin/users?${params}`);
     const json = (await res.json()) as { data: AdminUserListResponse };
     setData(json.data);
@@ -62,6 +71,28 @@ export default function UsersPage() {
     return () => clearTimeout(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
+
+  function handleStatusChange(next: string) {
+    setStatus(next);
+    setPage(1);
+    void fetchUsers(search || undefined, 1, next, roleFilter);
+  }
+
+  function handleRoleChange(next: string) {
+    setRoleFilter(next);
+    setPage(1);
+    void fetchUsers(search || undefined, 1, status, next);
+  }
+
+  function resetFilters() {
+    setSearch("");
+    setStatus("");
+    setRoleFilter("");
+    setPage(1);
+    void fetchUsers(undefined, 1, "", "");
+  }
+
+  const hasFilters = search !== "" || status !== "" || roleFilter !== "";
 
   function handlePageChange(p: number) {
     setPage(p);

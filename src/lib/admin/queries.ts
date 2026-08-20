@@ -324,7 +324,7 @@ export async function listUsers(
   supabase: SupabaseClient,
   params: UserSearchParams
 ): Promise<AdminUserListResponse> {
-  const { page, pageSize, search } = params;
+  const { page, pageSize, search, status, role, cohort_tag } = params;
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
@@ -336,6 +336,31 @@ export async function listUsers(
 
   if (search) {
     query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
+  }
+
+  if (role) {
+    query = query.eq("role", role);
+  }
+
+  if (cohort_tag) {
+    query = query.eq("cohort_tag", cohort_tag);
+  }
+
+  // Status filters use plain comparisons rather than .or() — supabase-js only
+  // supports one top-level or() per query, and `search` above already claims it.
+  if (status) {
+    const now = new Date().toISOString();
+    if (status === "expired") {
+      query = query.lt("expires_at", now);
+    } else if (status === "active") {
+      query = query.gte("expires_at", now);
+    } else if (status === "expiring") {
+      const in7Days = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      query = query.gte("expires_at", now).lte("expires_at", in7Days);
+    } else if (status === "exhausted") {
+      // Nothing left on either skill — an expiry date alone doesn't qualify.
+      query = query.eq("ee_simulations_remaining", 0).eq("eo_simulations_remaining", 0);
+    }
   }
 
   const { data, count } = await query;
