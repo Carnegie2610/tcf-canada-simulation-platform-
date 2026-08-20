@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { StudentPageTemplate } from "@/components/templates/StudentPageTemplate";
+import { getStudentNotifications } from "@/lib/student/notifications";
 
 export default async function DashboardLayout({
   children,
@@ -28,10 +29,20 @@ export default async function DashboardLayout({
     redirect("/admin");
   }
 
+  // Fetched separately from the profile query above and failure-tolerant by
+  // design: a problem building the feed must never reach the
+  // `if (!profile) redirect("/login")` guard and bounce the student to login.
+  const { items: notifications, unreadCount } = await getStudentNotifications(
+    supabase,
+    user.id
+  );
+
   return (
     <StudentPageTemplate
       userId={user.id}
       currentUserName={profile.full_name ?? user.email ?? "Étudiant"}
+      notifications={notifications}
+      unreadCount={unreadCount}
       eeUsed={profile.ee_simulations_quota - profile.ee_simulations_remaining}
       eeTotal={profile.ee_simulations_quota}
       eoUsed={profile.eo_simulations_quota - profile.eo_simulations_remaining}
