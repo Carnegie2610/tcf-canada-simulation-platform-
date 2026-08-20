@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 const CreateAnnouncementSchema = z.object({
   title: z.string().min(3).max(255),
   body: z.string().min(5).max(5000),
+  icon: z.string().max(10).optional(),
 });
 
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
@@ -30,7 +31,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("announcements")
-    .select("id, title, body, created_at")
+    .select("id, title, body, icon, created_at")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

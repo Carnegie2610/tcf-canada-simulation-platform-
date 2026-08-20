@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { StudentNotification } from "@/lib/student/notifications";
 
 interface NotificationBellProps {
@@ -21,8 +21,10 @@ function timeAgo(iso: string): string {
 }
 
 export function NotificationBell({ initialItems, initialUnread }: NotificationBellProps) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
+  // Read in place rather than on a separate page — a notification is a few lines,
+  // and navigating away loses whatever the student was doing.
+  const [reading, setReading] = useState<StudentNotification | null>(null);
   const [items, setItems] = useState(initialItems);
   const [unread, setUnread] = useState(initialUnread);
   const ref = useRef<HTMLDivElement>(null);
@@ -61,7 +63,7 @@ export function NotificationBell({ initialItems, initialUnread }: NotificationBe
   function handleItemClick(item: StudentNotification) {
     if (!item.read) void markRead([item]);
     setOpen(false);
-    if (item.href) router.push(item.href);
+    setReading(item);
   }
 
   return (
@@ -112,7 +114,7 @@ export function NotificationBell({ initialItems, initialUnread }: NotificationBe
                   }`}
                 >
                   <span className="mt-0.5 shrink-0 text-base" aria-hidden="true">
-                    {item.source === "announcement" ? "📢" : "💬"}
+                    {item.icon}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-start justify-between gap-2">
@@ -133,6 +135,81 @@ export function NotificationBell({ initialItems, initialUnread }: NotificationBe
                 </button>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {reading && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-8 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="notification-title"
+          onClick={() => setReading(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl border-2 border-[var(--slate-700)] bg-[var(--slate-900)] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--slate-800)] px-6 py-4">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="mt-0.5 shrink-0 text-2xl" aria-hidden="true">
+                  {reading.icon}
+                </span>
+                <div className="min-w-0">
+                  <h2
+                    id="notification-title"
+                    className="text-base font-extrabold text-[var(--brand-white)]"
+                  >
+                    {reading.title}
+                  </h2>
+                  <p className="mt-0.5 text-[11px] text-[var(--slate-500)]">
+                    {new Date(reading.createdAt).toLocaleString("fr-FR", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setReading(null)}
+                aria-label="Fermer"
+                className="shrink-0 rounded-lg border border-[var(--slate-700)] px-3 py-1.5 text-xs font-medium text-[var(--slate-400)] transition-colors hover:bg-[var(--slate-800)] hover:text-[var(--slate-200)]"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto px-6 py-5">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--slate-200)]">
+                {reading.body}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-t border-[var(--slate-800)] px-6 py-4">
+              {/* Only ticket replies have somewhere further to go — the student
+                  needs the conversation view to actually answer back. */}
+              {reading.href ? (
+                <Link
+                  href={reading.href}
+                  onClick={() => setReading(null)}
+                  className="text-xs font-medium text-[var(--accent-blue-text)] hover:underline"
+                >
+                  Voir la conversation →
+                </Link>
+              ) : (
+                <span />
+              )}
+              <button
+                onClick={() => setReading(null)}
+                className="rounded-xl bg-[var(--slate-800)] px-5 py-2 text-sm font-semibold text-[var(--slate-200)] transition-colors hover:bg-[var(--slate-700)]"
+              >
+                Fermer
+              </button>
+            </div>
           </div>
         </div>
       )}

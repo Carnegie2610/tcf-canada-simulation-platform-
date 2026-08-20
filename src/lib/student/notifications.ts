@@ -9,7 +9,10 @@ export interface StudentNotification {
   body: string;
   createdAt: string;
   read: boolean;
-  /** Where clicking the notification should take the student, if anywhere. */
+  /** Emoji shown beside the notification. Admin-chosen for announcements. */
+  icon: string;
+  /** Set only when there is somewhere further to go — a ticket reply links to its
+   *  conversation. Announcements are read in place, so they have no href. */
   href?: string;
 }
 
@@ -37,7 +40,7 @@ export async function getStudentNotifications(
     const [{ data: announcements }, { data: tickets }, { data: reads }] = await Promise.all([
       supabase
         .from("announcements")
-        .select("id, title, body, created_at")
+        .select("id, title, body, icon, created_at")
         .order("created_at", { ascending: false })
         .limit(MAX_ITEMS),
       // Only this student's tickets are visible to them under RLS, so the admin
@@ -66,7 +69,7 @@ export async function getStudentNotifications(
         body: a.body as string,
         createdAt: a.created_at as string,
         read: readKeys.has(`announcement:${a.id}`),
-        href: "/dashboard/notifications",
+        icon: (a.icon as string) || "📢",
       });
     }
 
@@ -84,6 +87,7 @@ export async function getStudentNotifications(
           body: m.body,
           createdAt: m.created_at,
           read: readKeys.has(`ticket_message:${m.id}`),
+          icon: "💬",
           href: "/dashboard/tickets",
         });
       }

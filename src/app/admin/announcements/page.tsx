@@ -6,13 +6,31 @@ interface Announcement {
   id: string;
   title: string;
   body: string;
+  icon: string | null;
   created_at: string;
 }
+
+// Deliberately a fixed set rather than free text: students recognise a small,
+// consistent vocabulary far faster than arbitrary emoji, and it keeps the
+// notification list visually coherent.
+const ICONS = [
+  { emoji: "📢", label: "Annonce" },
+  { emoji: "⚠️", label: "Important" },
+  { emoji: "📅", label: "Date / session" },
+  { emoji: "🎉", label: "Bonne nouvelle" },
+  { emoji: "📝", label: "Examen" },
+  { emoji: "🎓", label: "Conseil" },
+  { emoji: "💡", label: "Astuce" },
+  { emoji: "🔧", label: "Maintenance" },
+];
+
+const DEFAULT_ICON = "📢";
 
 export default function AnnouncementsPage() {
   const [items, setItems] = useState<Announcement[] | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [icon, setIcon] = useState(DEFAULT_ICON);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +52,7 @@ export default function AnnouncementsPage() {
       const res = await fetch("/api/admin/announcements", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ title, body }),
+        body: JSON.stringify({ title, body, icon }),
       });
       if (!res.ok) {
         setError("Impossible de publier l'annonce. Vérifiez le titre (3 car. min) et le message (5 car. min).");
@@ -42,6 +60,7 @@ export default function AnnouncementsPage() {
       }
       setTitle("");
       setBody("");
+      setIcon(DEFAULT_ICON);
       await load();
     } catch {
       setError("Erreur réseau.");
@@ -70,6 +89,29 @@ export default function AnnouncementsPage() {
         onSubmit={handleCreate}
         className="mt-6 space-y-3 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-5"
       >
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-[var(--slate-400)]">Icône de l&apos;annonce</p>
+          <div className="flex flex-wrap gap-2">
+            {ICONS.map((opt) => (
+              <button
+                key={opt.emoji}
+                type="button"
+                onClick={() => setIcon(opt.emoji)}
+                title={opt.label}
+                aria-pressed={icon === opt.emoji}
+                className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                  icon === opt.emoji
+                    ? "border-blue-500 bg-blue-600/20 text-blue-300"
+                    : "border-[var(--slate-700)] text-[var(--slate-400)] hover:bg-[var(--slate-800)]"
+                }`}
+              >
+                <span className="text-base">{opt.emoji}</span>
+                <span className="text-xs">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -120,7 +162,10 @@ export default function AnnouncementsPage() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-[var(--brand-white)]">{a.title}</p>
+                  <p className="text-sm font-bold text-[var(--brand-white)]">
+                    <span className="mr-1.5">{a.icon || DEFAULT_ICON}</span>
+                    {a.title}
+                  </p>
                   <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[var(--slate-400)]">
                     {a.body}
                   </p>
