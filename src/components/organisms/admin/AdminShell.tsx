@@ -33,6 +33,7 @@ const navItems = [
   { label: "Utilisateurs", href: "/admin/users", icon: "◻", superAdminOnly: false },
   { label: "Demandes d'inscription", href: "/admin/signup-requests", icon: "🙋", superAdminOnly: false },
   { label: "Annonces", href: "/admin/announcements", icon: "📢", superAdminOnly: false },
+  { label: "Témoignages", href: "/admin/testimonials", icon: "💬", superAdminOnly: false },
   { label: "Ressources PDF", href: "/admin/resources", icon: "📕", superAdminOnly: false },
   { label: "Clés API", href: "/admin/api-keys", icon: "🔑", superAdminOnly: false },
   { label: "Tickets Support", href: "/admin/tickets", icon: "🎫", superAdminOnly: false },
