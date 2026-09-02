@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/atoms/Avatar";
 import { StarRating } from "@/components/atoms/StarRating";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { TESTIMONIAL_AVATARS_BUCKET } from "@/app/api/admin/testimonials/avatar-upload/route";
+import { TESTIMONIAL_AVATARS_BUCKET } from "@/lib/constants/storage";
 
 interface Testimonial {
   id: string;
