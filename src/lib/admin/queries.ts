@@ -161,12 +161,12 @@ export function mapOralSubmission(row: Record<string, unknown>): SubmissionWithE
   const rawEvaluation = row.evaluation as Record<string, unknown> | Record<string, unknown>[] | null;
   const evalRow = Array.isArray(rawEvaluation) ? (rawEvaluation[0] ?? null) : rawEvaluation;
 
-  let evaluation: Evaluation | null = null;
-  if (evalRow) {
-    const task1 = evalRow.task_1_evaluation as Record<string, unknown>;
-    const task2 = evalRow.task_2_evaluation as Record<string, unknown>;
-    const task3 = evalRow.task_3_evaluation as Record<string, unknown>;
+  const task1 = evalRow?.task_1_evaluation as Record<string, unknown> | undefined;
+  const task2 = evalRow?.task_2_evaluation as Record<string, unknown> | undefined;
+  const task3 = evalRow?.task_3_evaluation as Record<string, unknown> | undefined;
 
+  let evaluation: Evaluation | null = null;
+  if (evalRow && task1 && task2 && task3) {
     evaluation = {
       id: evalRow.id as string,
       submission_id: evalRow.submission_id as string,
@@ -197,6 +197,23 @@ export function mapOralSubmission(row: Record<string, unknown>): SubmissionWithE
       exam_type: combination?.exam_type ?? "TCF",
     },
     sourceType: "oral",
+    oralTasks: {
+      task1: {
+        question: (task1?.consigne as string) ?? "",
+        transcript: (task1?.transcript as string) ?? "",
+        audioPath: (row.audio_path_task_1 as string) ?? null,
+      },
+      task2: {
+        question: (task2?.consigne as string) ?? "",
+        transcript: (task2?.transcript as string) ?? "",
+        audioPath: (row.audio_path_task_2 as string) ?? null,
+      },
+      task3: {
+        question: (task3?.consigne as string) ?? "",
+        transcript: (task3?.transcript as string) ?? "",
+        audioPath: (row.audio_path_task_3 as string) ?? null,
+      },
+    },
     evaluation,
   };
 }
@@ -271,6 +288,7 @@ export async function getStudentAuditData(
     .select(
       `
       id, user_id, oral_combination_id, is_completed, completed_at, created_at,
+      audio_path_task_1, audio_path_task_2, audio_path_task_3,
       combination:oral_combinations ( id, title, exam_type ),
       evaluation:oral_evaluations (
         id, submission_id, global_score, cefr_level, appreciation,
