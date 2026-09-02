@@ -924,24 +924,44 @@ export async function getDashboardChartData(
 ): Promise<{ byDay: SubmissionsByDay[]; cefrDistribution: CefrDistributionItem[] }> {
   const range = getFilterRange(filter, date);
 
-  let subsQuery = supabase
+  let eeSubsQuery = supabase
     .from("combination_submissions")
     .select("created_at")
     .eq("is_completed", true)
     .limit(1000);
 
-  if (range.gte) subsQuery = subsQuery.gte("created_at", range.gte);
-  if (range.lt) subsQuery = subsQuery.lt("created_at", range.lt);
+  if (range.gte) eeSubsQuery = eeSubsQuery.gte("created_at", range.gte);
+  if (range.lt) eeSubsQuery = eeSubsQuery.lt("created_at", range.lt);
 
-  const { data: subsData } = await subsQuery;
+  let eoSubsQuery = supabase
+    .from("oral_submissions")
+    .select("created_at")
+    .eq("is_completed", true)
+    .limit(1000);
 
-  const dayMap = new Map<string, number>();
-  for (const row of subsData ?? []) {
+  if (range.gte) eoSubsQuery = eoSubsQuery.gte("created_at", range.gte);
+  if (range.lt) eoSubsQuery = eoSubsQuery.lt("created_at", range.lt);
+
+  const [{ data: eeSubsData }, { data: eoSubsData }] = await Promise.all([
+    eeSubsQuery,
+    eoSubsQuery,
+  ]);
+
+  const dayMap = new Map<string, { ee: number; eo: number }>();
+  for (const row of eeSubsData ?? []) {
     const d = (row.created_at as string).slice(0, 10);
-    dayMap.set(d, (dayMap.get(d) ?? 0) + 1);
+    const entry = dayMap.get(d) ?? { ee: 0, eo: 0 };
+    entry.ee += 1;
+    dayMap.set(d, entry);
+  }
+  for (const row of eoSubsData ?? []) {
+    const d = (row.created_at as string).slice(0, 10);
+    const entry = dayMap.get(d) ?? { ee: 0, eo: 0 };
+    entry.eo += 1;
+    dayMap.set(d, entry);
   }
   const byDay: SubmissionsByDay[] = Array.from(dayMap.entries())
-    .map(([date, count]) => ({ date, count }))
+    .map(([date, counts]) => ({ date, ...counts }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const { data: evalData } = await supabase

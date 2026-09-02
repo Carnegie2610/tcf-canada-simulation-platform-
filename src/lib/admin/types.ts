@@ -353,7 +353,8 @@ export interface DashboardStats {
 
 export interface SubmissionsByDay {
   date: string;
-  count: number;
+  ee: number;
+  eo: number;
 }
 
 export interface CefrDistributionItem {

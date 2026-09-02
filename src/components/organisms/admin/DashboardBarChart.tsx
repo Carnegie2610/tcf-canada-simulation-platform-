@@ -7,6 +7,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
 import type { SubmissionsByDay } from "@/lib/admin/types";
@@ -14,6 +15,16 @@ import type { SubmissionsByDay } from "@/lib/admin/types";
 interface DashboardBarChartProps {
   data: SubmissionsByDay[];
 }
+
+// Matches the EE/EO color pairing already used elsewhere in the admin dashboard
+// (see CommissionsPage.tsx) for visual consistency across charts.
+const EE_COLOR = "#3b82f6";
+const EO_COLOR = "#10b981";
+
+const SERIES_LABEL: Record<string, string> = {
+  ee: "Expression Écrite",
+  eo: "Expression Orale",
+};
 
 export function DashboardBarChart({ data }: DashboardBarChartProps) {
   if (data.length === 0) {
@@ -57,9 +68,20 @@ export function DashboardBarChart({ data }: DashboardBarChartProps) {
             }}
             labelStyle={{ color: "var(--slate-300)" }}
             itemStyle={{ color: "var(--blue-400)" }}
-            formatter={(v: unknown) => [`${v as number} soumissions`, ""]}
+            formatter={(v: unknown, name: unknown) => [
+              `${v as number} soumissions`,
+              SERIES_LABEL[String(name)] ?? String(name),
+            ]}
           />
-          <Bar dataKey="count" fill="var(--blue-600)" radius={[4, 4, 0, 0]} maxBarSize={40} />
+          <Legend
+            formatter={(value: string) => (
+              <span style={{ color: "var(--slate-400)", fontSize: 12 }}>
+                {SERIES_LABEL[value] ?? value}
+              </span>
+            )}
+          />
+          <Bar dataKey="ee" name="ee" fill={EE_COLOR} radius={[4, 4, 0, 0]} maxBarSize={28} />
+          <Bar dataKey="eo" name="eo" fill={EO_COLOR} radius={[4, 4, 0, 0]} maxBarSize={28} />
         </BarChart>
       </ResponsiveContainer>
     </div>
