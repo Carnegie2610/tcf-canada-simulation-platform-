@@ -67,6 +67,13 @@ export interface Submission {
    *  normalise to section "COMBINE", so this is the only way to tell them apart
    *  once mapped — needed to fetch the right raw data for a PDF export. */
   sourceType?: "exam" | "combination" | "oral";
+  /** Present only when sourceType === "oral" — per-task question/transcript and
+   *  the storage path (not a signed URL) of the recorded audio, if any. */
+  oralTasks?: {
+    task1: { question: string; transcript: string; audioPath: string | null };
+    task2: { question: string; transcript: string; audioPath: string | null };
+    task3: { question: string; transcript: string; audioPath: string | null };
+  };
 }
 
 export interface FeedbackCorrection {
