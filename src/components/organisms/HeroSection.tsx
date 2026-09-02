@@ -5,7 +5,7 @@ import heroImage from "../../../public/heroimage-1.png";
 
 export function HeroSection() {
   return (
-    <section className="hero-glow relative w-full overflow-hidden px-4 py-28 sm:py-36">
+    <section className="hero-glow relative w-full overflow-hidden px-4 pt-12 pb-28 sm:pt-16 sm:pb-36">
       <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
         <div className="text-center lg:text-left">
           <SectionLabel>Préparation TEF / TCF Canada</SectionLabel>
@@ -32,7 +32,7 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="relative order-first lg:order-last">
+        <div className="relative">
           <Image
             src={heroImage}
             alt="Étudiant se préparant à l'examen TEF/TCF Canada"
