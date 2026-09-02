@@ -7,7 +7,7 @@ const CreateTestimonialSchema = z.object({
   role_text: z.string().max(255).optional(),
   rating: z.number().int().min(1).max(5),
   content: z.string().min(5).max(2000),
-  avatar_path: z.string().max(512).optional(),
+  avatar_path: z.string().max(512).nullable().optional(),
   is_published: z.boolean().optional(),
   display_order: z.number().int().optional(),
 });
