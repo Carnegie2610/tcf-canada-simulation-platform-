@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-
-export const TESTIMONIAL_AVATARS_BUCKET = "testimonial-avatars";
+import { TESTIMONIAL_AVATARS_BUCKET } from "@/lib/constants/storage";
 
 const SignUploadSchema = z.object({
   filename: z.string().min(1).max(200),
