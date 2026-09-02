@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Submission } from "@/lib/admin/types";
+import { CustomAudioPlayer } from "@/components/atoms/CustomAudioPlayer";
 
 type TaskKey = "task1" | "task2" | "task3";
 
@@ -74,8 +75,9 @@ export function OralSubmissionReviewPanel({
               ) : !audioUrl ? (
                 <p className="text-sm text-[var(--slate-500)]">Chargement de l&apos;audio...</p>
               ) : (
-                // eslint-disable-next-line jsx-a11y/media-has-caption
-                <audio controls src={audioUrl} className="w-full max-w-sm" />
+                <div className="max-w-sm">
+                  <CustomAudioPlayer src={audioUrl} />
+                </div>
               )}
             </div>
 
