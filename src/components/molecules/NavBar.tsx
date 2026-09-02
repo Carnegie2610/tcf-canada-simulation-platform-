@@ -58,12 +58,16 @@ export function NavBar({ navItems }: NavBarProps) {
 
       <div className="flex items-center gap-2 xl:ml-2">
         <ThemeToggle />
-        <Button variant="secondary" size="sm" href="/login">
-          Connexion
-        </Button>
-        <Button variant="primary" size="sm" href="/inscription" className="btn-glow">
-          S&apos;inscrire
-        </Button>
+        <span className="hidden sm:inline-flex">
+          <Button variant="secondary" size="sm" href="/login">
+            Connexion
+          </Button>
+        </span>
+        <span className="hidden sm:inline-flex">
+          <Button variant="primary" size="sm" href="/inscription" className="btn-glow">
+            S&apos;inscrire
+          </Button>
+        </span>
 
         <div className="relative xl:hidden" ref={mobileMenuRef}>
           <button
@@ -101,6 +105,22 @@ export function NavBar({ navItems }: NavBarProps) {
                   {item.label}
                 </Link>
               ))}
+
+              {/* Below `sm`, the auth buttons are hidden from the top bar (no room)
+                  — offer them here instead so they stay reachable. */}
+              <div className="sm:hidden mt-1 flex flex-col gap-2 border-t border-[var(--slate-700)] px-3 pt-3">
+                <Button variant="secondary" size="sm" href="/login" className="w-full justify-center">
+                  Connexion
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  href="/inscription"
+                  className="btn-glow w-full justify-center"
+                >
+                  S&apos;inscrire
+                </Button>
+              </div>
             </div>
           )}
         </div>

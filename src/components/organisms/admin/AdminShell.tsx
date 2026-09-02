@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { SignOutButton } from "@/components/molecules/student/SignOutButton";
 import { ThemeToggle } from "@/components/atoms/ThemeToggle";
 import { AdminNavLink } from "@/components/molecules/admin/AdminNavLink";
@@ -50,10 +53,46 @@ export function AdminShell({
   openTicketCount = 0,
   pendingSignupCount = 0,
 }: AdminShellProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
     <div className="flex min-h-screen bg-[var(--slate-950)]">
-      {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-[var(--slate-800)] bg-[var(--slate-900)]">
+      {/* Mobile top bar — hamburger + logo, hidden at md+ where the sidebar is
+          always visible. */}
+      <div className="fixed inset-x-0 top-0 z-20 flex h-14 items-center gap-3 border-b border-[var(--slate-800)] bg-[var(--slate-900)] px-4 md:hidden">
+        <button
+          type="button"
+          onClick={() => setSidebarOpen((v) => !v)}
+          aria-label={sidebarOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={sidebarOpen}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[var(--slate-700)] text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)]"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="h-4 w-4">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <img src="/icon-rounded.png" alt="Objectif 4C2 Academy Logo" width={28} height={28} className="h-7 w-7 shrink-0 object-contain" />
+        <span className="truncate text-sm font-semibold text-[var(--brand-white)]">{currentUserName}</span>
+      </div>
+
+      {/* Dismissible overlay behind the drawer on mobile */}
+      {sidebarOpen && (
+        <div
+          onClick={closeSidebar}
+          aria-hidden="true"
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+        />
+      )}
+
+      {/* Sidebar — off-canvas drawer below md, always visible at md+ */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-[var(--slate-800)] bg-[var(--slate-900)] transition-transform duration-200 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+      >
         {/* Brand */}
         <div className="flex items-center gap-2 border-b border-[var(--slate-800)] px-5 py-4">
           <img src="/icon-rounded.png" alt="Objectif 4C2 Academy Logo" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" />
@@ -73,10 +112,16 @@ export function AdminShell({
             .filter((item) => !item.superAdminOnly || currentUserRole === "super_admin")
             .filter((item) => PRE_QUESTIONS.includes(item.href))
             .map((item) => (
-              <AdminNavLink key={item.href} href={item.href} icon={item.icon} label={item.label} />
+              <AdminNavLink
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                onNavigate={closeSidebar}
+              />
             ))}
 
-          <AdminNavGroup label="Questions" icon="📚" items={questionItems} />
+          <AdminNavGroup label="Questions" icon="📚" items={questionItems} onNavigate={closeSidebar} />
 
           {navItems
             .filter((item) => !PRE_QUESTIONS.includes(item.href))
@@ -87,6 +132,7 @@ export function AdminShell({
                 href={item.href}
                 icon={item.icon}
                 label={item.label}
+                onNavigate={closeSidebar}
                 badgeCount={
                   item.href === "/admin/tickets"
                     ? openTicketCount
@@ -116,7 +162,7 @@ export function AdminShell({
       </aside>
 
       {/* Main content */}
-      <main className="ml-60 flex-1 min-w-0">{children}</main>
+      <main className="min-w-0 flex-1 pt-14 md:ml-60 md:pt-0">{children}</main>
     </div>
   );
 }

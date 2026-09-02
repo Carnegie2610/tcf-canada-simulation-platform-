@@ -14,6 +14,7 @@ interface AdminNavGroupProps {
   label: string;
   icon: string;
   items: NavChild[];
+  onNavigate?: () => void;
 }
 
 /**
@@ -24,7 +25,7 @@ interface AdminNavGroupProps {
  * straight to a grouped route never leaves the sidebar looking like that section
  * isn't there.
  */
-export function AdminNavGroup({ label, icon, items }: AdminNavGroupProps) {
+export function AdminNavGroup({ label, icon, items, onNavigate }: AdminNavGroupProps) {
   const pathname = usePathname();
 
   const isChildActive = (href: string) =>
@@ -67,6 +68,7 @@ export function AdminNavGroup({ label, icon, items }: AdminNavGroupProps) {
               <Link
                 key={child.href}
                 href={child.href}
+                onClick={onNavigate}
                 aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
                   active

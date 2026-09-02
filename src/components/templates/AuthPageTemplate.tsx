@@ -55,7 +55,7 @@ export function AuthPageTemplate({
             )}
           </div>
 
-          <div className="rounded-2xl border border-[var(--blue-900)] bg-[var(--slate-900)] p-8">
+          <div className="rounded-2xl border border-[var(--blue-900)] bg-[var(--slate-900)] p-4 sm:p-8">
             {children}
           </div>
         </div>

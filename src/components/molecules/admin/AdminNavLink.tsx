@@ -8,9 +8,10 @@ interface AdminNavLinkProps {
   icon: string;
   label: string;
   badgeCount?: number;
+  onNavigate?: () => void;
 }
 
-export function AdminNavLink({ href, icon, label, badgeCount }: AdminNavLinkProps) {
+export function AdminNavLink({ href, icon, label, badgeCount, onNavigate }: AdminNavLinkProps) {
   const pathname = usePathname();
   const isActive =
     href === "/admin"
@@ -20,6 +21,7 @@ export function AdminNavLink({ href, icon, label, badgeCount }: AdminNavLinkProp
   return (
     <Link
       href={href}
+      onClick={onNavigate}
       aria-current={isActive ? "page" : undefined}
       className={`flex items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-sm font-medium transition-colors ${
         isActive
