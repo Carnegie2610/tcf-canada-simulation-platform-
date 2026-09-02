@@ -1,6 +1,7 @@
 "use client";
 
 import { DiagnosticTabView } from "@/components/molecules/admin/DiagnosticTabView";
+import { OralSubmissionReviewPanel } from "@/components/molecules/admin/OralSubmissionReviewPanel";
 import type { SubmissionWithEvaluation } from "@/lib/admin/types";
 import { AdminPdfDownloadButton } from "@/components/molecules/admin/AdminPdfDownloadButton";
 
