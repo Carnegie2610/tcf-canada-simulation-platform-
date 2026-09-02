@@ -59,44 +59,51 @@ export function SubmissionDrawer({ submission, aiEnabled, onClose }: SubmissionD
           </div>
         </div>
 
-        {/* Body: side-by-side */}
-        <div className="flex flex-1 divide-x divide-[var(--slate-800)] overflow-hidden">
-          {/* Left: Prompt */}
-          <div className="flex w-1/2 flex-col overflow-hidden">
-            <div className="border-b border-[var(--slate-800)] px-5 py-2.5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--slate-500)]">
-                Sujet original
-              </p>
-            </div>
-            <div className="flex-1 overflow-y-auto px-5 py-4">
-              <p className="text-sm leading-relaxed text-[var(--slate-300)] whitespace-pre-wrap">
-                {submission.exam?.title
-                  ? "Voir le sujet ci-dessous dans le champ de simulation."
-                  : "Sujet non disponible."}
-              </p>
-            </div>
-          </div>
-
-          {/* Right: Student draft */}
-          <div className="flex w-1/2 flex-col overflow-hidden">
-            <div className="border-b border-[var(--slate-800)] px-5 py-2.5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--slate-500)]">
-                Brouillon étudiant
-              </p>
-            </div>
-            <div className="flex-1 overflow-y-auto px-5 py-4">
-              {isEmpty ? (
-                <p className="text-sm text-[var(--slate-500)] italic">
-                  Brouillon vide soumis.
+        {/* Body */}
+        {submission.sourceType === "oral" && submission.oralTasks ? (
+          <OralSubmissionReviewPanel
+            submissionId={submission.id}
+            oralTasks={submission.oralTasks}
+          />
+        ) : (
+          <div className="flex flex-1 divide-x divide-[var(--slate-800)] overflow-hidden">
+            {/* Left: Prompt */}
+            <div className="flex w-1/2 flex-col overflow-hidden">
+              <div className="border-b border-[var(--slate-800)] px-5 py-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--slate-500)]">
+                  Sujet original
                 </p>
-              ) : (
+              </div>
+              <div className="flex-1 overflow-y-auto px-5 py-4">
                 <p className="text-sm leading-relaxed text-[var(--slate-300)] whitespace-pre-wrap">
-                  {submission.user_draft}
+                  {submission.exam?.title
+                    ? "Voir le sujet ci-dessous dans le champ de simulation."
+                    : "Sujet non disponible."}
                 </p>
-              )}
+              </div>
+            </div>
+
+            {/* Right: Student draft */}
+            <div className="flex w-1/2 flex-col overflow-hidden">
+              <div className="border-b border-[var(--slate-800)] px-5 py-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--slate-500)]">
+                  Brouillon étudiant
+                </p>
+              </div>
+              <div className="flex-1 overflow-y-auto px-5 py-4">
+                {isEmpty ? (
+                  <p className="text-sm text-[var(--slate-500)] italic">
+                    Brouillon vide soumis.
+                  </p>
+                ) : (
+                  <p className="text-sm leading-relaxed text-[var(--slate-300)] whitespace-pre-wrap">
+                    {submission.user_draft}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Diagnostic tabs */}
         <div className="border-t border-[var(--slate-800)] px-6 py-4 max-h-72 overflow-y-auto">
