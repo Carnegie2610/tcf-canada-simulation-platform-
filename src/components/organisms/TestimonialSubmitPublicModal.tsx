@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StarRating } from "@/components/atoms/StarRating";
+import { capture } from "@/lib/posthog";
 
 interface TestimonialSubmitPublicModalProps {
   open: boolean;
@@ -46,6 +47,7 @@ export function TestimonialSubmitPublicModal({
         setError("Impossible d'envoyer votre témoignage. Vérifiez les champs.");
         return;
       }
+      capture("testimonial_submitted", { source: "public" });
       setSubmitted(true);
     } catch {
       setError("Erreur réseau.");

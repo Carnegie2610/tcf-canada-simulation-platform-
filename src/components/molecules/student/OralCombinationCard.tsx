@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { OralCombination } from "@/lib/admin/types";
 import type { OralSubmission } from "@/lib/student/queries";
+import { capture } from "@/lib/posthog";
 
 interface OralCombinationCardProps {
   oralCombination: OralCombination;
@@ -67,6 +68,7 @@ export function OralCombinationCard({
         setLoading(false);
         return;
       }
+      capture("simulation_started", { examType: "EO" });
       router.push(
         `/dashboard/expression-orale/attempt/${oralCombination.id}?sid=${data.submissionId}`
       );

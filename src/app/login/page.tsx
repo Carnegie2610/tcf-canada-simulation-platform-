@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AuthPageTemplate } from "@/components/templates/AuthPageTemplate";
 import { AuthForm } from "@/components/molecules/AuthForm";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { capture, identify } from "@/lib/posthog";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function LoginPage() {
         requiresOtp?: boolean;
         email?: string;
         role?: string;
+        id?: string;
         error?: string;
       };
 
@@ -46,6 +48,11 @@ export default function LoginPage() {
           `/login/verify-otp?email=${encodeURIComponent(json.email ?? email)}&remember=${rememberMe ? "1" : "0"}`
         );
         return;
+      }
+
+      if (json.id) {
+        identify(json.id, { email });
+        capture("logged_in", { role: json.role ?? "student" });
       }
 
       if (json.role === "admin" || json.role === "super_admin") {

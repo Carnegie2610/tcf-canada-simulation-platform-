@@ -6,6 +6,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useExamTimer } from "@/hooks/useExamTimer";
 import { OralTaskRecorder } from "@/components/organisms/student/oral/OralTaskRecorder";
 import type { OralTask, OralTasks } from "@/lib/admin/types";
+import { capture } from "@/lib/posthog";
 
 interface OralAttemptFlowProps {
   oralCombinationId: string;
@@ -106,6 +107,7 @@ export function OralAttemptFlow({
 
       if (!submitRes.ok) throw new Error("submit_failed");
 
+      capture("simulation_submitted", { examType: "EO" });
       setPhase("done");
       router.push(
         `/dashboard/expression-orale/attempt/${oralCombinationId}/pending?sid=${submissionId}`

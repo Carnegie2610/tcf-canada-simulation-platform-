@@ -6,6 +6,7 @@ import { useExamTimer } from "@/hooks/useExamTimer";
 import { SubmissionGate } from "@/components/organisms/student/SubmissionGate";
 import { AiLoadingHub } from "@/components/organisms/student/AiLoadingHub";
 import type { Combination } from "@/lib/admin/types";
+import { capture } from "@/lib/posthog";
 
 interface CombinationEditorProps {
   combination: Combination;
@@ -173,6 +174,7 @@ export function CombinationEditor({
         method: "POST",
       });
 
+      capture("simulation_submitted", { examType: "EE" });
       sessionStorage.removeItem(storageKey(submissionId));
       setIsLocked(true);
       setShowExpiredOverlay(false);

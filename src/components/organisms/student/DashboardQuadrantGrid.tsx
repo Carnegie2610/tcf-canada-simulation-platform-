@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { TestimonialSubmitModal } from "./TestimonialSubmitModal";
+import { capture } from "@/lib/posthog";
 
 interface QuadrantCardProps {
   href: string;
@@ -166,7 +167,12 @@ export function DashboardQuadrantGrid({
             "Signaler un problème technique",
           ]}
         />
-        <TestimonialCallout onClick={() => setTestimonialModalOpen(true)} />
+        <TestimonialCallout
+          onClick={() => {
+            capture("testimonial_modal_opened", { source: "student" });
+            setTestimonialModalOpen(true);
+          }}
+        />
       </div>
       <DailyChallenge />
       <TestimonialSubmitModal

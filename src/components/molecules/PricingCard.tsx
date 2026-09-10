@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/atoms/Badge";
+import { capture } from "@/lib/posthog";
 
 export interface PricingCardProps {
   name: string;
@@ -48,6 +49,7 @@ export function PricingCard({
     const message = encodeURIComponent(
       `Bonjour OBJECTIF 4C2, je souhaite souscrire au *${name}* (${price} F CFA) pour commencer mes simulations d'expression écrite du TCF Canada. Veuillez m'indiquer la procédure d'activation.`
     );
+    capture("pricing_cta_clicked", { plan: name, price });
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
   }
 

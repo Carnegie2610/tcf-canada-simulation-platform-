@@ -5,6 +5,7 @@ import { Avatar } from "@/components/atoms/Avatar";
 import { StarRating } from "@/components/atoms/StarRating";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { TESTIMONIAL_AVATARS_BUCKET } from "@/lib/constants/storage";
+import { capture } from "@/lib/posthog";
 
 interface TestimonialSubmitModalProps {
   open: boolean;
@@ -91,6 +92,7 @@ export function TestimonialSubmitModal({ open, onClose, studentName }: Testimoni
         setError("Impossible d'envoyer votre témoignage. Vérifiez les champs.");
         return;
       }
+      capture("testimonial_submitted", { source: "student" });
       setSubmitted(true);
     } catch {
       setError("Erreur réseau.");

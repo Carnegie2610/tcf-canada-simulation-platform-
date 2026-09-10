@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SectionLabel } from "@/components/atoms/SectionLabel";
 import { TestimonialCard, type Testimonial } from "@/components/molecules/TestimonialCard";
 import { TestimonialSubmitPublicModal } from "./TestimonialSubmitPublicModal";
+import { capture } from "@/lib/posthog";
 
 export function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -37,7 +38,10 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
         <div className="text-center">
           <button
             type="button"
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              capture("testimonial_modal_opened", { source: "public" });
+              setModalOpen(true);
+            }}
             className="rounded-lg border border-[var(--brand-red)]/30 bg-[var(--brand-red)]/10 px-5 py-2.5 text-sm font-semibold text-[var(--accent-red-text)] transition-colors hover:bg-[var(--brand-red)]/20"
           >
             Partagez votre expérience

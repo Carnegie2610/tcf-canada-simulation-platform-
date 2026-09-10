@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Combination, CombinationSubmission } from "@/lib/admin/types";
+import { capture } from "@/lib/posthog";
 
 interface CombinationCardProps {
   combination: Combination;
@@ -63,6 +64,7 @@ export function CombinationCard({
         setLoading(false);
         return;
       }
+      capture("simulation_started", { examType: "EE" });
       router.push(`/arena/${combination.id}?sid=${data.submissionId}`);
     } catch {
       setLoading(false);

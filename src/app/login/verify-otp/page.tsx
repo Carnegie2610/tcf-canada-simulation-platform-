@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthPageTemplate } from "@/components/templates/AuthPageTemplate";
 import { Button } from "@/components/atoms/Button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { capture, identify } from "@/lib/posthog";
 
 // Must match the live Supabase project's Auth > Email OTP length setting — this
 // project sends 8-digit codes (confirmed from real received emails), not the
@@ -109,7 +110,7 @@ function VerifyOtpForm() {
 
     try {
       const supabase = createSupabaseBrowserClient({ persistSession: rememberMe });
-      const { error: verifyError } = await supabase.auth.verifyOtp({
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email: email!,
         token: code,
         type: "email",
@@ -118,6 +119,11 @@ function VerifyOtpForm() {
       if (verifyError) {
         setError("Code invalide ou expiré. Veuillez réessayer.");
         return;
+      }
+
+      if (data.user) {
+        identify(data.user.id, { email: data.user.email });
+        capture("logged_in", { role: "super_admin" });
       }
 
       router.push("/admin");
