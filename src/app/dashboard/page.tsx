@@ -153,6 +153,7 @@ export default async function DashboardPage() {
       <DashboardQuadrantGrid
         simulationsUsed={simulationsUsed}
         simulationsTotal={simulationsTotal}
+        studentName={profile?.full_name ?? ""}
       />
     </div>
   );

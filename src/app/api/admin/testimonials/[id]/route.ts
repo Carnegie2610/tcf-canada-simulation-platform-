@@ -8,7 +8,7 @@ const UpdateTestimonialSchema = z.object({
   rating: z.number().int().min(1).max(5).optional(),
   content: z.string().min(5).max(2000).optional(),
   avatar_path: z.string().max(512).nullable().optional(),
-  is_published: z.boolean().optional(),
+  status: z.enum(["pending", "approved", "rejected"]).optional(),
   display_order: z.number().int().optional(),
 });
 
@@ -47,9 +47,18 @@ export async function PATCH(
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
+  // reviewed_by/reviewed_at are always derived server-side from the acting
+  // admin — never taken from the request body — whenever a moderation
+  // decision (status change) is being made.
+  const update: Record<string, unknown> = { ...parsed.data };
+  if (parsed.data.status) {
+    update.reviewed_by = auth.user.id;
+    update.reviewed_at = new Date().toISOString();
+  }
+
   const { data, error } = await supabase
     .from("testimonials")
-    .update(parsed.data)
+    .update(update)
     .eq("id", id)
     .select()
     .single();

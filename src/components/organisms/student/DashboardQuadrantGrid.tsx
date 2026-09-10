@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { TestimonialSubmitModal } from "./TestimonialSubmitModal";
 
 interface QuadrantCardProps {
   href: string;
@@ -81,15 +83,45 @@ function DailyChallenge() {
   );
 }
 
+function TestimonialCallout({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-col gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-left transition-colors hover:bg-emerald-500/10"
+    >
+      <div className="flex items-start justify-between">
+        <span className="text-3xl">💬</span>
+        <span className="inline-flex rounded bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-400">
+          Votre avis compte
+        </span>
+      </div>
+      <div>
+        <h2 className="text-base font-semibold text-[var(--brand-white)]">
+          Partagez votre expérience
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-[var(--slate-400)]">
+          Laissez un témoignage sur Objectif 4C2 — il pourrait être publié sur notre page
+          d&apos;accueil après validation.
+        </p>
+      </div>
+    </button>
+  );
+}
+
 interface DashboardQuadrantGridProps {
   simulationsUsed: number;
   simulationsTotal: number;
+  studentName: string;
 }
 
 export function DashboardQuadrantGrid({
   simulationsUsed,
   simulationsTotal,
+  studentName,
 }: DashboardQuadrantGridProps) {
+  const [testimonialModalOpen, setTestimonialModalOpen] = useState(false);
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -134,8 +166,14 @@ export function DashboardQuadrantGrid({
             "Signaler un problème technique",
           ]}
         />
+        <TestimonialCallout onClick={() => setTestimonialModalOpen(true)} />
       </div>
       <DailyChallenge />
+      <TestimonialSubmitModal
+        open={testimonialModalOpen}
+        onClose={() => setTestimonialModalOpen(false)}
+        studentName={studentName}
+      />
     </div>
   );
 }

@@ -6,6 +6,8 @@ import { StarRating } from "@/components/atoms/StarRating";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { TESTIMONIAL_AVATARS_BUCKET } from "@/lib/constants/storage";
 
+type Status = "pending" | "approved" | "rejected";
+
 interface Testimonial {
   id: string;
   name: string;
@@ -13,27 +15,50 @@ interface Testimonial {
   rating: number;
   content: string;
   avatar_path: string | null;
-  is_published: boolean;
+  status: Status;
   display_order: number;
+  user_id: string | null;
   created_at: string;
 }
 
-const EMPTY_FORM = {
-  name: "",
-  role_text: "",
-  rating: 5,
-  content: "",
-  avatar_path: null as string | null,
-  is_published: true,
-  display_order: 0,
+interface EditState {
+  name: string;
+  role_text: string;
+  rating: number;
+  content: string;
+  avatar_path: string | null;
+  display_order: number;
+}
+
+const STATUS_LABEL: Record<Status, string> = {
+  pending: "En attente",
+  approved: "Publié",
+  rejected: "Rejeté",
 };
+
+const STATUS_BADGE_CLASS: Record<Status, string> = {
+  pending: "bg-amber-500/20 text-amber-400",
+  approved: "bg-emerald-500/20 text-emerald-400",
+  rejected: "bg-red-500/20 text-red-400",
+};
+
+function toEditState(t: Testimonial): EditState {
+  return {
+    name: t.name,
+    role_text: t.role_text ?? "",
+    rating: t.rating,
+    content: t.content,
+    avatar_path: t.avatar_path,
+    display_order: t.display_order,
+  };
+}
 
 export default function TestimonialsAdminPage() {
   const [items, setItems] = useState<Testimonial[] | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState<EditState | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,33 +72,25 @@ export default function TestimonialsAdminPage() {
     void load();
   }, []);
 
-  function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  function startEdit(t: Testimonial) {
+    setEditingId(t.id);
+    setEditForm(toEditState(t));
+    setError(null);
   }
 
-  function resetForm() {
-    setForm(EMPTY_FORM);
+  function cancelEdit() {
     setEditingId(null);
+    setEditForm(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  function startEdit(t: Testimonial) {
-    setEditingId(t.id);
-    setForm({
-      name: t.name,
-      role_text: t.role_text ?? "",
-      rating: t.rating,
-      content: t.content,
-      avatar_path: t.avatar_path,
-      is_published: t.is_published,
-      display_order: t.display_order,
-    });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  function setField<K extends keyof EditState>(key: K, value: EditState[K]) {
+    setEditForm((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !editForm) return;
 
     setError(null);
     setUploading(true);
@@ -102,8 +119,7 @@ export default function TestimonialsAdminPage() {
         setError("Échec de l'envoi de la photo. Réessayez.");
         return;
       }
-
-      set("avatar_path", publicUrl);
+      setField("avatar_path", publicUrl);
     } catch {
       setError("Erreur réseau lors de l'envoi de la photo.");
     } finally {
@@ -111,47 +127,205 @@ export default function TestimonialsAdminPage() {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function patch(id: string, body: Record<string, unknown>) {
+    setBusyId(id);
     setError(null);
-    setSaving(true);
     try {
-      const url = editingId ? `/api/admin/testimonials/${editingId}` : "/api/admin/testimonials";
-      const method = editingId ? "PATCH" : "POST";
-
-      const res = await fetch(url, {
-        method,
+      const res = await fetch(`/api/admin/testimonials/${id}`, {
+        method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(body),
       });
-
       if (!res.ok) {
-        setError("Impossible d'enregistrer le témoignage. Vérifiez les champs (nom, note, contenu).");
+        setError("L'action a échoué. Réessayez.");
         return;
       }
-      resetForm();
       await load();
-    } catch {
-      setError("Erreur réseau.");
     } finally {
-      setSaving(false);
+      setBusyId(null);
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!window.confirm("Supprimer ce témoignage ? Il disparaîtra de la page d'accueil.")) return;
-    await fetch(`/api/admin/testimonials/${id}`, { method: "DELETE" });
-    if (editingId === id) resetForm();
-    await load();
+  async function handleSaveEdit(id: string) {
+    if (!editForm) return;
+    await patch(id, {
+      name: editForm.name,
+      role_text: editForm.role_text || null,
+      rating: editForm.rating,
+      content: editForm.content,
+      avatar_path: editForm.avatar_path,
+      display_order: editForm.display_order,
+    });
+    cancelEdit();
   }
 
-  async function togglePublished(t: Testimonial) {
-    await fetch(`/api/admin/testimonials/${t.id}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ is_published: !t.is_published }),
-    });
-    await load();
+  async function handleDelete(id: string) {
+    if (!window.confirm("Supprimer ce témoignage définitivement ?")) return;
+    setBusyId(id);
+    try {
+      await fetch(`/api/admin/testimonials/${id}`, { method: "DELETE" });
+      await load();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  const pending = items?.filter((t) => t.status === "pending") ?? [];
+  const processed = items?.filter((t) => t.status !== "pending") ?? [];
+
+  function renderCard(t: Testimonial) {
+    const isEditing = editingId === t.id;
+    const isBusy = busyId === t.id;
+
+    if (isEditing && editForm) {
+      return (
+        <div
+          key={t.id}
+          className="space-y-3 rounded-xl border border-blue-500/40 bg-[var(--slate-900)] p-5"
+        >
+          <div className="flex items-center gap-4">
+            <Avatar name={editForm.name || "?"} avatarUrl={editForm.avatar_path} size="lg" />
+            <div className="space-y-1.5">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={handleAvatarChange}
+                disabled={uploading}
+                className="text-xs text-[var(--slate-400)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--blue-600)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[var(--blue-500)]"
+              />
+              {uploading && <p className="text-[11px] text-[var(--slate-500)]">Envoi en cours...</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <input
+              value={editForm.name}
+              onChange={(e) => setField("name", e.target.value)}
+              placeholder="Nom"
+              className={inputCls}
+            />
+            <input
+              value={editForm.role_text}
+              onChange={(e) => setField("role_text", e.target.value)}
+              placeholder="Contexte"
+              className={inputCls}
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <p className="text-xs font-medium text-[var(--slate-400)]">Note</p>
+            <StarRating value={editForm.rating} onChange={(v) => setField("rating", v)} />
+          </div>
+
+          <textarea
+            value={editForm.content}
+            onChange={(e) => setField("content", e.target.value)}
+            rows={4}
+            className={`${inputCls} resize-none`}
+          />
+
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-[var(--slate-400)]">Ordre d&apos;affichage</p>
+            <input
+              type="number"
+              value={editForm.display_order}
+              onChange={(e) => setField("display_order", Number(e.target.value))}
+              className={`${inputCls} w-32`}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="rounded-lg border border-[var(--slate-700)] px-4 py-2 text-sm text-[var(--slate-300)] transition-colors hover:text-[var(--brand-white)]"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSaveEdit(t.id)}
+              disabled={isBusy || uploading}
+              className="rounded-lg bg-[var(--blue-600)] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--blue-500)] disabled:opacity-50"
+            >
+              Enregistrer
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={t.id}
+        className="flex items-start justify-between gap-4 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-5"
+      >
+        <div className="flex min-w-0 items-start gap-3">
+          <Avatar name={t.name} avatarUrl={t.avatar_path} />
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-bold text-[var(--brand-white)]">{t.name}</p>
+              <span className={`rounded px-2 py-0.5 text-[10px] font-medium ${STATUS_BADGE_CLASS[t.status]}`}>
+                {STATUS_LABEL[t.status]}
+              </span>
+              <span className="rounded bg-[var(--slate-700)] px-2 py-0.5 text-[10px] font-medium text-[var(--slate-400)]">
+                {t.user_id ? "Étudiant" : "Visiteur"}
+              </span>
+            </div>
+            {t.role_text && <p className="text-xs text-[var(--slate-500)]">{t.role_text}</p>}
+            <div className="mt-1">
+              <StarRating value={t.rating} size="sm" />
+            </div>
+            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[var(--slate-400)]">
+              {t.content}
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          {t.status !== "approved" && (
+            <button
+              disabled={isBusy}
+              onClick={() => patch(t.id, { status: "approved" })}
+              className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400 transition-colors hover:bg-emerald-500/20 disabled:opacity-50"
+            >
+              Approuver
+            </button>
+          )}
+          {t.status !== "rejected" && (
+            <button
+              disabled={isBusy}
+              onClick={() => patch(t.id, { status: "rejected" })}
+              className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+            >
+              Rejeter
+            </button>
+          )}
+          {t.status !== "pending" && (
+            <button
+              disabled={isBusy}
+              onClick={() => patch(t.id, { status: "pending" })}
+              className="rounded-lg border border-[var(--slate-700)] px-3 py-1.5 text-xs text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)] disabled:opacity-50"
+            >
+              Remettre en attente
+            </button>
+          )}
+          <button
+            onClick={() => startEdit(t)}
+            className="rounded-lg border border-[var(--slate-700)] px-3 py-1.5 text-xs text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)]"
+          >
+            Modifier
+          </button>
+          <button
+            disabled={isBusy}
+            onClick={() => handleDelete(t.id)}
+            className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
+          >
+            Supprimer
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -159,172 +333,44 @@ export default function TestimonialsAdminPage() {
       <div>
         <h1 className="text-2xl font-bold text-[var(--brand-white)]">Témoignages</h1>
         <p className="mt-1 text-sm text-[var(--slate-400)]">
-          Gérez les avis affichés sur la page d&apos;accueil. Seuls les témoignages publiés
-          sont visibles par les visiteurs.
+          Les étudiants et les visiteurs peuvent soumettre un témoignage. Approuvez-le pour
+          qu&apos;il apparaisse sur la page d&apos;accueil.
         </p>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="mt-6 space-y-3 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-5"
-      >
-        <div className="flex items-center gap-4">
-          <Avatar name={form.name || "?"} avatarUrl={form.avatar_path} size="lg" />
-          <div className="space-y-1.5">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/gif"
-              onChange={handleAvatarChange}
-              disabled={uploading}
-              className="text-xs text-[var(--slate-400)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--blue-600)] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[var(--blue-500)]"
-            />
-            <p className="text-[11px] text-[var(--slate-500)]">
-              {uploading
-                ? "Envoi en cours..."
-                : "Optionnel — sans photo, l'initiale du nom est utilisée."}
-            </p>
-          </div>
-        </div>
+      {error && (
+        <p className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+          {error}
+        </p>
+      )}
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <input
-            value={form.name}
-            onChange={(e) => set("name", e.target.value)}
-            required
-            placeholder="Nom — ex : Fatou Diallo"
-            className={inputCls}
-          />
-          <input
-            value={form.role_text}
-            onChange={(e) => set("role_text", e.target.value)}
-            placeholder="Contexte — ex : Étudiante TCF, admise au Canada"
-            className={inputCls}
-          />
-        </div>
-
-        <div className="flex items-center gap-3">
-          <p className="text-xs font-medium text-[var(--slate-400)]">Note</p>
-          <StarRating value={form.rating} onChange={(v) => set("rating", v)} />
-        </div>
-
-        <textarea
-          value={form.content}
-          onChange={(e) => set("content", e.target.value)}
-          required
-          rows={4}
-          placeholder="Le témoignage..."
-          className={`${inputCls} resize-none`}
-        />
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-[var(--slate-400)]">Ordre d&apos;affichage</p>
-            <input
-              type="number"
-              value={form.display_order}
-              onChange={(e) => set("display_order", Number(e.target.value))}
-              className={inputCls}
-            />
-          </div>
-          <label className="flex items-center gap-2 self-end pb-2.5">
-            <input
-              type="checkbox"
-              checked={form.is_published}
-              onChange={(e) => set("is_published", e.target.checked)}
-              className="rounded border-[var(--slate-600)] bg-[var(--slate-800)]"
-            />
-            <span className="text-sm text-[var(--slate-300)]">Publié</span>
-          </label>
-        </div>
-
-        {error && (
-          <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
-            {error}
-          </p>
-        )}
-
-        <div className="flex justify-end gap-2">
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="rounded-lg border border-[var(--slate-700)] px-4 py-2 text-sm text-[var(--slate-300)] transition-colors hover:text-[var(--brand-white)]"
-            >
-              Annuler
-            </button>
-          )}
-          <button
-            type="submit"
-            disabled={saving || uploading}
-            className="rounded-lg bg-[var(--blue-600)] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--blue-500)] disabled:opacity-50"
-          >
-            {saving ? "Enregistrement..." : editingId ? "Mettre à jour" : "Ajouter le témoignage"}
-          </button>
-        </div>
-      </form>
-
-      <div className="mt-8 space-y-3">
+      <div className="mt-6 space-y-3">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
-          Témoignages {items ? `(${items.length})` : ""}
+          En attente {items ? `(${pending.length})` : ""}
         </h2>
 
         {items === null ? (
           <p className="text-sm text-[var(--slate-500)]">Chargement...</p>
-        ) : items.length === 0 ? (
+        ) : pending.length === 0 ? (
           <div className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] px-5 py-8 text-center text-sm text-[var(--slate-500)]">
-            Aucun témoignage pour le moment.
+            Aucun témoignage en attente.
           </div>
         ) : (
-          items.map((t) => (
-            <div
-              key={t.id}
-              className="flex items-start justify-between gap-4 rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] p-5"
-            >
-              <div className="flex min-w-0 items-start gap-3">
-                <Avatar name={t.name} avatarUrl={t.avatar_path} />
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-bold text-[var(--brand-white)]">{t.name}</p>
-                    {!t.is_published && (
-                      <span className="rounded bg-[var(--slate-700)] px-2 py-0.5 text-[10px] font-medium text-[var(--slate-400)]">
-                        Masqué
-                      </span>
-                    )}
-                  </div>
-                  {t.role_text && (
-                    <p className="text-xs text-[var(--slate-500)]">{t.role_text}</p>
-                  )}
-                  <div className="mt-1">
-                    <StarRating value={t.rating} size="sm" />
-                  </div>
-                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[var(--slate-400)]">
-                    {t.content}
-                  </p>
-                </div>
-              </div>
-              <div className="flex shrink-0 flex-col items-end gap-1.5">
-                <button
-                  onClick={() => togglePublished(t)}
-                  className="rounded-lg border border-[var(--slate-700)] px-3 py-1.5 text-xs text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)]"
-                >
-                  {t.is_published ? "Masquer" : "Publier"}
-                </button>
-                <button
-                  onClick={() => startEdit(t)}
-                  className="rounded-lg border border-[var(--slate-700)] px-3 py-1.5 text-xs text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)]"
-                >
-                  Modifier
-                </button>
-                <button
-                  onClick={() => handleDelete(t.id)}
-                  className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/10"
-                >
-                  Supprimer
-                </button>
-              </div>
-            </div>
-          ))
+          pending.map(renderCard)
+        )}
+      </div>
+
+      <div className="mt-8 space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-[var(--slate-500)]">
+          Traités {items ? `(${processed.length})` : ""}
+        </h2>
+
+        {items !== null && processed.length === 0 ? (
+          <div className="rounded-xl border border-[var(--slate-700)] bg-[var(--slate-900)] px-5 py-8 text-center text-sm text-[var(--slate-500)]">
+            Aucun témoignage traité pour le moment.
+          </div>
+        ) : (
+          processed.map(renderCard)
         )}
       </div>
     </div>

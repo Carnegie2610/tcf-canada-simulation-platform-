@@ -15,7 +15,7 @@ export default async function LandingPage() {
   const { data: testimonials } = await supabase
     .from("testimonials")
     .select("id, name, role_text, rating, content, avatar_path")
-    .eq("is_published", true)
+    .eq("status", "approved")
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: false });
 

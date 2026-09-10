@@ -1,8 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import { SectionLabel } from "@/components/atoms/SectionLabel";
 import { TestimonialCard, type Testimonial } from "@/components/molecules/TestimonialCard";
+import { TestimonialSubmitPublicModal } from "./TestimonialSubmitPublicModal";
 
 export function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) {
-  if (testimonials.length === 0) return null;
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <section className="w-full px-4 py-20">
@@ -18,12 +22,30 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((t) => (
-            <TestimonialCard key={t.id} testimonial={t} />
-          ))}
+        {testimonials.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {testimonials.map((t) => (
+              <TestimonialCard key={t.id} testimonial={t} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-sm text-[var(--slate-500)]">
+            Soyez le premier à partager votre expérience !
+          </p>
+        )}
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="rounded-lg border border-[var(--brand-red)]/30 bg-[var(--brand-red)]/10 px-5 py-2.5 text-sm font-semibold text-[var(--accent-red-text)] transition-colors hover:bg-[var(--brand-red)]/20"
+          >
+            Partagez votre expérience
+          </button>
         </div>
       </div>
+
+      <TestimonialSubmitPublicModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </section>
   );
 }
