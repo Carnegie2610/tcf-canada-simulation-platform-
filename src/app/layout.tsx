@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Sora, Plus_Jakarta_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { PostHogAnalytics } from "@/components/PostHogProvider";
 import "./globals.css";
 
 const sora = Sora({
@@ -123,6 +124,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {children}
         <Analytics />
         <SpeedInsights />
+        <PostHogAnalytics />
       </body>
     </html>
   );
