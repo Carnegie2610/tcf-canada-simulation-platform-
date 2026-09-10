@@ -13,6 +13,7 @@ interface AdminShellProps {
   currentUserRole: UserRole;
   openTicketCount?: number;
   pendingSignupCount?: number;
+  pendingTestimonialCount?: number;
 }
 
 // The four question banks are collapsed under one "Questions" group — they share a
@@ -53,6 +54,7 @@ export function AdminShell({
   currentUserRole,
   openTicketCount = 0,
   pendingSignupCount = 0,
+  pendingTestimonialCount = 0,
 }: AdminShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const closeSidebar = () => setSidebarOpen(false);
@@ -139,7 +141,9 @@ export function AdminShell({
                     ? openTicketCount
                     : item.href === "/admin/signup-requests"
                       ? pendingSignupCount
-                      : undefined
+                      : item.href === "/admin/testimonials"
+                        ? pendingTestimonialCount
+                        : undefined
                 }
               />
             ))}

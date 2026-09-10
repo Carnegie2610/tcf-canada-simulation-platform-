@@ -35,12 +35,18 @@ export default async function AdminLayout({
     .select("id", { count: "exact", head: true })
     .eq("status", "open");
 
+  const { count: pendingTestimonialCount } = await supabase
+    .from("testimonials")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
   return (
     <AdminPageTemplate
       currentUserName={profile.full_name ?? user.email ?? "Admin"}
       currentUserRole={profile.role as UserRole}
       openTicketCount={openTicketCount ?? 0}
       pendingSignupCount={pendingSignupCount ?? 0}
+      pendingTestimonialCount={pendingTestimonialCount ?? 0}
     >
       {children}
     </AdminPageTemplate>

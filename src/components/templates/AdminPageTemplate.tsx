@@ -7,6 +7,7 @@ interface AdminPageTemplateProps {
   currentUserRole: UserRole;
   openTicketCount?: number;
   pendingSignupCount?: number;
+  pendingTestimonialCount?: number;
 }
 
 export function AdminPageTemplate({
@@ -15,6 +16,7 @@ export function AdminPageTemplate({
   currentUserRole,
   openTicketCount = 0,
   pendingSignupCount = 0,
+  pendingTestimonialCount = 0,
 }: AdminPageTemplateProps) {
   return (
     <AdminShell
@@ -22,6 +24,7 @@ export function AdminPageTemplate({
       currentUserRole={currentUserRole}
       openTicketCount={openTicketCount}
       pendingSignupCount={pendingSignupCount}
+      pendingTestimonialCount={pendingTestimonialCount}
     >
       {children}
     </AdminShell>
