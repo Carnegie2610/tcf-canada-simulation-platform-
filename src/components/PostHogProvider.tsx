@@ -16,14 +16,19 @@ function PostHogPageview() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Idempotent — guards against child effects (this one) firing before the
-    // parent's init effect on initial mount, per React's bottom-up effect order.
-    const client = initPostHog();
-    if (!client) return;
-    const search = searchParams.toString();
-    client.capture("$pageview", {
-      $current_url: search ? `${pathname}?${search}` : pathname,
+    let cancelled = false;
+
+    void initPostHog().then((client) => {
+      if (!client || cancelled) return;
+      const search = searchParams.toString();
+      client.capture("$pageview", {
+        $current_url: search ? `${pathname}?${search}` : pathname,
+      });
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [pathname, searchParams]);
 
   return null;
@@ -31,7 +36,7 @@ function PostHogPageview() {
 
 export function PostHogAnalytics() {
   useEffect(() => {
-    initPostHog();
+    void initPostHog();
   }, []);
 
   return (

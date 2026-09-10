@@ -1,29 +1,34 @@
 import posthog from "posthog-js";
 
-let initialized = false;
+let initPromise: Promise<typeof posthog | null> | null = null;
 
 /**
- * Idempotent init — the provider component's effect can legitimately re-run
- * (e.g. React strict-mode double-invoke in dev), and posthog-js itself warns
- * if init() is called twice, so this guards it explicitly rather than relying
- * on the library to dedupe silently.
+ * POSTHOG_KEY/POSTHOG_HOST are deliberately not NEXT_PUBLIC_-prefixed, so
+ * Next.js won't inline them into the client bundle — this fetches them from
+ * a small server route instead. The value still reaches the browser either
+ * way (client-side PostHog can't work otherwise), so this is a naming choice,
+ * not a security boundary.
+ *
+ * Cached in a module-level promise so repeated calls (e.g. once per pageview
+ * from the provider) reuse the same in-flight/completed fetch + init rather
+ * than re-fetching config or calling posthog.init() more than once.
  */
-export function initPostHog(): typeof posthog | null {
-  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  if (!key) return null; // Not configured (e.g. local dev without a key) — no-op.
-
-  if (!initialized) {
-    posthog.init(key, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://eu.i.posthog.com",
-      // Pageviews are captured manually in the provider (App Router doesn't
-      // fire a real navigation event posthog-js can hook into automatically),
-      // autocapture still covers clicks/inputs.
-      capture_pageview: false,
-      person_profiles: "identified_only",
-    });
-    initialized = true;
+export function initPostHog(): Promise<typeof posthog | null> {
+  if (!initPromise) {
+    initPromise = fetch("/api/posthog-config")
+      .then((res) => res.json())
+      .then((config: { key: string | null; host: string }) => {
+        if (!config.key) return null; // Not configured — no-op.
+        posthog.init(config.key, {
+          api_host: config.host,
+          capture_pageview: false,
+          person_profiles: "identified_only",
+        });
+        return posthog;
+      })
+      .catch(() => null);
   }
-  return posthog;
+  return initPromise;
 }
 
 export { posthog };
