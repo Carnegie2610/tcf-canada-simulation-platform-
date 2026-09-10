@@ -60,5 +60,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ requiresOtp: true, email });
   }
 
-  return NextResponse.json({ requiresOtp: false, role: profile?.role ?? "student" });
+  return NextResponse.json({
+    requiresOtp: false,
+    role: profile?.role ?? "student",
+    id: authData.user.id,
+  });
 }

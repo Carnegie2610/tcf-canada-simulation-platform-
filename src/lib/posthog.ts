@@ -23,12 +23,24 @@ export function initPostHog(): Promise<typeof posthog | null> {
           api_host: config.host,
           capture_pageview: false,
           person_profiles: "identified_only",
+          session_recording: {},
         });
         return posthog;
       })
       .catch(() => null);
   }
   return initPromise;
+}
+
+/** Fire-and-forget capture — waits for init (queued if it hasn't finished
+ * yet) without making every call site deal with the async dance itself. */
+export function capture(event: string, properties?: Record<string, unknown>) {
+  void initPostHog().then((client) => client?.capture(event, properties));
+}
+
+/** Same idea as `capture`, for tagging the current visitor as a known person. */
+export function identify(id: string, properties?: Record<string, unknown>) {
+  void initPostHog().then((client) => client?.identify(id, properties));
 }
 
 export { posthog };
