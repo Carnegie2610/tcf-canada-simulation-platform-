@@ -10,6 +10,10 @@ ALTER TABLE public.testimonials
 UPDATE public.testimonials
   SET status = CASE WHEN is_published THEN 'approved' ELSE 'pending' END;
 
+-- Must drop the old policy before the column it depends on, or Postgres
+-- refuses the DROP COLUMN below with "other objects depend on it".
+DROP POLICY IF EXISTS "Anyone reads published testimonials" ON public.testimonials;
+
 ALTER TABLE public.testimonials
   DROP COLUMN is_published;
 
@@ -21,9 +25,6 @@ ALTER TABLE public.testimonials
 
 ALTER TABLE public.testimonials
   DROP COLUMN created_by;
-
--- Replace the old "published" read policy with one keyed on the new status.
-DROP POLICY IF EXISTS "Anyone reads published testimonials" ON public.testimonials;
 
 CREATE POLICY "Anyone reads approved testimonials"
   ON public.testimonials FOR SELECT
