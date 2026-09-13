@@ -5,22 +5,22 @@ import { TestimonialCard, type Testimonial } from "@/components/molecules/Testim
 import { TestimonialSubmitPublicModal } from "./TestimonialSubmitPublicModal";
 import { capture } from "@/lib/posthog";
 
+const AUTO_SCROLL_PX_PER_SECOND = 32;
+const ARROW_PAUSE_MS = 2500;
+
 function ArrowButton({
   direction,
-  disabled,
   onClick,
 }: {
   direction: "left" | "right";
-  disabled: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
       aria-label={direction === "left" ? "Précédent" : "Suivant"}
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[var(--slate-700)] bg-[var(--slate-900)] text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)] disabled:opacity-50 disabled:hover:bg-[var(--slate-900)]"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[var(--slate-700)] bg-[var(--slate-900)] text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)]"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -42,28 +42,41 @@ function ArrowButton({
 export function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) {
   const [modalOpen, setModalOpen] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const hoverPausedRef = useRef(false);
+  const manualPausedUntilRef = useRef(0);
 
-  function updateScrollState() {
-    const el = scrollerRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 4);
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-  }
+  const loopItems = testimonials.length > 0 ? [...testimonials, ...testimonials] : [];
 
   useEffect(() => {
-    updateScrollState();
     const el = scrollerRef.current;
-    if (!el) return;
-    const onResize = () => updateScrollState();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    if (!el || testimonials.length === 0) return;
+
+    let frameId: number;
+    let lastTime: number | null = null;
+
+    function step(time: number) {
+      if (lastTime === null) lastTime = time;
+      const deltaMs = time - lastTime;
+      lastTime = time;
+
+      const paused = hoverPausedRef.current || Date.now() < manualPausedUntilRef.current;
+      if (!paused && el) {
+        el.scrollLeft += (deltaMs / 1000) * AUTO_SCROLL_PX_PER_SECOND;
+        const singleSetWidth = el.scrollWidth / 2;
+        if (el.scrollLeft >= singleSetWidth) {
+          el.scrollLeft -= singleSetWidth;
+        }
+      }
+      frameId = requestAnimationFrame(step);
+    }
+    frameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frameId);
   }, [testimonials.length]);
 
   function scrollByCard(direction: "left" | "right") {
     const el = scrollerRef.current;
     if (!el) return;
+    manualPausedUntilRef.current = Date.now() + ARROW_PAUSE_MS;
     const card = el.querySelector<HTMLElement>("[data-testimonial-card]");
     const amount = card ? card.offsetWidth + 24 : el.clientWidth * 0.8;
     el.scrollBy({ left: direction === "left" ? -amount : amount, behavior: "smooth" });
@@ -85,16 +98,8 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
 
           {testimonials.length > 0 && (
             <div className="flex gap-2">
-              <ArrowButton
-                direction="left"
-                disabled={!canScrollLeft}
-                onClick={() => scrollByCard("left")}
-              />
-              <ArrowButton
-                direction="right"
-                disabled={!canScrollRight}
-                onClick={() => scrollByCard("right")}
-              />
+              <ArrowButton direction="left" onClick={() => scrollByCard("left")} />
+              <ArrowButton direction="right" onClick={() => scrollByCard("right")} />
             </div>
           )}
         </div>
@@ -102,14 +107,22 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
         {testimonials.length > 0 ? (
           <div
             ref={scrollerRef}
-            onScroll={updateScrollState}
-            className="flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            onMouseEnter={() => {
+              hoverPausedRef.current = true;
+            }}
+            onMouseLeave={() => {
+              hoverPausedRef.current = false;
+            }}
+            onPointerDown={() => {
+              manualPausedUntilRef.current = Date.now() + ARROW_PAUSE_MS;
+            }}
+            className="flex gap-6 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {testimonials.map((t) => (
+            {loopItems.map((t, i) => (
               <div
-                key={t.id}
+                key={`${t.id}-${i}`}
                 data-testimonial-card
-                className="w-[80vw] shrink-0 snap-start sm:w-[45vw] lg:w-[calc((100%-3rem)/3.3)]"
+                className="w-[80vw] shrink-0 sm:w-[45vw] lg:w-[calc((100%-3rem)/3.3)]"
               >
                 <TestimonialCard testimonial={t} />
               </div>
