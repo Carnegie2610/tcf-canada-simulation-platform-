@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/atoms/Avatar";
 import { StarRating } from "@/components/atoms/StarRating";
+import { ProfessionSelect } from "@/components/molecules/ProfessionSelect";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { TESTIMONIAL_AVATARS_BUCKET } from "@/lib/constants/storage";
 
@@ -205,11 +206,11 @@ export default function TestimonialsAdminPage() {
               placeholder="Nom"
               className={inputCls}
             />
-            <input
+            <ProfessionSelect
               value={editForm.role_text}
-              onChange={(e) => setField("role_text", e.target.value)}
-              placeholder="Contexte"
-              className={inputCls}
+              onChange={(value) => setField("role_text", value)}
+              selectClassName={inputCls}
+              inputClassName={inputCls}
             />
           </div>
 

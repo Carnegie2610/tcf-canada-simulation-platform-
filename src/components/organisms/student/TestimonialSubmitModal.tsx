@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Avatar } from "@/components/atoms/Avatar";
 import { StarRating } from "@/components/atoms/StarRating";
+import { ProfessionSelect } from "@/components/molecules/ProfessionSelect";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { TESTIMONIAL_AVATARS_BUCKET } from "@/lib/constants/storage";
 import { capture } from "@/lib/posthog";
@@ -162,11 +163,11 @@ export function TestimonialSubmitModal({ open, onClose, studentName }: Testimoni
               placeholder="Votre nom"
               className={inputCls}
             />
-            <input
+            <ProfessionSelect
               value={roleText}
-              onChange={(e) => setRoleText(e.target.value)}
-              placeholder="Contexte — ex : Étudiant TCF, admis au Canada"
-              className={inputCls}
+              onChange={setRoleText}
+              selectClassName={inputCls}
+              inputClassName={inputCls}
             />
 
             <div className="flex items-center gap-3">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StarRating } from "@/components/atoms/StarRating";
+import { ProfessionSelect } from "@/components/molecules/ProfessionSelect";
 import { capture } from "@/lib/posthog";
 
 interface TestimonialSubmitPublicModalProps {
@@ -14,6 +15,7 @@ export function TestimonialSubmitPublicModal({
   onClose,
 }: TestimonialSubmitPublicModalProps) {
   const [name, setName] = useState("");
+  const [roleText, setRoleText] = useState("");
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState("");
   const [website, setWebsite] = useState(""); // honeypot — real visitors never see this field
@@ -37,7 +39,13 @@ export function TestimonialSubmitPublicModal({
       const res = await fetch("/api/testimonials/submit", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name, rating, content, website }),
+        body: JSON.stringify({
+          name,
+          role_text: roleText || undefined,
+          rating,
+          content,
+          website,
+        }),
       });
       if (res.status === 429) {
         setError("Trop de témoignages envoyés récemment. Réessayez plus tard.");
@@ -117,6 +125,13 @@ export function TestimonialSubmitPublicModal({
               required
               placeholder="Votre nom"
               className={inputCls}
+            />
+
+            <ProfessionSelect
+              value={roleText}
+              onChange={setRoleText}
+              selectClassName={inputCls}
+              inputClassName={inputCls}
             />
 
             <div className="flex items-center gap-3">
