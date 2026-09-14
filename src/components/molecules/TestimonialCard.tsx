@@ -15,11 +15,25 @@ export function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
     <div className="relative flex h-full flex-col items-center gap-8 overflow-hidden rounded-2xl p-8 text-center shadow-md shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_24px_rgba(230,51,41,0.25)]">
       <Image
-        src="/assets/testimonial-asset.png"
+        src="/assets/Testimonials-assets/rectangle-base.png"
         alt=""
         fill
         aria-hidden="true"
         className="object-cover"
+      />
+      <Image
+        src="/assets/Testimonials-assets/ellipse-glow.png"
+        alt=""
+        fill
+        aria-hidden="true"
+        className="object-cover opacity-50 mix-blend-screen"
+      />
+      <Image
+        src="/assets/Testimonials-assets/noise-texture.png"
+        alt=""
+        fill
+        aria-hidden="true"
+        className="object-cover opacity-50 mix-blend-soft-light"
       />
 
       <p className="relative line-clamp-6 flex-1 text-base leading-loose text-[var(--slate-300)]">
