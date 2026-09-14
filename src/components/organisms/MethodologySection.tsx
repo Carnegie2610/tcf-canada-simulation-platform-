@@ -21,7 +21,7 @@ export function MethodologySection() {
     <section className="w-full px-4 py-20">
       <div className="mx-auto max-w-3xl space-y-8 text-center">
         <div className="space-y-3">
-          <h2 className="font-(family-name:--font-sora) text-3xl font-bold tracking-tight text-[var(--slate-200)]">
+          <h2 className="font-(family-name:--font-sora) bg-gradient-to-r from-[var(--brand-red)] to-[var(--accent-orange-text)] bg-clip-text text-3xl font-bold tracking-tight text-transparent">
             Préparation TCF Canada
           </h2>
           <p className="text-lg font-semibold text-[var(--slate-200)]">

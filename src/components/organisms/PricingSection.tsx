@@ -218,7 +218,7 @@ export function PricingSection() {
     <section id="tarifs" className="w-full px-4 py-20">
       <div className="mx-auto max-w-7xl space-y-16">
         <div className="text-center space-y-3">
-          <h2 className="font-(family-name:--font-sora) text-3xl font-bold tracking-tight text-[var(--slate-200)]">
+          <h2 className="font-(family-name:--font-sora) bg-gradient-to-r from-[var(--brand-red)] to-[var(--accent-orange-text)] bg-clip-text text-3xl font-bold tracking-tight text-transparent">
             Choisissez votre formule
           </h2>
           <p className="mx-auto max-w-xl text-base text-[var(--slate-400)]">

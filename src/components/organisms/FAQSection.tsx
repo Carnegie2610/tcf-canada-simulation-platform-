@@ -62,7 +62,7 @@ export function FAQSection() {
       <div className="mx-auto max-w-3xl space-y-12">
         <div className="text-center space-y-3">
           <SectionLabel>Questions fréquentes</SectionLabel>
-          <h2 className="font-(family-name:--font-sora) text-3xl font-bold tracking-tight text-[var(--slate-200)]">
+          <h2 className="font-(family-name:--font-sora) bg-gradient-to-r from-[var(--brand-red)] to-[var(--accent-orange-text)] bg-clip-text text-3xl font-bold tracking-tight text-transparent">
             Tout savoir sur le TEF/TCF Canada
           </h2>
           <p className="mx-auto max-w-xl text-base text-[var(--slate-400)]">
