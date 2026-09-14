@@ -20,7 +20,7 @@ function ArrowButton({
       type="button"
       onClick={onClick}
       aria-label={direction === "left" ? "Précédent" : "Suivant"}
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[var(--slate-700)] bg-[var(--slate-900)] text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)]"
+      className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border border-[var(--slate-700)] bg-[var(--slate-900)] text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)]"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +31,7 @@ function ArrowButton({
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden="true"
-        className="h-4 w-4"
+        className="h-8 w-8"
       >
         {direction === "left" ? <path d="M15 18l-6-6 6-6" /> : <path d="M9 18l6-6-6-6" />}
       </svg>
