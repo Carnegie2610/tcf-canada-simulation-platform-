@@ -84,7 +84,7 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
 
   return (
     <section className="w-full px-4 py-20">
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="mx-auto max-w-7xl space-y-16">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="space-y-3">
             <h2 className="font-(family-name:--font-sora) bg-gradient-to-r from-[var(--brand-red)] to-[var(--accent-orange-text)] bg-clip-text text-5xl font-black tracking-tight text-transparent sm:text-6xl">
