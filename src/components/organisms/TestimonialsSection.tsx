@@ -20,7 +20,7 @@ function ArrowButton({
       type="button"
       onClick={onClick}
       aria-label={direction === "left" ? "Précédent" : "Suivant"}
-      className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border border-[var(--slate-700)] bg-[var(--slate-900)] text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-800)]"
+      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-[var(--slate-800)] text-[var(--slate-300)] transition-colors hover:bg-[var(--slate-700)]"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +31,7 @@ function ArrowButton({
         strokeLinecap="round"
         strokeLinejoin="round"
         aria-hidden="true"
-        className="h-8 w-8"
+        className="h-6 w-6"
       >
         {direction === "left" ? <path d="M15 18l-6-6 6-6" /> : <path d="M9 18l6-6-6-6" />}
       </svg>
@@ -85,9 +85,9 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
   return (
     <section className="w-full px-4 py-20">
       <div className="mx-auto max-w-7xl space-y-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="space-y-2">
-            <h2 className="font-(family-name:--font-sora) bg-gradient-to-r from-[var(--brand-red)] to-[var(--accent-orange-text)] bg-clip-text text-3xl font-bold tracking-tight text-transparent">
+        <div className="flex flex-wrap items-center justify-between gap-6">
+          <div className="space-y-3">
+            <h2 className="font-(family-name:--font-sora) bg-gradient-to-r from-[var(--brand-red)] to-[var(--accent-orange-text)] bg-clip-text text-5xl font-black tracking-tight text-transparent sm:text-6xl">
               Témoignages
             </h2>
             <p className="max-w-xl text-base text-[var(--slate-400)]">
@@ -97,7 +97,7 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
           </div>
 
           {testimonials.length > 0 && (
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <ArrowButton direction="left" onClick={() => scrollByCard("left")} />
               <ArrowButton direction="right" onClick={() => scrollByCard("right")} />
             </div>
