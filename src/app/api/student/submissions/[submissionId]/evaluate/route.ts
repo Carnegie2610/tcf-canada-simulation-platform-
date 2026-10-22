@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { DiagnosticReportSchema } from "@/lib/schemas";
 import { revalidatePath } from "next/cache";
+import { logPipelineError } from "@/lib/logging/pipelineErrorLog";
 
 export const maxDuration = 60;
 
@@ -82,6 +83,15 @@ export async function POST(
   });
 
   if (!anthropicResponse.ok) {
+    const detail = await anthropicResponse.text().catch(() => "");
+    await logPipelineError({
+      submissionId,
+      userId: user.id,
+      examType: "EE",
+      stage: "ai_request_failed",
+      provider: "anthropic",
+      errorMessage: `HTTP ${anthropicResponse.status}: ${detail.slice(0, 500)}`,
+    });
     return NextResponse.json({ error: "ai_request_failed" }, { status: 502 });
   }
 
@@ -91,18 +101,42 @@ export async function POST(
   // Extract JSON from the response
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
+    await logPipelineError({
+      submissionId,
+      userId: user.id,
+      examType: "EE",
+      stage: "ai_parse_failed",
+      provider: "anthropic",
+      errorMessage: "No JSON object found in model response",
+    });
     return NextResponse.json({ error: "ai_parse_failed" }, { status: 502 });
   }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonMatch[0]);
-  } catch {
+  } catch (err) {
+    await logPipelineError({
+      submissionId,
+      userId: user.id,
+      examType: "EE",
+      stage: "ai_parse_failed",
+      provider: "anthropic",
+      errorMessage: err instanceof Error ? err.message : String(err),
+    });
     return NextResponse.json({ error: "ai_parse_failed" }, { status: 502 });
   }
 
   const validated = DiagnosticReportSchema.safeParse(parsed);
   if (!validated.success) {
+    await logPipelineError({
+      submissionId,
+      userId: user.id,
+      examType: "EE",
+      stage: "ai_schema_mismatch",
+      provider: "anthropic",
+      errorMessage: JSON.stringify(validated.error.issues).slice(0, 1000),
+    });
     return NextResponse.json({ error: "ai_schema_mismatch" }, { status: 502 });
   }
 
@@ -126,6 +160,13 @@ export async function POST(
     .single();
 
   if (evalError || !evaluation) {
+    await logPipelineError({
+      submissionId,
+      userId: user.id,
+      examType: "EE",
+      stage: "save_failed",
+      errorMessage: evalError?.message ?? "insert returned no row",
+    });
     return NextResponse.json({ error: "save_failed" }, { status: 500 });
   }
 

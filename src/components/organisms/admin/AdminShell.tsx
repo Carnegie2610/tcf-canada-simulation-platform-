@@ -37,6 +37,7 @@ const navItems = [
   { label: "Témoignages", href: "/admin/testimonials", icon: "💬", superAdminOnly: false },
   { label: "Ressources PDF", href: "/admin/resources", icon: "📕", superAdminOnly: false },
   { label: "Clés API", href: "/admin/api-keys", icon: "🔑", superAdminOnly: false },
+  { label: "Journal des erreurs", href: "/admin/pipeline-logs", icon: "🪵", superAdminOnly: false },
   { label: "Tickets Support", href: "/admin/tickets", icon: "🎫", superAdminOnly: false },
   { label: "Prompts IA", href: "/admin/prompts", icon: "⌘", superAdminOnly: true },
   { label: "Mes Commissions", href: "/admin/commissions", icon: "💸", superAdminOnly: true },

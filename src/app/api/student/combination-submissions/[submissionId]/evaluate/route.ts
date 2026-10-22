@@ -9,6 +9,7 @@ import {
 import { callAI, type AiResult } from "@/lib/ai/providers";
 import { COMBINATION_EVALUATION_DEFAULT } from "@/lib/ai/prompts";
 import type { Combination, CombinationSubmission } from "@/lib/admin/types";
+import { logPipelineError } from "@/lib/logging/pipelineErrorLog";
 
 export const maxDuration = 120;
 
@@ -234,6 +235,17 @@ export async function POST(
       f.reason instanceof Error ? f.reason.message : String(f.reason)
     );
     console.error("[evaluate] one or more task evaluations failed:", messages, { submissionId });
+    await Promise.all(
+      messages.map((message) =>
+        logPipelineError({
+          submissionId,
+          userId: user.id,
+          examType: "EE_combination",
+          stage: "task_evaluation_failed",
+          errorMessage: message,
+        })
+      )
+    );
     const notConfigured = messages.some((m) => m === "no_ai_provider_configured");
     if (notConfigured) {
       return NextResponse.json({ error: "ai_not_configured" }, { status: 503 });
@@ -276,6 +288,13 @@ export async function POST(
 
   if (evalError || !evaluation) {
     console.error("[evaluate] DB insert failed:", evalError);
+    await logPipelineError({
+      submissionId,
+      userId: user.id,
+      examType: "EE_combination",
+      stage: "save_failed",
+      errorMessage: evalError?.message ?? "insert returned no row",
+    });
     return NextResponse.json({ error: "save_failed" }, { status: 500 });
   }
 

@@ -10,6 +10,7 @@ import { callAI, callTranscription, type AiResult } from "@/lib/ai/providers";
 import { ORAL_EVALUATION_DEFAULT } from "@/lib/ai/prompts";
 import type { OralSubmission } from "@/lib/student/queries";
 import type { OralCombination } from "@/lib/admin/types";
+import { logPipelineError } from "@/lib/logging/pipelineErrorLog";
 
 // STT (transcription) + LLM scoring are chained sequentially per task rather than a single
 // AI call, so the per-task pipeline runs long than the combination route's single-stage calls.
@@ -478,6 +479,17 @@ export async function POST(
       submissionId,
       messages: stillFailedMessages,
     });
+    await Promise.all(
+      stillFailedMessages.map((message) =>
+        logPipelineError({
+          submissionId,
+          userId: user.id,
+          examType: "EO",
+          stage: "task_evaluation_failed",
+          errorMessage: message,
+        })
+      )
+    );
     // pipeline_status stays "failed" (set above); is_completed is left untouched so the
     // stored audio remains available for a future manual retry of this same endpoint.
     const notConfigured = stillFailedMessages.some(
@@ -536,6 +548,13 @@ export async function POST(
       submissionId,
       cefrLevel,
       scoreNum,
+    });
+    await logPipelineError({
+      submissionId,
+      userId: user.id,
+      examType: "EO",
+      stage: "save_failed",
+      errorMessage: evalError?.message ?? "insert returned no row",
     });
     // Record the failure rather than leaving the row at "processing" forever —
     // the audio and is_completed are untouched, so this stays retryable, and an

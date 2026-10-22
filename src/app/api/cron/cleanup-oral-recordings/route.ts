@@ -4,7 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export const maxDuration = 60;
 
 const ORAL_RECORDINGS_BUCKET = "oral-recordings";
-const RETENTION_DAYS = 7;
+const RETENTION_DAYS = 3;
 const BATCH_SIZE = 200;
 
 interface SubmissionRow {
