@@ -11,6 +11,7 @@ import { ORAL_EVALUATION_DEFAULT } from "@/lib/ai/prompts";
 import type { OralSubmission } from "@/lib/student/queries";
 import type { OralCombination } from "@/lib/admin/types";
 import { logPipelineError } from "@/lib/logging/pipelineErrorLog";
+import { sanitizeAiText } from "@/lib/ai/sanitize";
 
 // STT (transcription) + LLM scoring are chained sequentially per task rather than a single
 // AI call, so the per-task pipeline runs long than the combination route's single-stage calls.
@@ -526,6 +527,13 @@ export async function POST(
 
   const { cefrLevel, appreciation } = resolveCefr(scoreNum);
 
+  // AI-generated text occasionally contains a broken Unicode sequence that
+  // Postgres refuses to store — strip it before the insert rather than
+  // losing the whole evaluation to a save failure.
+  const task1Data = sanitizeAiText(task1.data);
+  const task2Data = sanitizeAiText(task2.data);
+  const task3Data = sanitizeAiText(task3.data);
+
   const { data: evaluation, error: evalError } = await adminClient
     .from("oral_evaluations")
     .insert({
@@ -533,12 +541,12 @@ export async function POST(
       global_score: scoreNum,
       cefr_level: cefrLevel,
       appreciation: appreciation,
-      task_1_evaluation: task1.data,
-      task_2_evaluation: task2.data,
-      task_3_evaluation: task3.data,
-      transcript_task_1: task1.data.transcript,
-      transcript_task_2: task2.data.transcript,
-      transcript_task_3: task3.data.transcript,
+      task_1_evaluation: task1Data,
+      task_2_evaluation: task2Data,
+      task_3_evaluation: task3Data,
+      transcript_task_1: task1Data.transcript,
+      transcript_task_2: task2Data.transcript,
+      transcript_task_3: task3Data.transcript,
     })
     .select()
     .single();

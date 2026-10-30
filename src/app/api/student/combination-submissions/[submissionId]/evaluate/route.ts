@@ -272,6 +272,9 @@ export async function POST(
 
   const { cefrLevel, appreciation } = resolveCefr(scoreNum);
 
+  // AI-generated text occasionally contains a broken Unicode sequence that
+  // Postgres refuses to store — strip it before the insert rather than
+  // losing the whole evaluation to a save failure.
   const { data: evaluation, error: evalError } = await createSupabaseAdminClient()
     .from("combination_evaluations")
     .insert({
@@ -279,9 +282,9 @@ export async function POST(
       global_score: scoreNum,
       cefr_level: cefrLevel,
       appreciation: appreciation,
-      task_1_evaluation: task1,
-      task_2_evaluation: task2,
-      task_3_evaluation: task3,
+      task_1_evaluation: sanitizeAiText(task1),
+      task_2_evaluation: sanitizeAiText(task2),
+      task_3_evaluation: sanitizeAiText(task3),
     })
     .select()
     .single();
