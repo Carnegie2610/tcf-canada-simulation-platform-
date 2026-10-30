@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { DiagnosticReportSchema } from "@/lib/schemas";
 import { revalidatePath } from "next/cache";
 import { logPipelineError } from "@/lib/logging/pipelineErrorLog";
+import { sanitizeAiText } from "@/lib/ai/sanitize";
 
 export const maxDuration = 60;
 
@@ -140,7 +141,7 @@ export async function POST(
     return NextResponse.json({ error: "ai_schema_mismatch" }, { status: 502 });
   }
 
-  const report = validated.data;
+  const report = sanitizeAiText(validated.data);
 
   // Service role client bypasses RLS for evaluation INSERT
   const adminSupabase = createSupabaseAdminClient();
