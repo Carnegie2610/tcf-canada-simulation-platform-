@@ -10,6 +10,7 @@ import { callAI, type AiResult } from "@/lib/ai/providers";
 import { COMBINATION_EVALUATION_DEFAULT } from "@/lib/ai/prompts";
 import type { Combination, CombinationSubmission } from "@/lib/admin/types";
 import { logPipelineError } from "@/lib/logging/pipelineErrorLog";
+import { sanitizeAiText } from "@/lib/ai/sanitize";
 
 export const maxDuration = 120;
 
